@@ -1,7 +1,7 @@
 package api;
 
 import api.packets.Packet;
-import api.pakets.players.PacketPlayerData;
+import api.packets.players.PacketPlayerData;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,7 +11,9 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by loucass003 on 07/12/16.
  */
-public enum PacketTypes {
+
+public enum PacketTypes
+{
 
     PLAYERDATA(0x0, PacketPlayerData.class);
 
@@ -26,10 +28,10 @@ public enum PacketTypes {
 
     public static Packet getNewPacket(DataInputStream dis, DataOutputStream dos)
             throws IOException,
-                NoSuchMethodException,
-                IllegalAccessException,
-                InvocationTargetException,
-                InstantiationException
+            NoSuchMethodException,
+            IllegalAccessException,
+            InvocationTargetException,
+            InstantiationException
     {
         int id = dis.readByte() & 0xf;
         for (PacketTypes p : values())

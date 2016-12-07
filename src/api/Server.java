@@ -50,8 +50,10 @@ public class Server implements Runnable {
     {
         while(!server.isClosed())
         {
-            try {
+            try
+            {
                 Socket client = this.server.accept();
+
                 boolean accept = false;
                 for (String addr : whiteList)
                 {

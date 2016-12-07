@@ -1,4 +1,4 @@
-package api.pakets.players;
+package api.packets.players;
 
 import api.packets.Packet;
 import java.io.DataInputStream;

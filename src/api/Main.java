@@ -7,7 +7,8 @@ import java.io.IOException;
 /**
  * Created by loucass003 on 06/12/16.
  */
-public class Main extends Plugin{
+public class Main extends Plugin
+{
 
     public Server serverSocket;
 
