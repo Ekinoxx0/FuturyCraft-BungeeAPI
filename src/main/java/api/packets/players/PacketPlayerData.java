@@ -7,15 +7,17 @@ import java.io.DataOutputStream;
 /**
  * Created by loucass003 on 07/12/16.
  */
-public class PacketPlayerData extends Packet {
+public class PacketPlayerData extends Packet
+{
 
-    protected PacketPlayerData(DataInputStream dis, DataOutputStream dos)
+    protected PacketPlayerData(DataInputStream dis, DataOutputStream dos, Type type)
     {
-        super(dis, dos);
+        super(dis, dos, type);
     }
 
     @Override
-    public void handle() {
+    public void handle()
+    {
 
     }
 }

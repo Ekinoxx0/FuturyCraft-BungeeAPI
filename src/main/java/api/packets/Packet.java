@@ -1,5 +1,7 @@
 package api.packets;
 
+import api.Packets;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
@@ -8,13 +10,20 @@ import java.io.DataOutputStream;
  */
 public class Packet
 {
+    public enum Type {
+        GETTER,
+        SETTER;
+    }
+
     protected DataInputStream dis;
     protected DataOutputStream dos;
+    protected Type type;
 
-    protected Packet(DataInputStream dis, DataOutputStream dos)
+    protected Packet(DataInputStream dis, DataOutputStream dos, Type type)
     {
         this.dis = dis;
         this.dos = dos;
+        this.type = type;
     }
 
     public void handle() {}

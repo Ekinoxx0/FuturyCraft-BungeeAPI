@@ -1,10 +1,6 @@
 package api;
 
 import api.packets.Packet;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
@@ -72,14 +68,13 @@ public class Server implements Runnable {
 
                 DataInputStream dis = new DataInputStream(client.getInputStream());
                 DataOutputStream dos = new DataOutputStream(client.getOutputStream());
-                Packet p = PacketTypes.getNewPacket(dis, dos);
+                Packet p = Packets.getNewPacket(dis, dos);
                 if(p == null)
                 {
                     //TODO : send error;
                     client.close();
                     continue;
                 }
-
                 p.handle();
             }
             catch (IOException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e)
