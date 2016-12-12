@@ -34,7 +34,7 @@ public class Server implements Runnable {
         this.mainThread.start();
     }
 
-    public synchronized void clear() throws IOException
+    public void clear() throws IOException
     {
         this.server.close();
         this.whiteList.clear();

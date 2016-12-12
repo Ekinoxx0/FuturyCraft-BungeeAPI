@@ -9,9 +9,9 @@ public class PlayerData extends Model
 {
     private String uuid;
     private String name;
-    private int futuryCoins;
-    private int turfuryCoins;
-    private int reputation;
+    private double futuryCoins;
+    private double turfuryCoins;
+    private double reputation;
 
     public PlayerData(String uuid)
     {
@@ -34,17 +34,17 @@ public class PlayerData extends Model
         this.name = name;
     }
 
-    public void setFuturyCoins(int futuryCoins)
+    public void setFuturyCoins(double futuryCoins)
     {
         this.futuryCoins = futuryCoins;
     }
 
-    public void setReputation(int reputation)
+    public void setReputation(double reputation)
     {
         this.reputation = reputation;
     }
 
-    public void setTurfuryCoins(int turfuryCoins)
+    public void setTurfuryCoins(double turfuryCoins)
     {
         this.turfuryCoins = turfuryCoins;
     }
@@ -54,17 +54,17 @@ public class PlayerData extends Model
         return uuid;
     }
 
-    public int getFuturyCoins()
+    public double getFuturyCoins()
     {
         return futuryCoins;
     }
 
-    public int getReputation()
+    public double getReputation()
     {
         return reputation;
     }
 
-    public int getTurfuryCoins()
+    public double getTurfuryCoins()
     {
         return turfuryCoins;
     }

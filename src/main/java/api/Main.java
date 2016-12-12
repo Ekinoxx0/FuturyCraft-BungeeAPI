@@ -29,13 +29,6 @@ public class Main extends Plugin
     public void onEnable()
     {
         jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
-
-        PlayerData p  = new PlayerData("uuidplop");
-        p.setName("toto");
-        p.setFuturyCoins(25);
-        p.setReputation(5);
-        p.setTurfuryCoins(7);
-        p.save();
         try
         {
             this.serverSocket.init();
