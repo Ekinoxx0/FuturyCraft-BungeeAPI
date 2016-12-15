@@ -1,6 +1,5 @@
-package api;
+package api.packets;
 
-import api.packets.Packet;
 import api.packets.players.PacketPlayerData;
 
 import java.io.DataInputStream;

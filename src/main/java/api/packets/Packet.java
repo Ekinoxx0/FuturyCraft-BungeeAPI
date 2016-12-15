@@ -1,7 +1,5 @@
 package api.packets;
 
-import api.Packets;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 

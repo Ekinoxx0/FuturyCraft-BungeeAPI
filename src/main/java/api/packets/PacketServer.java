@@ -1,6 +1,7 @@
-package api;
+package api.packets;
 
-import api.packets.Packet;
+import api.Main;
+
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
@@ -11,14 +12,15 @@ import java.util.List;
 /**
  * Created by loucass003 on 07/12/16.
  */
-public class Server implements Runnable {
+public class PacketServer implements Runnable
+{
 
     public Main main;
     public ServerSocket server;
     public Thread mainThread;
     public List<String> whiteList;
 
-    public Server(Main main)
+    public PacketServer(Main main)
     {
         this.main = main;
         this.whiteList = new ArrayList<>();
@@ -34,7 +36,7 @@ public class Server implements Runnable {
         this.mainThread.start();
     }
 
-    public void clear() throws IOException
+    public synchronized void clear() throws IOException
     {
         this.server.close();
         this.whiteList.clear();

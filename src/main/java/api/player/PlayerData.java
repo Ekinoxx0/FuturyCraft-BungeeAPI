@@ -1,4 +1,6 @@
-package api;
+package api.player;
+
+import api.Model;
 
 import java.util.UUID;
 

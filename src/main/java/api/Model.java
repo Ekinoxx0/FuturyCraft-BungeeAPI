@@ -9,7 +9,8 @@ import java.lang.reflect.Modifier;
 /**
  * Created by loucass003 on 10/12/16.
  */
-public class Model {
+public class Model
+{
 
     protected final String list;
     protected final String key;
@@ -31,13 +32,15 @@ public class Model {
     public void save()
     {
         Jedis jedis = null;
-        try {
+        try
+        {
             jedis = Main.jedisPool.getResource();
             jedis.hset(list, key, this.toString());
-        } finally {
-            if (jedis != null) {
+        }
+        finally
+        {
+            if (jedis != null)
                 jedis.close();
-            }
         }
     }
 }
