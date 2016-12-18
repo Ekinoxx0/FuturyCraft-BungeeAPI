@@ -33,7 +33,7 @@ public class MessengerClient
 		this.messengerServer = messengerServer;
 		this.socket = socket;
 		in = new DataInputStream(socket.getInputStream());
-		out = new DataOutputStream(socket.getOutputStream());
+		out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 		setupSocketListener();
 	}
 
@@ -52,12 +52,16 @@ public class MessengerClient
 					disconnect(); //Disconnect
 					return; //Don't run the infinite loop
 				}
+
+				out.writeBoolean(true);
+				out.flush();
 			}
 			catch (Exception e)
 			{
 				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier (Client: " + this
 								+ ")",
 						e);
+				return;
 			}
 
 			//Socket identified
@@ -75,12 +79,18 @@ public class MessengerClient
 
 					handleData(id, transactionID, data);
 				}
-				catch (Exception e)
+				catch (IOException e)
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
 										this + ")",
 								e);
+				}
+				catch (Exception e)
+				{
+					Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the socket (Client: " +
+									this + ")",
+							e);
 				}
 			}
 		}
@@ -167,6 +177,7 @@ public class MessengerClient
 			out.write(transactionID);
 			out.write(array.size());
 			out.write(array.toByteArray());
+			out.flush();
 		}
 	}
 

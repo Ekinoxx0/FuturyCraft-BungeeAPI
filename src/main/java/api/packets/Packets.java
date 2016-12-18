@@ -13,13 +13,13 @@ import java.io.IOException;
  */
 public enum Packets
 {
+	// OUTGOING - Spigot-bound
+	REQUEST_TPS((byte) 0x01, false, RequestTPS.class),
+	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerData.class),
+
 	// INCOMING - Bungee-bound
 	REQUEST_PLAYER_DATA((byte) 0x00, true, RequestPlayerData.class),
-	REQUEST_TPS((byte) 0x01, true, RequestTPS.class),
-
-	// OUTGOING - Spigot-bound
-	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerData.class),
-	SEND_TPS((byte) 0x01, false, SendTPS.class);
+	SEND_TPS((byte) 0x01, true, SendTPS.class);
 
 	private final byte id;
 	private final boolean in;
