@@ -3,6 +3,7 @@ package api.deployer;
 import api.Main;
 import api.config.ServerConfig;
 import api.utils.UnzipUtilities;
+import api.utils.Utils;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -15,7 +16,8 @@ import java.nio.file.Files;
 /**
  * Created by loucass003 on 15/12/16.
  */
-public class Server implements Runnable {
+public class Server implements Runnable
+{
     private final ServerConfig config;
     public String name;
     public ServerType type;
@@ -26,13 +28,15 @@ public class Server implements Runnable {
     public int slots;
     public File serverFolder;
     public Thread crrentThread;
+    public Process process;
 
     public enum ServerType {
         LOBBY,
         GAME
     }
 
-    public Server(ServerType type, ServerConfig config, int port, int slots) {
+    public Server(ServerType type, ServerConfig config, int port, int slots)
+    {
         this.type = type;
         this.config = config;
         this.port = port;
@@ -98,10 +102,11 @@ public class Server implements Runnable {
             String s;
             while ((s = in.readLine()) != null)
             {
-                System.out.println(s);
+                //TODO: Packet log;
             }
             int status = p.waitFor();
-            System.out.println("Exited with status: " + status);
+            //TODO: Save stop status;
+            remove();
         }
         catch (IOException | InterruptedException e)
         {
@@ -109,8 +114,31 @@ public class Server implements Runnable {
         }
     }
 
+    public void remove()
+    {
+        Thread t = new Thread(() ->
+        {
+            try
+            {
+                Utils.delete(serverFolder);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                Main.getInstance().getLogger().severe("Unable to remove server on \"" + serverFolder.getAbsolutePath() + "\"");
+            }
+        });
+        t.start();
+    }
+
     public void start() {
         this.crrentThread.start();
+    }
+
+    public void kill()
+    {
+        process.destroy();
+        crrentThread.interrupt();
     }
 
     public String getName() {
@@ -164,6 +192,5 @@ public class Server implements Runnable {
     public void setSlots(int slots) {
         this.slots = slots;
     }
-
 
 }
