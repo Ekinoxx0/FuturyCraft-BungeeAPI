@@ -1,11 +1,10 @@
 package api.packets;
 
-import api.packets.players.PacketPlayerData;
+import api.packets.players.RequestPlayerData;
+import api.packets.players.SendPlayerData;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by loucass003 on 07/12/16.
@@ -13,28 +12,32 @@ import java.lang.reflect.InvocationTargetException;
 
 public enum Packets
 {
-    PLAYERDATA(0x0, PacketPlayerData.class);
+	REQUEST_PLAYER_DATA((byte) 0x00, RequestPlayerData.class),
+	SEND_PLAYER_DATA((byte) 0x01, SendPlayerData.class);
 
-    public int id;
-    public Class<? extends Packet> clazz;
+	private final byte id;
+	private final Class<? extends Packet> clazz;
 
-    Packets(int id, Class<? extends Packet> clazz)
-    {
-        this.id = id;
-        this.clazz = clazz;
-    }
+	Packets(byte id, Class<? extends Packet> clazz)
+	{
+		this.id = id;
+		this.clazz = clazz;
+	}
 
-    public static Packet getNewPacket(DataInputStream dis, DataOutputStream dos)
-            throws IOException,
-            NoSuchMethodException,
-            IllegalAccessException,
-            InvocationTargetException,
-            InstantiationException
-    {
-        int id = dis.readByte() & 0xf;
-        for (Packets p : values())
-            if (id == p.id)
-                return p.clazz.getDeclaredConstructor(DataInputStream.class, DataInputStream.class).newInstance(dis, dos);
-        return null;
-    }
+	static Packet constructPacket(byte id, DataInputStream dis)
+			throws IOException, ReflectiveOperationException
+	{
+		for (Packets p : values())
+			if (id == p.id)
+				return p.clazz.getConstructor(DataInputStream.class).newInstance(dis);
+		return null;
+	}
+
+	static byte getID(Class<? extends Packet> clazz)
+	{
+		for (Packets p : values())
+			if (clazz == p.clazz)
+				return p.id;
+		throw new IllegalArgumentException("ID not found"); //Should never happen
+	}
 }

@@ -4,10 +4,7 @@ import api.Main;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -15,14 +12,15 @@ import java.util.logging.Level;
 /**
  * Created by SkyBeast on 17/12/2016.
  */
-public class MessengerClient {
+public class MessengerClient
+{
 	private final MessengerServer messengerServer;
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
 	private Thread listener;
 	private ServerInfo server;
-	private transient boolean end;
+	private transient boolean end = false;
 
 
 	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in Server connection
@@ -46,14 +44,15 @@ public class MessengerClient {
 				if (!identify(port))
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "The socket sent a non-registered port for " +
-							"identification! Disconnecting it...");
+							"identification! Disconnecting it... (Client: " + this + ")");
 					disconnect(); //Disconnect
 					return; //Don't run the infinite loop
 				}
 			}
 			catch (Exception e)
 			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier",
+				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier (Client: " + this
+								+ ")",
 						e);
 			}
 
@@ -64,27 +63,18 @@ public class MessengerClient {
 				try
 				{
 					byte cmd = in.readByte();
+					short i = in.readShort();
+					byte[] data = new byte[i];
 
-					switch (cmd) //I won't make an Enum because it is not necessary
-					{
-						case 0x00: //SEND_DATA
-							short i = in.readShort();
-							byte[] data = new byte[i];
+					in.readFully(data); //Read all data and store it to the array
 
-							in.readFully(data); //Read all data and store it to the array
-
-							handleData(data);
-
-							break;
-						default:
-							Main.getInstance().getLogger().log(Level.SEVERE, "The socket sent an invalid command! " +
-									"Command ID: " + cmd);
-					}
+					handleData(data);
 				}
 				catch (Exception e)
 				{
 					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command",
+						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
+										this + ")",
 								e);
 				}
 			}
@@ -94,25 +84,24 @@ public class MessengerClient {
 		listener.start();
 	}
 
-	private void handleData(byte[] arrayIn)
+	private void handleData(byte[] arrayIn) throws IOException
 	{
-		new Thread(() ->
-		{
-			DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
-			// from the byte array, so it can be redistributed
-		}
-		).start();
-	}
+		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
+		// from the byte array, so it can be redistributed
 
-	private void disconnect()
-	{
-		messengerServer.unregister(this);
-		end = true;
+		byte id = data.readByte();
+
 		try
 		{
-			socket.close();
+
+			Packet packet = Packets.constructPacket(id, data);
 		}
-		catch (IOException ignored) {}
+		catch (ReflectiveOperationException e)
+		{
+			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
+					"data" +
+					" " + Arrays.toString(arrayIn) + " (Client: " + this + ")", e);
+		}
 	}
 
 	private boolean identify(int port)
@@ -131,8 +120,47 @@ public class MessengerClient {
 		return false;
 	}
 
+	public void sendPacket(OutPacket packet) throws IOException
+	{
+		ByteArrayOutputStream array = new ByteArrayOutputStream();
+		DataOutputStream data = new DataOutputStream(new ByteArrayOutputStream());
+		packet.write(data);
+
+		synchronized (out)
+		{
+			out.write(Packets.getID(packet.getClass()));
+			out.write(array.size());
+			out.write(array.toByteArray());
+		}
+	}
+
+	public void disconnect()
+	{
+		messengerServer.unregister(this);
+		end = true;
+		try
+		{
+			socket.close();
+		}
+		catch (IOException ignored) {}
+	}
+
 	public ServerInfo getInfo()
 	{
 		return server;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "MessengerClient{" +
+				"messengerServer=" + messengerServer +
+				", socket=" + socket +
+				", in=" + in +
+				", out=" + out +
+				", listener=" + listener +
+				", server=" + server +
+				", end=" + end +
+				'}';
 	}
 }
