@@ -16,7 +16,6 @@ import java.nio.file.Files;
  * Created by loucass003 on 15/12/16.
  */
 public class Server implements Runnable {
-
     private final ServerConfig config;
     public String name;
     public ServerType type;
@@ -27,6 +26,11 @@ public class Server implements Runnable {
     public int slots;
     public File serverFolder;
     public Thread crrentThread;
+
+    public enum ServerType {
+        LOBBY,
+        GAME
+    }
 
     public Server(ServerType type, ServerConfig config, int port, int slots) {
         this.type = type;
@@ -41,20 +45,25 @@ public class Server implements Runnable {
         this.properties = new File(config.getSpigotPath());
     }
 
-    public void deploy() {
-        if (!serverFolder.exists()) {
-            if (!serverFolder.mkdirs()) {
+    public void deploy()
+    {
+        if (!serverFolder.exists())
+        {
+            if (!serverFolder.mkdirs())
+            {
                 Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
                 return;
             }
         }
 
         UnzipUtilities unzipper = new UnzipUtilities();
-        try {
+        try
+        {
             Files.copy(spigot.toPath(), serverFolder.toPath());
             unzipper.unzip(properties, serverFolder);
             File serverProps = new File(serverFolder, "server.properties");
-            if (!serverProps.exists()) {
+            if (!serverProps.exists())
+            {
                 Main.getInstance().getLogger().severe("Unable to edit server.properties file on \"" + getName() + "\"");
                 return;
             }
@@ -62,14 +71,17 @@ public class Server implements Runnable {
             ProxyServer proxy = Main.getInstance().getProxy();
             proxy.getServers().put(name, proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false));
 
-        } catch (Exception ex) {
+        } catch (Exception ex)
+        {
             ex.printStackTrace();
         }
     }
 
     @Override
-    public void run() {
-        try {
+    public void run()
+    {
+        try
+        {
             String jvmArgs = String.format("-Xmx%d ", config.getMaxRam()) +
                     String.format("-Xms%d ", config.getMinRam()) +
                     config.getJvmArgs() +
@@ -84,12 +96,15 @@ public class Server implements Runnable {
             Process p = pb.start();
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String s;
-            while ((s = in.readLine()) != null) {
+            while ((s = in.readLine()) != null)
+            {
                 System.out.println(s);
             }
             int status = p.waitFor();
             System.out.println("Exited with status: " + status);
-        } catch (IOException | InterruptedException e) {
+        }
+        catch (IOException | InterruptedException e)
+        {
             e.printStackTrace();
         }
     }
@@ -150,8 +165,5 @@ public class Server implements Runnable {
         this.slots = slots;
     }
 
-    public enum ServerType {
-        LOBBY,
-        GAME
-    }
+
 }

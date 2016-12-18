@@ -10,7 +10,7 @@ public class Packet
 {
     public enum Type {
         GETTER,
-        SETTER;
+        SETTER
     }
 
     protected DataInputStream dis;
