@@ -1,9 +1,9 @@
 package api.packets;
 
 import api.packets.players.RequestPlayerData;
-import api.packets.players.RequestTPS;
 import api.packets.players.SendPlayerData;
-import api.packets.players.SendTPS;
+import api.packets.server.RequestTPS;
+import api.packets.server.SendTPS;
 
 import java.io.DataInputStream;
 import java.io.IOException;
