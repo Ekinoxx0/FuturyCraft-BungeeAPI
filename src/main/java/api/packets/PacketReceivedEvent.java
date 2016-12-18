@@ -8,10 +8,12 @@ import net.md_5.bungee.api.plugin.Event;
 public class PacketReceivedEvent extends Event
 {
 	private final IncPacket packet;
+	private final short transactionID;
 
-	public PacketReceivedEvent(IncPacket packet)
+	public PacketReceivedEvent(IncPacket packet, short transactionID)
 	{
 		this.packet = packet;
+		this.transactionID = transactionID;
 	}
 
 	public IncPacket getPacket()
@@ -19,11 +21,17 @@ public class PacketReceivedEvent extends Event
 		return packet;
 	}
 
+	public short getTransactionID()
+	{
+		return transactionID;
+	}
+
 	@Override
 	public String toString()
 	{
 		return "PacketReceivedEvent{" +
 				"packet=" + packet +
+				", transactionID=" + transactionID +
 				'}';
 	}
 
@@ -35,12 +43,16 @@ public class PacketReceivedEvent extends Event
 
 		PacketReceivedEvent that = (PacketReceivedEvent) o;
 
+		if (transactionID != that.transactionID) return false;
 		return packet != null ? packet.equals(that.packet) : that.packet == null;
+
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return packet != null ? packet.hashCode() : 0;
+		int result = packet != null ? packet.hashCode() : 0;
+		result = 31 * result + (int) transactionID;
+		return result;
 	}
 }

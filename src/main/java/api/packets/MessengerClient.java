@@ -97,25 +97,30 @@ public class MessengerClient
 
 		try
 		{
-			Packet packet = Packets.constructPacket(id, data);
+			IncPacket packet = Packets.constructIncomingPacket(id, data);
 
-			if (packet != null)
-				synchronized (listeners)
+			if (packet == null)
+				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
+						+ ", in=" + Arrays.toString(arrayIn) + ")");
+
+			synchronized (listeners)
+			{
+				listeners.forEach(listener ->
 				{
-					listeners.forEach(listener ->
+					if (listener.transactionID == transactionID && listener.clazz == packet.getClass())
 					{
-						if (listener.transactionID == transactionID && listener.clazz == packet.getClass())
-						{
-							((Callback<OutPacket>) listener.callback).response((OutPacket) packet);
-						}
-					});
-				}
+						((Callback<IncPacket>) listener.callback).response(packet);
+						listeners.remove(listener);
+					}
+				});
+			}
+
+			ProxyServer.getInstance().getPluginManager().callEvent(new PacketReceivedEvent(packet, transactionID));
 		}
 		catch (ReflectiveOperationException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
-					"data" +
-					" " + Arrays.toString(arrayIn) + " (Client: " + this + ")", e);
+					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ")", e);
 		}
 	}
 
