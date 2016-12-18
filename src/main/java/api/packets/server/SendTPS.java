@@ -1,4 +1,4 @@
-package api.packets.players;
+package api.packets.server;
 
 import api.packets.IncPacket;
 

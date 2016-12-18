@@ -1,4 +1,4 @@
-package api.packets.players;
+package api.packets.server;
 
 import api.packets.Callback;
 import api.packets.MessengerClient;
@@ -44,7 +44,7 @@ public class RequestTPS extends OutPacket
 			out.set(sent);
 		});
 
-		if (timeout == 0) //Wait until the package arrived
+		if (timeout == 0) //Wait until the packet arrived
 			condition.await();
 		else
 			condition.await(timeout, unit);
