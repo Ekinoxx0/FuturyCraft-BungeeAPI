@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,28 +17,29 @@ import java.util.Map;
 public class DeployerConfig
 {
 
-    public Map<Server.ServerType, Map<String, ServerConfig>> serversTemplates;
+    public Map<Server.ServerType, Map<String, List<ServerConfig>>> serversTemplates;
+    public String deployerFolder;
 
     public DeployerConfig()
     {
         this.serversTemplates = new HashMap<>();
+        this.deployerFolder = "";
     }
 
-    public Map<Server.ServerType, Map<String, ServerConfig>> getServersTemplates()
+    public Map<Server.ServerType, Map<String, List<ServerConfig>>> getServersTemplates()
     {
         return serversTemplates;
     }
 
     public static DeployerConfig getConfig()
     {
-
         File f = new File(Main.getInstance().getDataFolder(), "deployer.json");
         if(!f.exists())
         {
             try {
                 if(!f.createNewFile())
                 {
-                    Main.getInstance().getLogger().info("Unable to create deployer config file");
+                    Main.getInstance().getLogger().info("Unable to create deployerFolder config file");
                     return null;
                 }
             }

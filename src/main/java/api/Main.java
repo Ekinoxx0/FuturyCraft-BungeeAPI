@@ -9,9 +9,11 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Created by loucass003 on 06/12/16.
@@ -76,3 +78,4 @@ public class Main extends Plugin
         return instance;
     }
 }
+

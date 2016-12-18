@@ -1,9 +1,6 @@
 package api.utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Created by loucass003 on 15/12/16.
@@ -40,5 +37,19 @@ public class Utils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static void delete(File f) throws IOException
+    {
+        if (f.isDirectory())
+        {
+            File[] files = f.listFiles();
+            if (files == null)
+                throw new NullPointerException("Failed to delete file: " + f);
+            for (File c : files)
+                delete(c);
+        }
+        if (!f.delete())
+            throw new FileNotFoundException("Failed to delete file: " + f);
     }
 }

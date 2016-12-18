@@ -5,11 +5,22 @@ package api.config;
  */
 public class ServerConfig
 {
+    private String spigotPath;
+    private String mapPath;
+    private String propsPath;
+    private String jvmArgs;
+    private String spigotArgs;
+    private int minRam;
+    private int maxRam;
 
-    public String type;
-    public String spigotPath;
-    public String mapPath;
-    public String propsPath;
+    public ServerConfig(String spigotPath, String mapPath, String propsPath, String jvmArgs, int minRam, int maxRam) {
+        this.spigotPath = spigotPath;
+        this.mapPath = mapPath;
+        this.propsPath = propsPath;
+        this.jvmArgs = jvmArgs;
+        this.minRam = minRam;
+        this.maxRam = maxRam;
+    }
 
     public String getMapPath()
     {
@@ -26,28 +37,19 @@ public class ServerConfig
         return spigotPath;
     }
 
-    public String getType()
-    {
-        return type;
+    public String getJvmArgs() {
+        return jvmArgs;
     }
 
-    public void setMapPath(String mapPath)
-    {
-        this.mapPath = mapPath;
+    public String getSpigotArgs() {
+        return spigotArgs;
     }
 
-    public void setPropsPath(String propsPath)
-    {
-        this.propsPath = propsPath;
+    public int getMinRam() {
+        return minRam;
     }
 
-    public void setSpigotPath(String spigotPath)
-    {
-        this.spigotPath = spigotPath;
-    }
-
-    public void setType(String type)
-    {
-        this.type = type;
+    public int getMaxRam() {
+        return maxRam;
     }
 }
