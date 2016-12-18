@@ -40,8 +40,8 @@ public class RequestTPS extends OutPacket
 
 		client.listenPacket(SendTPS.class, transaction, sent ->
 		{
-			condition.signalAll();
 			out.set(sent);
+			condition.signalAll();
 		});
 
 		if (timeout == 0) //Wait until the packet arrived
