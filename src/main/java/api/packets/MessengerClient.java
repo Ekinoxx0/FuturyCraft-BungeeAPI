@@ -57,7 +57,7 @@ public class MessengerClient {
 						e);
 			}
 
-			//Identified
+			//Socket identified
 
 			while (!socket.isClosed())
 			{
