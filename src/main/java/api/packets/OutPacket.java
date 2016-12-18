@@ -8,7 +8,7 @@ import java.io.IOException;
  */
 public abstract class OutPacket extends Packet
 {
-	protected OutPacket() {}
+	public OutPacket() {}
 
-	public abstract void write(DataOutputStream binary) throws IOException;
+	public void write(DataOutputStream binary) throws IOException {}
 }

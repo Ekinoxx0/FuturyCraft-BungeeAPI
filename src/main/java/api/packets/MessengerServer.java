@@ -24,7 +24,7 @@ public class MessengerServer
 	private final List<MessengerClient> nonRegistered = new ArrayList<>(); //Else, non-registered Clients might be
 	// garbage collected
 	private Thread connectionListener;
-	private transient boolean end = false;
+	private volatile boolean end = false;
 
 	public MessengerServer(int port, String[] whitelist)
 	{
@@ -61,8 +61,14 @@ public class MessengerServer
 					MessengerClient client = new MessengerClient(socket, this); // Will register itself once identified
 
 					listLock.lock();
-					nonRegistered.add(client);
-					listLock.unlock();
+					try
+					{
+						nonRegistered.add(client);
+					}
+					finally
+					{
+						listLock.unlock();
+					}
 				}
 				catch (IOException e)
 				{
@@ -87,17 +93,30 @@ public class MessengerServer
 	void register(ServerInfo info, MessengerClient client) //Called by the client listener once identified
 	{
 		listLock.lock();
-		nonRegistered.remove(client);
-		connected.put(info, client);
-		listLock.unlock();
+		try
+		{
+			nonRegistered.remove(client);
+			connected.put(info, client);
+		}
+		finally
+		{
+			listLock.unlock();
+		}
 	}
 
 	void unregister(MessengerClient client)
 	{
 		listLock.lock();
-		nonRegistered.remove(client); //Remove if present
-		connected.remove(client.getInfo()); //Remove if present
-		listLock.unlock();
+		try
+		{
+			nonRegistered.remove(client); //Remove if present
+			connected.remove(client.getInfo()); //Remove if present
+			listLock.unlock();
+		}
+		finally
+		{
+			listLock.unlock();
+		}
 	}
 
 	@Override

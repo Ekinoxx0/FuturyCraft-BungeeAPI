@@ -6,7 +6,9 @@ import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -18,9 +20,11 @@ public class MessengerClient
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
+	private final List<PacketListener<?>> listeners = new ArrayList<>();
+	private short lastTransactionID = 0x0000;
 	private Thread listener;
 	private ServerInfo server;
-	private transient boolean end = false;
+	private volatile boolean end = false;
 
 
 	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in Server connection
@@ -62,13 +66,14 @@ public class MessengerClient
 			{
 				try
 				{
-					byte cmd = in.readByte();
+					byte id = in.readByte();
+					short transactionID = in.readShort();
 					short i = in.readShort();
 					byte[] data = new byte[i];
 
 					in.readFully(data); //Read all data and store it to the array
 
-					handleData(data);
+					handleData(id, transactionID, data);
 				}
 				catch (Exception e)
 				{
@@ -84,17 +89,27 @@ public class MessengerClient
 		listener.start();
 	}
 
-	private void handleData(byte[] arrayIn) throws IOException
+	@SuppressWarnings("unchecked")
+	private void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
 	{
 		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
 		// from the byte array, so it can be redistributed
 
-		byte id = data.readByte();
-
 		try
 		{
-
 			Packet packet = Packets.constructPacket(id, data);
+
+			if (packet != null)
+				synchronized (listeners)
+				{
+					listeners.forEach(listener ->
+					{
+						if (listener.transactionID == transactionID && listener.clazz == packet.getClass())
+						{
+							((Callback<OutPacket>) listener.callback).response((OutPacket) packet);
+						}
+					});
+				}
 		}
 		catch (ReflectiveOperationException e)
 		{
@@ -120,7 +135,22 @@ public class MessengerClient
 		return false;
 	}
 
-	public void sendPacket(OutPacket packet) throws IOException
+	public <T extends IncPacket> void listenPacket(Class<T> clazz, int transactionID, Callback<T> callback)
+	{
+		synchronized (listeners)
+		{
+			listeners.add(new PacketListener<>(clazz, callback, transactionID));
+		}
+	}
+
+	public short sendPacket(OutPacket packet) throws IOException
+	{
+		short transactionID = lastTransactionID++;
+		sendPacket(packet, transactionID);
+		return transactionID;
+	}
+
+	public void sendPacket(OutPacket packet, short transactionID) throws IOException
 	{
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(new ByteArrayOutputStream());
@@ -129,6 +159,7 @@ public class MessengerClient
 		synchronized (out)
 		{
 			out.write(Packets.getID(packet.getClass()));
+			out.write(transactionID);
 			out.write(array.size());
 			out.write(array.toByteArray());
 		}
@@ -158,9 +189,25 @@ public class MessengerClient
 				", socket=" + socket +
 				", in=" + in +
 				", out=" + out +
+				", listeners=" + listeners +
+				", lastTransactionID=" + lastTransactionID +
 				", listener=" + listener +
 				", server=" + server +
 				", end=" + end +
 				'}';
+	}
+
+	private static class PacketListener<T>
+	{
+		Class<T> clazz;
+		Callback<T> callback;
+		int transactionID;
+
+		PacketListener(Class<T> clazz, Callback<T> callback, int transactionID)
+		{
+			this.clazz = clazz;
+			this.callback = callback;
+			this.transactionID = transactionID;
+		}
 	}
 }
