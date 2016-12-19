@@ -1,15 +1,15 @@
 package api.packets;
 
 import api.Main;
+import api.data.Server;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -18,36 +18,41 @@ import java.util.stream.Stream;
  */
 public class MessengerServer
 {
-	private final ServerSocket server;
+	private ServerSocket server;
 	private final int port;
 	private final String[] whiteList;
-	private final Lock listLock = new ReentrantLock();
-	private final Map<ServerInfo, MessengerClient> connected = new HashMap<>();
 	private final List<MessengerClient> nonRegistered = new ArrayList<>(); //Else, non-registered Clients might be
 	// garbage collected
 	private Thread connectionListener;
 	private volatile boolean end = false;
+	private boolean init = false;
 
 	public MessengerServer(int port, String[] whiteList)
 	{
 		this.port = port;
 		this.whiteList = whiteList;
+	}
 
-		try
+	public void init()
+	{
+		if (!init)
 		{
-			server = new ServerSocket(port);
-			setupConnectionListener();
+			try
+			{
+				server = new ServerSocket(port);
+				setupConnectionListener();
+			}
+			catch (Exception e)
+			{
+				Main.getInstance().getLogger().log(Level.SEVERE, "Error while creating the ServerSocket (Server: " +
+						this
+						+ ")", e);
+
+				ProxyServer.getInstance().stop(); //StopPacket because this server is not usable now
+
+				throw new IllegalStateException(e);
+			}
 		}
-		catch (Exception e)
-		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while creating the ServerSocket (Server: " + this
-					+ ")", e);
-
-			ProxyServer.getInstance().stop(); //Stop because this server is not usable now
-
-			throw new IllegalStateException(e);
-		}
-
 	}
 
 	private void setupConnectionListener()
@@ -74,14 +79,9 @@ public class MessengerServer
 
 					MessengerClient client = new MessengerClient(socket, this); //Will register itself once identified
 
-					listLock.lock();
-					try
+					synchronized (nonRegistered)
 					{
 						nonRegistered.add(client);
-					}
-					finally
-					{
-						listLock.unlock();
 					}
 				}
 				catch (IOException e)
@@ -113,47 +113,29 @@ public class MessengerServer
 		}
 		catch (IOException ignored) {}
 
-		listLock.lock();
-		try
+		synchronized (nonRegistered)
 		{
 			nonRegistered.forEach(MessengerClient::disconnect);
 			nonRegistered.clear();
-			connected.values().forEach(MessengerClient::disconnect);
-			connected.clear();
-		}
-		finally
-		{
-			listLock.unlock();
 		}
 
 	}
 
-	void register(ServerInfo info, MessengerClient client) //Called by the client listener once identified
+	void register(Server server, MessengerClient client) //Called by the client listener once identified
 	{
-		listLock.lock();
-		try
+		synchronized (nonRegistered)
 		{
 			nonRegistered.remove(client);
-			connected.put(info, client);
 		}
-		finally
-		{
-			listLock.unlock();
-		}
+
+		Main.getInstance().getDataManager().updateMessenger(server, client);
 	}
 
 	void unregister(MessengerClient client)
 	{
-		listLock.lock();
-		try
+		synchronized (nonRegistered)
 		{
 			nonRegistered.remove(client); //Remove if present
-			connected.remove(client.getInfo()); //Remove if present
-			listLock.unlock();
-		}
-		finally
-		{
-			listLock.unlock();
 		}
 	}
 
@@ -164,11 +146,10 @@ public class MessengerServer
 				"server=" + String.valueOf(server) +
 				", port=" + port +
 				", whiteList=" + Arrays.toString(whiteList) +
-				", listLock=" + listLock +
-				", connected=" + connected +
 				", nonRegistered=" + nonRegistered +
 				", connectionListener=" + connectionListener +
 				", end=" + end +
+				", init=" + init +
 				'}';
 	}
 }

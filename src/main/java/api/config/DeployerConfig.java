@@ -2,7 +2,6 @@ package api.config;
 
 import api.Main;
 import api.deployer.Server;
-import api.utils.Utils;
 import com.google.gson.Gson;
 
 import java.io.File;

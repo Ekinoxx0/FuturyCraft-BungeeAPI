@@ -9,11 +9,11 @@ import java.util.Arrays;
 /**
  * Created by loucass003 on 07/12/16.
  */
-public class SendTPS extends IncPacket
+public class SendTPSPacket extends IncPacket
 {
 	private final byte[] lastTPS;
 
-	public SendTPS(DataInputStream data) throws IOException
+	public SendTPSPacket(DataInputStream data) throws IOException
 	{
 		super(data);
 
@@ -39,7 +39,7 @@ public class SendTPS extends IncPacket
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		SendTPS sendTPS = (SendTPS) o;
+		SendTPSPacket sendTPS = (SendTPSPacket) o;
 
 		return Arrays.equals(lastTPS, sendTPS.lastTPS);
 	}

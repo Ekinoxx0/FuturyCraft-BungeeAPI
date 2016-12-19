@@ -1,76 +1,84 @@
 package api;
 
+import api.data.DataManager;
 import api.deployer.Deployer;
-import api.player.PlayerData;
+import api.packets.MessengerServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.io.File;
 
 /**
  * Created by loucass003 on 06/12/16.
  */
 public class Main extends Plugin
 {
-    public static JedisPool jedisPool;
-    public static Main instance;
+	private static Main instance;
 
-    public PacketServer serverSocket;
-    public Deployer deployer;
+	private final JedisPool jedisPool;
 
-    public Map<UUID, PlayerData> players;
+	private final MessengerServer messenger;
+	private final Deployer deployer;
+	private final DataManager dataManager;
 
+	public Main()
+	{
+		instance = this;
+		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
+		messenger = new MessengerServer(5555, new String[]{"localhost", "127.0.0.1"});
+		deployer = new Deployer();
+		dataManager = new DataManager();
+	}
 
-    public Main()
-    {
-        instance = this;
-        this.serverSocket = new PacketServer(this);
-        this.deployer = new Deployer(this);
-        this.players = new HashMap<>();
-    }
+	@Override
+	public void onEnable()
+	{
+		File dataFolder = Main.getInstance().getDataFolder();
+		if (!dataFolder.exists() && !dataFolder.mkdirs())
+			throw new IllegalStateException("Cannot mkdirs data folder");
 
-    @Override
-    public void onEnable()
-    {
-        if(!Main.getInstance().getDataFolder().exists())
-            Main.getInstance().getDataFolder().mkdirs();
-        jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
-        try
-        {
-            this.serverSocket.init();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            getLogger().severe("[FcAPI] Unable to start socket server");
-        }
-        this.deployer.init();
-        getLogger().info("FcApiBungee enabled !");
-    }
+		deployer.init();
+		messenger.init();
+		dataManager.init();
 
-    @Override
-    public void onDisable()
-    {
-        if(!jedisPool.isClosed())
-            jedisPool.close();
-        jedisPool.destroy();
-        try
-        {
-            this.serverSocket.clear();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            getLogger().severe("[FcAPI] Unable to close socket server");
-        }
-    }
+		getLogger().info("FcApiBungee enabled !");
+	}
 
-    public static Main getInstance()
-    {
-        return instance;
-    }
+	@Override
+	public void onDisable()
+	{
+		deployer.stop();
+		messenger.stop();
+		dataManager.stop();
+
+		if (!jedisPool.isClosed())
+			jedisPool.close();
+		jedisPool.destroy();
+	}
+
+	public static Main getInstance()
+	{
+		return instance;
+	}
+
+	public JedisPool getJedisPool()
+	{
+		return jedisPool;
+	}
+
+	public MessengerServer getMessenger()
+	{
+		return messenger;
+	}
+
+	public Deployer getDeployer()
+	{
+		return deployer;
+	}
+
+	public DataManager getDataManager()
+	{
+		return dataManager;
+	}
 }

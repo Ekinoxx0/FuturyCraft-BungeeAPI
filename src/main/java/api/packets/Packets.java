@@ -1,9 +1,9 @@
 package api.packets;
 
-import api.packets.players.RequestPlayerData;
-import api.packets.players.SendPlayerData;
-import api.packets.server.RequestTPS;
-import api.packets.server.SendTPS;
+import api.packets.players.SendPlayerDataPacket;
+import api.packets.server.RequestTPSPacket;
+import api.packets.server.SendTPSPacket;
+import api.packets.server.StopPacket;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -14,12 +14,12 @@ import java.io.IOException;
 public enum Packets
 {
 	// OUTGOING - Spigot-bound
-	REQUEST_TPS((byte) 0x01, false, RequestTPS.class),
-	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerData.class),
+	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerDataPacket.class),
+	REQUEST_TPS((byte) 0x01, false, RequestTPSPacket.class),
+	REQUEST_STOP((byte) 0x02, false, StopPacket.class),
 
 	// INCOMING - Bungee-bound
-	REQUEST_PLAYER_DATA((byte) 0x00, true, RequestPlayerData.class),
-	SEND_TPS((byte) 0x01, true, SendTPS.class);
+	SEND_TPS((byte) 0x01, true, SendTPSPacket.class);
 
 	private final byte id;
 	private final boolean in;
@@ -49,7 +49,7 @@ public enum Packets
 		throw new IllegalArgumentException("ID not found"); //Should never happen
 	}
 
-	public byte getId()
+	public byte getID()
 	{
 		return id;
 	}

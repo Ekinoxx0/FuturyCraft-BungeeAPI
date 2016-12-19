@@ -1,8 +1,8 @@
 package api.packets;
 
 import api.Main;
+import api.data.Server;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.*;
 import java.net.Socket;
@@ -23,7 +23,6 @@ public class MessengerClient
 	private final List<PacketListener<?>> listeners = new ArrayList<>();
 	private short lastTransactionID = 0x0000;
 	private Thread listener;
-	private ServerInfo server;
 	private volatile boolean end = false;
 
 
@@ -72,9 +71,7 @@ public class MessengerClient
 				{
 					byte id = in.readByte();
 					short transactionID = in.readShort();
-					short i = in.readShort();
-					byte[] data = new byte[i];
-
+					byte[] data = new byte[in.readShort()];
 					in.readFully(data); //Read all data and store it to the array
 
 					handleData(id, transactionID, data);
@@ -136,18 +133,12 @@ public class MessengerClient
 
 	private boolean identify(int port)
 	{
-		for (ServerInfo info : ProxyServer.getInstance().getServers().values())
-		{
-			if (info.getAddress().getPort() == port && Arrays.equals(info.getAddress().getAddress().getAddress(),
-					socket.getInetAddress().getAddress()))
-			{
-				this.server = info;
-				messengerServer.register(info, this);
-				return true;
-			}
-		}
+		Server srv = Main.getInstance().getDataManager().findServerByPort(port);
+		if (srv == null)
+			return false;
 
-		return false;
+		messengerServer.register(srv, this);
+		return true;
 	}
 
 	public <T extends IncPacket> void listenPacket(Class<T> clazz, int transactionID, Callback<T> callback)
@@ -192,11 +183,6 @@ public class MessengerClient
 		catch (IOException ignored) {}
 	}
 
-	public ServerInfo getInfo()
-	{
-		return server;
-	}
-
 	@Override
 	public String toString()
 	{
@@ -208,7 +194,6 @@ public class MessengerClient
 				", listeners=" + listeners +
 				", lastTransactionID=" + lastTransactionID +
 				", listener=" + listener +
-				", server=" + server +
 				", end=" + end +
 				'}';
 	}
