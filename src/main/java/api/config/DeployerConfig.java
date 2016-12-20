@@ -1,63 +1,52 @@
 package api.config;
 
-import api.deployer.DeployerServer;
+import api.Main;
+import api.deployer.Server;
 import api.utils.Utils;
-import org.yaml.snakeyaml.Yaml;
+import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by loucass003 on 19/12/16.
+ * Created by loucass003 on 15/12/16.
  */
 public class DeployerConfig
 {
 
-    private Map<String, Map<String, Object>> servers;
-    private static File deployerDir;
-    private static File baseDir;
+    public Map<Server.ServerType, Map<String, ServerConfig>> serversTemplates;
 
-    public void load(File config)
+    public DeployerConfig()
     {
-        Yaml yaml = new Yaml();
-        Object o = yaml.load(Utils.readFile(config));
-        if(o instanceof Map<?, ?>)
-        {
-            Map<?, ?> map = (Map<?, ?>)o;
-            if (map.containsKey("servers"))
-                this.servers = (Map<String, Map<String, Object>>) map.get("servers");
-            if(map.containsKey("baseDir"))
-            {
-                Object obj = map.get("baseDir");
-                if(obj instanceof String)
-                    baseDir = new File((String)obj);
-            }
+        this.serversTemplates = new HashMap<>();
+    }
 
-            if(map.containsKey("deployerDir"))
+    public Map<Server.ServerType, Map<String, ServerConfig>> getServersTemplates()
+    {
+        return serversTemplates;
+    }
+
+    public static DeployerConfig getConfig()
+    {
+
+        File f = new File(Main.getInstance().getDataFolder(), "deployer.json");
+        if(!f.exists())
+        {
+            try {
+                if(!f.createNewFile())
+                {
+                    Main.getInstance().getLogger().info("Unable to create deployer config file");
+                    return null;
+                }
+            }
+            catch (IOException e)
             {
-                Object obj = map.get("deployerDir");
-                if(obj instanceof String)
-                    deployerDir = new File(baseDir, (String)obj);
+                e.printStackTrace();
+                return null;
             }
         }
+        return new Gson().fromJson(Utils.readFile(f), DeployerConfig.class);
     }
-
-    public static File getBaseDir()
-    {
-        return baseDir;
-    }
-
-    public static File getDeployerDir()
-    {
-        return deployerDir;
-    }
-
-    public Map<String, Map<String, Object>> getServers()
-    {
-        return servers;
-    }
-
-
 }

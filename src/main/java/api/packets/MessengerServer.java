@@ -40,7 +40,7 @@ public class MessengerServer
 		}
 		catch (Exception e)
 		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while creating the ServerSocket (DeployerServer: " + this
+			Main.getInstance().getLogger().log(Level.SEVERE, "Error while creating the ServerSocket (Server: " + this
 					+ ")", e);
 
 			ProxyServer.getInstance().stop(); //Stop because this server is not usable now
@@ -88,13 +88,13 @@ public class MessengerServer
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-										"connection (DeployerServer: " + this + ")",
+										"connection (Server: " + this + ")",
 								e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-									"connection (DeployerServer: " + this + ")",
+									"connection (Server: " + this + ")",
 							e);
 				}
 			}
