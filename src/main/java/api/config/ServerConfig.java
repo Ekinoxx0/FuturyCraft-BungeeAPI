@@ -1,55 +1,55 @@
 package api.config;
 
+import api.deployer.Deployer;
+import api.deployer.DeployerServer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Created by loucass003 on 15/12/16.
+ * Created by loucass003 on 19/12/16.
  */
 public class ServerConfig
 {
-    private String spigotPath;
-    private String mapPath;
-    private String propsPath;
-    private String jvmArgs;
-    private String spigotArgs;
-    private int minRam;
-    private int maxRam;
+    private String name;
+    private DeployerServer.ServerType type;
 
-    public ServerConfig(String spigotPath, String mapPath, String propsPath, String jvmArgs, int minRam, int maxRam) {
-        this.spigotPath = spigotPath;
-        this.mapPath = mapPath;
-        this.propsPath = propsPath;
-        this.jvmArgs = jvmArgs;
-        this.minRam = minRam;
-        this.maxRam = maxRam;
-    }
+    private List<ServerTemplate> templates;
 
-    public String getMapPath()
+    public ServerConfig(String name, Map<String, Object> fields)
     {
-        return mapPath;
+        this.name = name;
+        this.type = this.getTypeByName((String) fields.get("type"));
+
+        this.templates = new ArrayList<>();
+        if(fields.containsKey("templates"))
+        {
+            List<Map<String, Object>> maptemplates = (List<Map<String, Object>>) fields.get("templates");
+            maptemplates.forEach(item -> templates.add(new ServerTemplate(item)));
+        }
     }
 
-    public String getPropsPath()
+    public DeployerServer.ServerType getTypeByName(String type)
     {
-        return propsPath;
+        for(DeployerServer.ServerType t : DeployerServer.ServerType.values())
+            if(t.toString().equals(type))
+                return t;
+        return null;
     }
 
-    public String getSpigotPath()
+    public List<ServerTemplate> getTemplates()
     {
-        return spigotPath;
+        return templates;
     }
 
-    public String getJvmArgs() {
-        return jvmArgs;
+    public String getName()
+    {
+        return name;
     }
 
-    public String getSpigotArgs() {
-        return spigotArgs;
-    }
-
-    public int getMinRam() {
-        return minRam;
-    }
-
-    public int getMaxRam() {
-        return maxRam;
+    public DeployerServer.ServerType getType()
+    {
+        return type;
     }
 }

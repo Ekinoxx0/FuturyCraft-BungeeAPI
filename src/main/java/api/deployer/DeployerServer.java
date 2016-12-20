@@ -1,7 +1,9 @@
 package api.deployer;
 
 import api.Main;
+import api.config.DeployerConfig;
 import api.config.ServerConfig;
+import api.config.ServerTemplate;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
 import net.md_5.bungee.Util;
@@ -16,41 +18,46 @@ import java.nio.file.Files;
 /**
  * Created by loucass003 on 15/12/16.
  */
-public class Server implements Runnable
+public class DeployerServer implements Runnable
 {
-    private final ServerConfig config;
-    public String name;
-    public ServerType type;
-    public File spigot;
-    public File map;
-    public File properties;
-    public int port;
-    public int slots;
-    public File serverFolder;
-    public Thread crrentThread;
-    public Process process;
+    private final ServerTemplate template;
+    private String name;
+    private int id;
+    private ServerType type;
+    private File spigot;
+    private File map;
+    private File properties;
+    private int port;
+    private File serverFolder;
+    private Thread crrentThread;
+    private Process process;
 
     public enum ServerType {
         LOBBY,
         GAME
     }
 
-    public Server(ServerType type, ServerConfig config, int port, int slots)
+    public DeployerServer(int id, String name, ServerType type, ServerTemplate template, int port)
     {
+        this.id = id;
+        this.name = name;
         this.type = type;
-        this.config = config;
+        this.template = template;
         this.port = port;
-        this.slots = slots;
         this.crrentThread = new Thread(this);
 
+        this.spigot = new File(DeployerConfig.getBaseDir(), template.getSpigotPath());
+        this.map = new File(DeployerConfig.getBaseDir(), template.getMapPath());
+        this.properties = new File(DeployerConfig.getBaseDir(), template.getPropsPath());
 
-        this.spigot = new File(config.getSpigotPath());
-        this.map = new File(config.getSpigotPath());
-        this.properties = new File(config.getSpigotPath());
+        File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
+        File servTypeFolder = new File(typeFolder, name);
+        this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
     }
 
     public void deploy()
     {
+        System.out.println("Deploy -> " + getName());
         if (!serverFolder.exists())
         {
             if (!serverFolder.mkdirs())
@@ -63,7 +70,7 @@ public class Server implements Runnable
         UnzipUtilities unzipper = new UnzipUtilities();
         try
         {
-            Files.copy(spigot.toPath(), serverFolder.toPath());
+            Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
             unzipper.unzip(properties, serverFolder);
             File serverProps = new File(serverFolder, "server.properties");
             if (!serverProps.exists())
@@ -86,25 +93,25 @@ public class Server implements Runnable
     {
         try
         {
-            String jvmArgs = String.format("-Xmx%d ", config.getMaxRam()) +
-                    String.format("-Xms%d ", config.getMinRam()) +
-                    config.getJvmArgs() +
+            String jvmArgs = String.format("-Xmx%d ", this.template.getMaxRam()) +
+                    String.format("-Xms%d ", this.template.getMinRam()) +
+                    this.template.getJvmArgs() +
                     " -jar";
-            String spigotArgs = spigot.getAbsolutePath() +
-                    " --p " + getPort() +
-                    " --s " + getSlots() +
-                    " --W " + getMap().getAbsolutePath() +
-                    " " + config.getSpigotArgs();
+            String spigotArgs = this.spigot.getAbsolutePath() +
+                    " --p " + this.getPort() +
+                    " --s " + this.template.getSlots() +
+                    " --W " + this.getMap().getAbsolutePath() +
+                    " " + this.template.getSpigotArgs();
 
             ProcessBuilder pb = new ProcessBuilder("java", jvmArgs, spigotArgs);
-            Process p = pb.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            this.process = pb.start();
+            BufferedReader in = new BufferedReader(new InputStreamReader(this.process.getInputStream()));
             String s;
             while ((s = in.readLine()) != null)
             {
                 //TODO: Packet log;
             }
-            int status = p.waitFor();
+            int status = this.process.waitFor();
             //TODO: Save stop status;
             remove();
         }
@@ -120,12 +127,12 @@ public class Server implements Runnable
         {
             try
             {
-                Utils.delete(serverFolder);
+                Utils.deleteFolder(this.serverFolder);
             }
             catch (IOException e)
             {
                 e.printStackTrace();
-                Main.getInstance().getLogger().severe("Unable to remove server on \"" + serverFolder.getAbsolutePath() + "\"");
+                Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder.getAbsolutePath() + "\"");
             }
         });
         t.start();
@@ -137,12 +144,13 @@ public class Server implements Runnable
 
     public void kill()
     {
-        process.destroy();
-        crrentThread.interrupt();
+        this.process.destroy();
+        this.crrentThread.interrupt();
     }
 
-    public String getName() {
-        return name;
+    public String getName()
+    {
+        return "SERVER " + this.name + "#" + this.id;
     }
 
     public void setName(String name) {
@@ -185,12 +193,18 @@ public class Server implements Runnable
         return port;
     }
 
-    public int getSlots() {
-        return slots;
+    public File getServerFolder()
+    {
+        return serverFolder;
     }
 
-    public void setSlots(int slots) {
-        this.slots = slots;
+    public void setServerFolder(File serverFolder)
+    {
+        this.serverFolder = serverFolder;
     }
 
+    public int getId()
+    {
+        return id;
+    }
 }

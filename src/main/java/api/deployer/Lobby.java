@@ -1,66 +1,57 @@
 package api.deployer;
 
 import api.Main;
+import api.config.DeployerConfig;
 import api.config.ServerConfig;
-import api.utils.UnzipUtilities;
+import api.config.ServerTemplate;
 
 import java.io.File;
 /**
  * Created by loucass003 on 14/12/16.
  */
-public class Lobby extends Server
+public class Lobby extends DeployerServer
 {
 
-    public LobbyType type;
-    public int id;
-    public int players;
-
+    private LobbyType type;
 
     public enum LobbyType
     {
-        NORMAL(3, 100),
-        VIP(1, 50);
-
-        int minCount;
-        int maxSlots;
-
-        LobbyType(int minCount, int maxSlots)
-        {
-            this.minCount = minCount;
-            this.maxSlots = maxSlots;
-        }
+        NORMAL, VIP
     }
 
-    public Lobby(int id, LobbyType type, ServerConfig config, int port)
+    public Lobby(int id, String name, ServerTemplate template, int port)
     {
-        super(ServerType.LOBBY, config, port, type.maxSlots);
-        this.id = id;
-        this.type = type;
+        super(id, name, ServerType.LOBBY, template, port);
+        this.type = getTypeFromName(name);
+    }
+
+    public LobbyType getTypeFromName(String name)
+    {
+        String[] args = name.split("_");
+        if(args.length <= 1)
+            return null;
+        String out = args[1];
+        for(int i = 2; i < args.length; i++)
+            out += "_" + args[i];
+        for(LobbyType l : LobbyType.values())
+            if(l.toString().equals(out))
+                return l;
+        return null;
     }
 
     @Override
     public void deploy()
     {
-        File typeFolder = new File(Main.getInstance().deployer.deployerFolder, getType().toString());
+        File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
         File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
-        serverFolder = new File(lobbyTypeFolder, Integer.toString(getId()));
+        this.setServerFolder(new File(lobbyTypeFolder, Integer.toString(getId())));
         super.deploy();
     }
 
     @Override
     public String getName()
     {
-        return "LOBBY " + getLobbyType() + "#" + id;
-    }
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public int getPlayers()
-    {
-        return players;
+        return "LOBBY " + getLobbyType() + "#" + getId();
     }
 
     public LobbyType getLobbyType()

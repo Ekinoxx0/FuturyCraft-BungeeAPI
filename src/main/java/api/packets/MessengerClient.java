@@ -27,7 +27,7 @@ public class MessengerClient
 	private volatile boolean end = false;
 
 
-	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in Server connection
+	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in DeployerServer connection
 	// listener
 	{
 		this.messengerServer = messengerServer;
@@ -37,7 +37,7 @@ public class MessengerClient
 		setupSocketListener();
 	}
 
-	private void setupSocketListener() //Called in Server connection listener
+	private void setupSocketListener() //Called in DeployerServer connection listener
 	{
 		listener = new Thread(() ->
 		{

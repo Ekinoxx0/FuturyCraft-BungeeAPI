@@ -3,6 +3,7 @@ package api.deployer;
 import api.Main;
 import api.config.DeployerConfig;
 import api.config.ServerConfig;
+import api.config.ServerTemplate;
 import api.utils.Utils;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,63 +26,68 @@ public class Deployer implements Listener
 {
 
     public Main main;
-    public List<Server> servers;
+    public List<DeployerServer> deployerServers;
     public DeployerConfig config;
-    public File deployerFolder;
+
 
     public int MIN_PORT = 12000;
     public int MAX_PORT = 25000;
+    public int MAX_SERVERS = MAX_PORT - MIN_PORT;
 
     public Deployer(Main main)
     {
         this.main = main;
-        this.servers = new ArrayList<>();
+        this.deployerServers = new ArrayList<>();
+        this.config = new DeployerConfig();
     }
 
     public void init()
     {
-        main.getProxy().getPluginManager().registerListener(main, this);
-        this.config = DeployerConfig.getConfig();
-        if(this.config == null)
-        {
-            Main.getInstance().getLogger().severe("Unable to find/read the deployer config.");
-            return;
-        }
-
-        this.deployerFolder = new File(this.config.deployerFolder);
+        config.load(new File(Main.getInstance().getDataFolder(), "deployer.yml"));
         try
         {
-            Utils.delete(deployerFolder);
+            Utils.deleteFolder(DeployerConfig.getDeployerDir());
+            DeployerConfig.getDeployerDir().mkdir();
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
 
-        for(Lobby.LobbyType t : Lobby.LobbyType.values())
+        for (Map.Entry<String, Map<String, Object>> entry : config.getServers().entrySet())
         {
-            int count = 0;
-            for(int i = 0; i < t.minCount; i++)
+
+            ServerConfig srv_conf = new ServerConfig(entry.getKey(), entry.getValue());
+            for(ServerTemplate template : srv_conf.getTemplates())
             {
-                List<ServerConfig> configs = this.config.getServersTemplates().get(Server.ServerType.LOBBY).get(t.toString());
-                if(configs.size() == 0)
-                    break;
-                if(count >= configs.size())
-                    count = 0;
-                ServerConfig config = configs.get(count++);
-                int nextport = this.getNextPort();
-                if(nextport == -1)
-                    break;
-                Lobby server = new Lobby(i, t, config, nextport);
-                server.deploy();
-                this.servers.add(server);
+                for(int i = 0; i < template.getMinServers(); i++)
+                {
+                    DeployerServer server;
+                    int id = getNextId();
+                    int port = getNextPort();
+                    if(srv_conf.getType() == DeployerServer.ServerType.LOBBY)
+                    {
+                        server = new Lobby(id, srv_conf.getName(), template, port);
+                    }
+                    else
+                        server = new DeployerServer(id, srv_conf.getName(), srv_conf.getType(), template, port);
+                    server.deploy();
+                }
             }
         }
     }
 
+    public int getNextId()
+    {
+        List<Integer> ports = deployerServers.stream().map(DeployerServer::getId).collect(Collectors.toList());
+        return Stream.iterate(0, id -> id + 1).limit(MAX_SERVERS).
+                filter(i -> !ports.contains(i)).
+                findFirst().orElse(-1);
+    }
+
     public int getNextPort()
     {
-        List<Integer> ports = servers.stream().map(Server::getPort).collect(Collectors.toList());
+        List<Integer> ports = deployerServers.stream().map(DeployerServer::getPort).collect(Collectors.toList());
         return Stream.iterate(MIN_PORT, port -> port + 1).limit(MAX_PORT).
                 filter(i -> !ports.contains(i)).
                 filter(i -> isReachable(i, "127.0.0.1")).
@@ -96,9 +103,9 @@ public class Deployer implements Listener
         }
     }
 
-    public Server getServer(int port)
+    public DeployerServer getServer(int port)
     {
-        for(Server s : servers)
+        for(DeployerServer s : deployerServers)
             if(s.getPort() == port)
                 return s;
         return null;
@@ -106,27 +113,15 @@ public class Deployer implements Listener
 
     public void clear()
     {
-        this.servers.clear();
+        this.deployerServers.clear();
     }
 
     public int countLobby(Lobby.LobbyType t)
     {
         int count = 0;
-        for(Server s : servers)
-            if(s.getType() == Server.ServerType.LOBBY && ((Lobby)s).getLobbyType() == t)
+        for(DeployerServer s : deployerServers)
+            if(s.getType() == DeployerServer.ServerType.LOBBY && ((Lobby)s).getLobbyType() == t)
                 count++;
         return count;
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PostLoginEvent e)
-    {
-
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerDisconnectEvent e)
-    {
-
     }
 }
