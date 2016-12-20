@@ -1,5 +1,6 @@
 package api.data;
 
+import api.Main;
 import api.packets.MessengerClient;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -12,11 +13,16 @@ public class Server
 	private final ServerTemplate template;
 	private final ServerInfo info;
 
-	public Server(MessengerClient messenger, ServerTemplate template, ServerInfo info)
+	Server(MessengerClient messenger, ServerTemplate template, ServerInfo info)
 	{
 		this.messenger = messenger;
 		this.template = template;
 		this.info = info;
+	}
+
+	public static Server get(ServerInfo info)
+	{
+		return Main.getInstance().getDataManager().getServer(info);
 	}
 
 	public MessengerClient getMessenger()
