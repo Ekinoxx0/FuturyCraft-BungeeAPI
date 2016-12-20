@@ -3,6 +3,7 @@ package api;
 import api.data.DataManager;
 import api.deployer.Deployer;
 import api.packets.MessengerServer;
+import com.mongodb.MongoClient;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -17,6 +18,7 @@ public class Main extends Plugin
 	private static Main instance;
 
 	private final JedisPool jedisPool;
+	private final MongoClient mongoClient;
 
 	private final MessengerServer messenger;
 	private final Deployer deployer;
@@ -26,6 +28,7 @@ public class Main extends Plugin
 	{
 		instance = this;
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
+		mongoClient = new MongoClient();
 		messenger = new MessengerServer(5555, new String[]{"localhost", "127.0.0.1"});
 		deployer = new Deployer();
 		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
@@ -55,6 +58,7 @@ public class Main extends Plugin
 		if (!jedisPool.isClosed())
 			jedisPool.close();
 		jedisPool.destroy();
+		mongoClient.close();
 	}
 
 	public static Main getInstance()
@@ -65,6 +69,11 @@ public class Main extends Plugin
 	public JedisPool getJedisPool()
 	{
 		return jedisPool;
+	}
+
+	public MongoClient getMongoClient()
+	{
+		return mongoClient;
 	}
 
 	public MessengerServer getMessenger()

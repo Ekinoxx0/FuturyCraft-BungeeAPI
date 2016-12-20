@@ -3,6 +3,7 @@ package api.packets;
 import api.Main;
 import api.data.Server;
 import net.md_5.bungee.api.ProxyServer;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -98,6 +99,9 @@ public class MessengerServer
 			server.close();
 		}
 		catch (IOException ignored) {}
+
+		Main.getInstance().getDataManager().forEachServers(srv -> srv.getMessenger().disconnect());
+
 		synchronized (nonRegistered)
 		{
 			nonRegistered.forEach(MessengerClient::disconnect);

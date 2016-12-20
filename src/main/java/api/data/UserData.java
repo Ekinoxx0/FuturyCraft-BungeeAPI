@@ -1,7 +1,6 @@
 package api.data;
 
 import api.Main;
-import api.utils.Utils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
@@ -15,12 +14,14 @@ public final class UserData extends OfflineUserData
 {
 	private ProxiedPlayer player;
 	private final String redisPrefix;
+	private final String base64UUID;
 	private final Delay delay = new Delay();
 
-	private UserData(ProxiedPlayer player)
+	UserData(ProxiedPlayer player, String base64UUID)
 	{
 		this.player = player;
-		this.redisPrefix = Utils.uuidToBase64(player.getUniqueId());
+		this.base64UUID = base64UUID;
+		this.redisPrefix = "u:" + base64UUID; // Utils.uuidToBase64(player.getUniqueId());
 	}
 
 	public static UserData get(ProxiedPlayer player)
@@ -39,6 +40,11 @@ public final class UserData extends OfflineUserData
 	}
 
 	String getRedisPrefix()
+	{
+		return redisPrefix;
+	}
+
+	String getBase64UUID()
 	{
 		return redisPrefix;
 	}
@@ -67,35 +73,28 @@ public final class UserData extends OfflineUserData
 	}
 
 	@Override
-	public String toString()
-	{
-		return "UserData{" +
-				"player=" + player +
-				", redisPrefix='" + redisPrefix + '\'' +
-				", delay=" + delay +
-				'}';
-	}
-
-	@Override
 	public boolean equals(Object o)
 	{
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
+		if (!super.equals(o)) return false;
 
 		UserData userData = (UserData) o;
 
-		return player != null ? player.equals(userData.player) : userData.player == null && (redisPrefix != null ?
-				redisPrefix.equals(userData.redisPrefix) : userData.redisPrefix == null && (delay != null ? delay
-				.equals(userData.delay) : userData.delay == null));
+		return player != null ? player.equals(userData.player) : userData.player == null && redisPrefix.equals
+				(userData.redisPrefix) && (base64UUID != null ? base64UUID.equals(userData.base64UUID) : userData
+				.base64UUID == null && delay.equals(userData.delay));
 
 	}
 
 	@Override
 	public int hashCode()
 	{
-		int result = player != null ? player.hashCode() : 0;
-		result = 31 * result + (redisPrefix != null ? redisPrefix.hashCode() : 0);
-		result = 31 * result + (delay != null ? delay.hashCode() : 0);
+		int result = super.hashCode();
+		result = 31 * result + (player != null ? player.hashCode() : 0);
+		result = 31 * result + redisPrefix.hashCode();
+		result = 31 * result + (base64UUID != null ? base64UUID.hashCode() : 0);
+		result = 31 * result + delay.hashCode();
 		return result;
 	}
 
@@ -128,5 +127,16 @@ public final class UserData extends OfflineUserData
 		{
 			return (deadLine == ((Delay) o).deadLine ? 0 : (deadLine < ((Delay) o).deadLine ? -1 : 1));
 		}
+	}
+
+	@Override
+	public String toString()
+	{
+		return "UserData{" +
+				"player=" + player +
+				", redisPrefix='" + redisPrefix + '\'' +
+				", base64UUID='" + base64UUID + '\'' +
+				", delay=" + delay +
+				'}';
 	}
 }

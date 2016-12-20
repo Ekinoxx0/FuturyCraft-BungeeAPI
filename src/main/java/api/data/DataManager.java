@@ -4,6 +4,9 @@ import api.Main;
 import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
 import api.utils.Utils;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -11,6 +14,7 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import org.bson.Document;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Response;
@@ -34,11 +38,14 @@ import java.util.stream.Stream;
  */
 public class DataManager
 {
+	private static final Document EMPTY_DOCUMENT = new Document();
 	private final long saveDelay;
 	private boolean init = false;
 	private volatile boolean end = false;
 	private final Listen listener = new Listen();
 	private final JedisPool jedisPool;
+	private final MongoClient mongoClient;
+	private final MongoDatabase usersDB;
 	private final ExecutorService exec = Executors.newCachedThreadPool();
 	private final List<UserData> users = new ArrayList<>();
 	private final ReentrantLock usersLock = new ReentrantLock();
@@ -51,6 +58,8 @@ public class DataManager
 	{
 		this.saveDelay = saveDelay;
 		jedisPool = Main.getInstance().getJedisPool();
+		mongoClient = Main.getInstance().getMongoClient();
+		usersDB = mongoClient.getDatabase("users");
 	}
 
 	public void init()
@@ -59,6 +68,7 @@ public class DataManager
 			throw new IllegalStateException("Already initialised!");
 
 		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
+
 		init = true;
 	}
 
@@ -67,15 +77,8 @@ public class DataManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
-		serversLock.lock();
-		try
-		{
-			servers.forEach(srv -> srv.getMessenger().disconnect());
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		saverThread.interrupt();
+
 		end = true;
 	}
 
@@ -85,19 +88,38 @@ public class DataManager
 		{
 			while (!end)
 			{
-				try
+				try (Jedis jedis = jedisPool.getResource())
 				{
 					UserData.Delay delay = disconnectQueue.take();
 					UserData user = delay.parent();
 
-					//TODO: MONGODB save
-
 					String prefix = user.getRedisPrefix();
-					try (Jedis jedis = jedisPool.getResource())
-					{
-						jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix + "friends",
-								prefix + "state", prefix + "warn");
-					}
+
+					//Get from Redis
+
+					Transaction transaction = jedis.multi();
+					Response<String> rFC = transaction.get(prefix + "fc");
+					Response<String> rTC = transaction.get(prefix + "tc");
+					Response<String> rState = transaction.get(prefix + "state");
+					transaction.exec();
+
+					int fc = Utils.stringToInt(rFC.get());
+					int tc = Utils.stringToInt(rTC.get());
+					int state = Utils.stringToInt(rState.get());
+
+					//Save to MongoDB
+
+					MongoCollection<Document> col = usersDB.getCollection(user.getBase64UUID());
+					Document doc = col.find().first();
+					doc.put("fc", fc);
+					doc.put("tc", tc);
+					doc.put("state", state);
+					col.replaceOne(EMPTY_DOCUMENT, doc);
+
+					//Remove from Redis
+
+					jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix + "friends",
+							prefix + "state", prefix + "warn");
 				}
 				catch (InterruptedException e)
 				{
@@ -143,32 +165,60 @@ public class DataManager
 		{
 			exec.submit(() ->
 					{
-						Iterator<UserData.Delay> ite = disconnectQueue.iterator();
-						for (UserData.Delay delay = ite.next(); ite.hasNext(); )
+						try (Jedis jedis = jedisPool.getResource())
 						{
-							UserData data = delay.parent();
-							if (data.getPlayer().getUniqueId().equals(event.getPlayer().getUniqueId())) // Player
-							// already cached in Redis
+							ProxiedPlayer player = event.getPlayer();
+
+							//Get data if cached
+
+							Iterator<UserData.Delay> ite = disconnectQueue.iterator();
+							for (UserData.Delay delay = ite.next(); ite.hasNext(); )
 							{
-								ite.remove();
-
-								usersLock.lock();
-								try
+								UserData data = delay.parent();
+								if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
+								// already cached in Redis
 								{
-									users.add(data);
-								}
-								finally
-								{
-									usersLock.unlock();
-								}
+									ite.remove();
 
-								return;
+									usersLock.lock();
+									try
+									{
+										users.add(data);
+									}
+									finally
+									{
+										usersLock.unlock();
+									}
+
+									return;
+								}
 							}
+
+							//Else, create data, read in MongoDB then send to Redis
+
+							String base64 = Utils.uuidToBase64(player.getUniqueId());
+							UserData data = new UserData(player, base64);
+
+							MongoCollection<Document> col = usersDB.getCollection(base64);
+							Document doc = col.find().first();
+							if (doc == null)
+							{
+								doc = new Document();
+								doc.put("firstJoin", System.currentTimeMillis()); // NEWBIE
+							}
+
+							int fc = doc.getInteger("fc", 0);
+							int tc = doc.getInteger("tc", 0);
+							int rank = doc.getInteger("rank", 0);
+							int state = doc.getInteger("state", 0);
+
+							Transaction transaction = jedis.multi();
+							transaction.set("fc", Utils.intToString(fc));
+							transaction.set("tc", Utils.intToString(tc));
+							transaction.set("rank", Utils.intToString(rank));
+							transaction.set("state", Utils.intToString(state));
+							transaction.exec();
 						}
-
-						//Else, read in MongoDB
-
-						//TODO: MONGODB read
 					}
 			);
 		}
@@ -344,6 +394,8 @@ public class DataManager
 				", end=" + end +
 				", listener=" + listener +
 				", jedisPool=" + jedisPool +
+				", mongoClient=" + mongoClient +
+				", usersDB=" + usersDB +
 				", exec=" + exec +
 				", users=" + users +
 				", usersLock=" + usersLock +
