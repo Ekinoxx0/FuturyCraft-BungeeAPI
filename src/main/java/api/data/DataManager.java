@@ -19,7 +19,6 @@ import redis.clients.jedis.Transaction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -165,9 +164,9 @@ public class DataManager
 	{
 		synchronized (servers)
 		{
-			Optional<Server> op = servers.stream().filter(srv -> srv.getInfo().getAddress().getPort() == port)
-					.findFirst();
-			return op.isPresent() ? op.get() : null;
+			return servers.stream()
+					.filter(srv -> srv.getInfo().getAddress().getPort() == port)
+					.findFirst().orElse(null);
 		}
 	}
 
@@ -175,8 +174,9 @@ public class DataManager
 	{
 		synchronized (users)
 		{
-			Optional<UserData> op = users.stream().filter(userData -> userData.getPlayer().equals(player)).findFirst();
-			return op.isPresent() ? op.get() : null;
+			return users.stream()
+					.filter(userData -> userData.getPlayer().equals(player))
+					.findFirst().orElse(null);
 		}
 	}
 
@@ -184,9 +184,9 @@ public class DataManager
 	{
 		synchronized (users)
 		{
-			Optional<UserData> op = users.stream().filter(userData -> userData.getUUID().equals(player.getUUID()))
-					.findFirst();
-			return op.isPresent() ? op.get() : null;
+			return users.stream()
+					.filter(userData -> userData.getUUID().equals(player.getUUID()))
+					.findFirst().orElse(null);
 		}
 	}
 
@@ -206,11 +206,11 @@ public class DataManager
 		}
 	}
 
-	public void forEachUsers(Consumer<UserData> cons)
+	public void forEachUsers(Consumer<UserData> consumer)
 	{
 		synchronized (users)
 		{
-			users.forEach(cons);
+			users.forEach(consumer);
 		}
 	}
 
@@ -253,9 +253,8 @@ public class DataManager
 	{
 		synchronized (servers)
 		{
-			Optional<Server> op = servers.stream().filter(server -> server.getInfo().equals(info))
-					.findFirst();
-			return op.isPresent() ? op.get() : null;
+			return servers.stream().filter(server -> server.getInfo().equals(info))
+					.findFirst().orElse(null);
 		}
 	}
 
