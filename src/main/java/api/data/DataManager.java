@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -33,18 +34,22 @@ import java.util.stream.Stream;
  */
 public class DataManager
 {
+	private final long saveDelay;
 	private boolean init = false;
 	private volatile boolean end = false;
 	private final Listen listener = new Listen();
 	private final JedisPool jedisPool;
 	private final ExecutorService exec = Executors.newCachedThreadPool();
 	private final List<UserData> users = new ArrayList<>();
+	private final ReentrantLock usersLock = new ReentrantLock();
 	private final List<Server> servers = new ArrayList<>();
+	private final ReentrantLock serversLock = new ReentrantLock();
 	private final DelayQueue<UserData.Delay> disconnectQueue = new DelayQueue<>();
 	private Thread saverThread;
 
-	public DataManager()
+	public DataManager(long saveDelay)
 	{
+		this.saveDelay = saveDelay;
 		jedisPool = Main.getInstance().getJedisPool();
 	}
 
@@ -62,9 +67,14 @@ public class DataManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			servers.forEach(srv -> srv.getMessenger().disconnect());
+		}
+		finally
+		{
+			serversLock.unlock();
 		}
 		end = true;
 	}
@@ -141,7 +151,17 @@ public class DataManager
 							// already cached in Redis
 							{
 								ite.remove();
-								users.add(data);
+
+								usersLock.lock();
+								try
+								{
+									users.add(data);
+								}
+								finally
+								{
+									usersLock.unlock();
+								}
+
 								return;
 							}
 						}
@@ -156,67 +176,100 @@ public class DataManager
 		@EventHandler
 		public void onQuit(PostLoginEvent event)
 		{
-			disconnectQueue.add(getData(event.getPlayer()).getDelayer());
+			UserData.Delay delay = getData(event.getPlayer()).getDelayer();
+			delay.deadLine = saveDelay + System.currentTimeMillis();
+			disconnectQueue.add(delay);
 		}
 	}
 
 	public Server findServerByPort(int port)
 	{
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			return servers.stream()
 					.filter(srv -> srv.getInfo().getAddress().getPort() == port)
 					.findFirst().orElse(null);
 		}
+		finally
+		{
+			serversLock.unlock();
+		}
 	}
 
 	public UserData getData(ProxiedPlayer player)
 	{
-		synchronized (users)
+		usersLock.lock();
+		try
 		{
 			return users.stream()
 					.filter(userData -> userData.getPlayer().equals(player))
 					.findFirst().orElse(null);
 		}
+		finally
+		{
+			usersLock.unlock();
+		}
 	}
 
 	public UserData getOnline(OfflineUserData player)
 	{
-		synchronized (users)
+		usersLock.lock();
+		try
 		{
 			return users.stream()
 					.filter(userData -> userData.getUUID().equals(player.getUUID()))
 					.findFirst().orElse(null);
 		}
+		finally
+		{
+			usersLock.unlock();
+		}
 	}
 
 	public void forEachServers(Consumer<Server> cons)
 	{
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			servers.forEach(cons);
+		}
+		finally
+		{
+			serversLock.unlock();
 		}
 	}
 
 	public int countServers(Predicate<Server> filter)
 	{
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			return (int) servers.stream().filter(filter).count();
+		}
+		finally
+		{
+			serversLock.unlock();
 		}
 	}
 
 	public void forEachUsers(Consumer<UserData> consumer)
 	{
-		synchronized (users)
+		usersLock.lock();
+		try
 		{
 			users.forEach(consumer);
+		}
+		finally
+		{
+			usersLock.unlock();
 		}
 	}
 
 	public int getNextDeployerID(int maxServers)
 	{
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			List<Integer> ports = servers.stream().map(server -> server.getDeployer().getId()).collect(Collectors
 					.toList());
@@ -224,23 +277,56 @@ public class DataManager
 					.filter(i -> !ports.contains(i))
 					.findFirst().orElse(-1);
 		}
+		finally
+		{
+			serversLock.unlock();
+		}
 	}
 
 	public int getNextDeployerPort(int minPort, int maxPort)
 	{
-		List<Integer> ports = servers.stream().map(server -> server.getDeployer().getPort()).collect(Collectors.toList
-				());
-		return Stream.iterate(minPort, port -> port + 1).limit(maxPort)
-				.filter(i -> !ports.contains(i))
-				.filter(i -> Utils.isReachable())
-				.findFirst().orElse(-1);
+		serversLock.lock();
+		try
+		{
+			List<Integer> ports = servers.stream()
+					.map(server -> server.getDeployer().getPort())
+					.collect(Collectors.toList());
+
+			return Stream.iterate(minPort, port -> port + 1).limit(maxPort)
+					.filter(i -> !ports.contains(i))
+					.filter(i -> Utils.isReachable())
+					.findFirst().orElse(-1);
+		}
+		finally
+		{
+			serversLock.unlock();
+		}
 	}
 
 	public void constructServer(DeployerServer deployer, ServerInfo info)
 	{
-		synchronized (servers)
+		serversLock.lock();
+		try
 		{
 			servers.add(new Server(deployer, info));
+		}
+		finally
+		{
+			serversLock.unlock();
+		}
+	}
+
+	public Server getServer(ServerInfo info)
+	{
+		serversLock.lock();
+		try
+		{
+			return servers.stream().filter(server -> server.getInfo().equals(info))
+					.findFirst().orElse(null);
+		}
+		finally
+		{
+			serversLock.unlock();
 		}
 	}
 
@@ -249,26 +335,20 @@ public class DataManager
 		srv.setMessenger(client);
 	}
 
-	public Server getServer(ServerInfo info)
-	{
-		synchronized (servers)
-		{
-			return servers.stream().filter(server -> server.getInfo().equals(info))
-					.findFirst().orElse(null);
-		}
-	}
-
 	@Override
 	public String toString()
 	{
 		return "DataManager{" +
-				"init=" + init +
+				"saveDelay=" + saveDelay +
+				", init=" + init +
 				", end=" + end +
 				", listener=" + listener +
 				", jedisPool=" + jedisPool +
 				", exec=" + exec +
 				", users=" + users +
+				", usersLock=" + usersLock +
 				", servers=" + servers +
+				", serversLock=" + serversLock +
 				", disconnectQueue=" + disconnectQueue +
 				", saverThread=" + saverThread +
 				'}';

@@ -1,6 +1,7 @@
 package api.data;
 
 import api.Main;
+import api.utils.Utils;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
@@ -19,7 +20,7 @@ public final class UserData extends OfflineUserData
 	private UserData(ProxiedPlayer player)
 	{
 		this.player = player;
-		this.redisPrefix = DataManager.uuidToBase64(player.getUniqueId());
+		this.redisPrefix = Utils.uuidToBase64(player.getUniqueId());
 	}
 
 	public static UserData get(ProxiedPlayer player)
@@ -100,17 +101,7 @@ public final class UserData extends OfflineUserData
 
 	class Delay implements Delayed
 	{
-		private long reach;
-
-		long getReach()
-		{
-			return reach;
-		}
-
-		void setReach(long reach)
-		{
-			this.reach = reach;
-		}
+		long deadLine;
 
 		UserData parent()
 		{
@@ -121,7 +112,7 @@ public final class UserData extends OfflineUserData
 		public String toString()
 		{
 			return "Delay{" +
-					"reach=" + reach +
+					"deadLine=" + deadLine +
 					"getDelay(TimeUnit.MILLISECONDS)=" + getDelay(TimeUnit.MILLISECONDS) +
 					'}';
 		}
@@ -129,13 +120,13 @@ public final class UserData extends OfflineUserData
 		@Override
 		public long getDelay(TimeUnit unit)
 		{
-			return unit.convert(reach - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+			return unit.convert(deadLine - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		}
 
 		@Override
 		public int compareTo(Delayed o)
 		{
-			return (reach == ((Delay) o).reach ? 0 : (reach < ((Delay) o).reach ? -1 : 1));
+			return (deadLine == ((Delay) o).deadLine ? 0 : (deadLine < ((Delay) o).deadLine ? -1 : 1));
 		}
 	}
 }
