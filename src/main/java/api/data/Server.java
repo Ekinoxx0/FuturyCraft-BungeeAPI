@@ -1,6 +1,7 @@
 package api.data;
 
 import api.Main;
+import api.config.ServerTemplate;
 import api.packets.MessengerClient;
 import net.md_5.bungee.api.config.ServerInfo;
 

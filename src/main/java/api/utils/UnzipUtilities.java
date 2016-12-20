@@ -1,8 +1,5 @@
 package api.utils;
 
-/**
- * Created by loucass003 on 16/12/16.
- */
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;

@@ -24,8 +24,6 @@ import java.util.stream.Stream;
  */
 public class Deployer implements Listener
 {
-
-    public Main main;
     public List<DeployerServer> deployerServers;
     public DeployerConfig config;
 
@@ -34,9 +32,8 @@ public class Deployer implements Listener
     public int MAX_PORT = 25000;
     public int MAX_SERVERS = MAX_PORT - MIN_PORT;
 
-    public Deployer(Main main)
+    public Deployer()
     {
-        this.main = main;
         this.deployerServers = new ArrayList<>();
         this.config = new DeployerConfig();
     }
@@ -47,7 +44,14 @@ public class Deployer implements Listener
         try
         {
             Utils.deleteFolder(DeployerConfig.getDeployerDir());
-            DeployerConfig.getDeployerDir().mkdir();
+            if (!DeployerConfig.getDeployerDir().exists())
+            {
+                if (!DeployerConfig.getDeployerDir().mkdirs())
+                {
+                    Main.getInstance().getLogger().severe("Unable to re-create deployer folder");
+                    return;
+                }
+            }
         }
         catch (IOException e)
         {
@@ -56,7 +60,6 @@ public class Deployer implements Listener
 
         for (Map.Entry<String, Map<String, Object>> entry : config.getServers().entrySet())
         {
-
             ServerConfig srv_conf = new ServerConfig(entry.getKey(), entry.getValue());
             for(ServerTemplate template : srv_conf.getTemplates())
             {
@@ -66,12 +69,11 @@ public class Deployer implements Listener
                     int id = getNextId();
                     int port = getNextPort();
                     if(srv_conf.getType() == DeployerServer.ServerType.LOBBY)
-                    {
                         server = new Lobby(id, srv_conf.getName(), template, port);
-                    }
                     else
                         server = new DeployerServer(id, srv_conf.getName(), srv_conf.getType(), template, port);
                     server.deploy();
+                    deployerServers.add(server);
                 }
             }
         }
@@ -103,15 +105,7 @@ public class Deployer implements Listener
         }
     }
 
-    public DeployerServer getServer(int port)
-    {
-        for(DeployerServer s : deployerServers)
-            if(s.getPort() == port)
-                return s;
-        return null;
-    }
-
-    public void clear()
+    public void stop()
     {
         this.deployerServers.clear();
     }
