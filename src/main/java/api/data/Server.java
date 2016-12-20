@@ -1,7 +1,7 @@
 package api.data;
 
 import api.Main;
-import api.config.ServerTemplate;
+import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -11,13 +11,12 @@ import net.md_5.bungee.api.config.ServerInfo;
 public class Server
 {
 	private MessengerClient messenger;
-	private final ServerTemplate template;
+	private final DeployerServer deployer;
 	private final ServerInfo info;
 
-	Server(MessengerClient messenger, ServerTemplate template, ServerInfo info)
+	Server(DeployerServer deployer, ServerInfo info)
 	{
-		this.messenger = messenger;
-		this.template = template;
+		this.deployer = deployer;
 		this.info = info;
 	}
 
@@ -36,9 +35,9 @@ public class Server
 		this.messenger = messenger;
 	}
 
-	public ServerTemplate getTemplate()
+	public DeployerServer getDeployer()
 	{
-		return template;
+		return deployer;
 	}
 
 	public ServerInfo getInfo()
@@ -51,7 +50,7 @@ public class Server
 	{
 		return "Server{" +
 				"messenger=" + messenger +
-				", template=" + template +
+				", template=" + deployer +
 				", info=" + info +
 				'}';
 	}
@@ -64,9 +63,9 @@ public class Server
 
 		Server server = (Server) o;
 
-		if (messenger != null ? !messenger.equals(server.messenger) : server.messenger != null) return false;
-		if (template != null ? !template.equals(server.template) : server.template != null) return false;
-		return info != null ? info.equals(server.info) : server.info == null;
+		return messenger != null ? messenger.equals(server.messenger) : server.messenger == null && (deployer != null
+				? deployer.equals(server.deployer) : server.deployer == null && (info != null ? info.equals(server
+				.info) : server.info == null));
 
 	}
 
@@ -74,7 +73,7 @@ public class Server
 	public int hashCode()
 	{
 		int result = messenger != null ? messenger.hashCode() : 0;
-		result = 31 * result + (template != null ? template.hashCode() : 0);
+		result = 31 * result + (deployer != null ? deployer.hashCode() : 0);
 		result = 31 * result + (info != null ? info.hashCode() : 0);
 		return result;
 	}

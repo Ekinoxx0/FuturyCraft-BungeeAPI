@@ -2,12 +2,12 @@ package api.deployer;
 
 import api.Main;
 import api.config.DeployerConfig;
-import api.config.ServerConfig;
 import api.config.ServerTemplate;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,7 +29,7 @@ public class DeployerServer implements Runnable
     private File properties;
     private int port;
     private File serverFolder;
-    private Thread crrentThread;
+    private Thread currentThread;
     private Process process;
 
     public enum ServerType {
@@ -44,7 +44,7 @@ public class DeployerServer implements Runnable
         this.type = type;
         this.template = template;
         this.port = port;
-        this.crrentThread = new Thread(this);
+        this.currentThread = new Thread(this);
 
         this.spigot = new File(DeployerConfig.getBaseDir(), template.getSpigotPath());
         this.map = new File(DeployerConfig.getBaseDir(), template.getMapPath());
@@ -55,37 +55,41 @@ public class DeployerServer implements Runnable
         this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
     }
 
-    public void deploy()
+    public ServerInfo deploy()
     {
+        ServerInfo info = null;
         System.out.println("Deploy -> " + getName());
         if (!serverFolder.exists())
         {
             if (!serverFolder.mkdirs())
             {
                 Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
-                return;
+                return null;
             }
         }
 
-        UnzipUtilities unzipper = new UnzipUtilities();
+        UnzipUtilities unZipper = new UnzipUtilities();
         try
         {
             Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
-            unzipper.unzip(properties, serverFolder);
+            unZipper.unzip(properties, serverFolder);
             File serverProps = new File(serverFolder, "server.properties");
             if (!serverProps.exists())
             {
                 Main.getInstance().getLogger().severe("Unable to edit server.properties file on \"" + getName() + "\"");
-                return;
+                return null;
             }
 
             ProxyServer proxy = Main.getInstance().getProxy();
-            proxy.getServers().put(name, proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false));
+            info = proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false);
+            proxy.getServers().put(name, info);
 
         } catch (Exception ex)
         {
             ex.printStackTrace();
         }
+
+        return info;
     }
 
     @Override
@@ -139,13 +143,13 @@ public class DeployerServer implements Runnable
     }
 
     public void start() {
-        this.crrentThread.start();
+        this.currentThread.start();
     }
 
     public void kill()
     {
         this.process.destroy();
-        this.crrentThread.interrupt();
+        this.currentThread.interrupt();
     }
 
     public String getName()

@@ -1,7 +1,9 @@
 package api.data;
 
 import api.Main;
+import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
+import api.utils.Utils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -14,12 +16,18 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by SkyBeast on 19/12/2016.
@@ -182,6 +190,60 @@ public class DataManager
 		}
 	}
 
+	public void forEachServers(Consumer<Server> cons)
+	{
+		synchronized (servers)
+		{
+			servers.forEach(cons);
+		}
+	}
+
+	public int countServers(Predicate<Server> filter)
+	{
+		synchronized (servers)
+		{
+			return (int) servers.stream().filter(filter).count();
+		}
+	}
+
+	public void forEachUsers(Consumer<UserData> cons)
+	{
+		synchronized (users)
+		{
+			users.forEach(cons);
+		}
+	}
+
+	public int getNextDeployerID(int maxServers)
+	{
+		synchronized (servers)
+		{
+			List<Integer> ports = servers.stream().map(server -> server.getDeployer().getId()).collect(Collectors
+					.toList());
+			return Stream.iterate(0, id -> id + 1).limit(maxServers)
+					.filter(i -> !ports.contains(i))
+					.findFirst().orElse(-1);
+		}
+	}
+
+	public int getNextDeployerPort(int minPort, int maxPort)
+	{
+		List<Integer> ports = servers.stream().map(server -> server.getDeployer().getPort()).collect(Collectors.toList
+				());
+		return Stream.iterate(minPort, port -> port + 1).limit(maxPort)
+				.filter(i -> !ports.contains(i))
+				.filter(i -> Utils.isReachable())
+				.findFirst().orElse(-1);
+	}
+
+	public void constructServer(DeployerServer deployer, ServerInfo info)
+	{
+		synchronized (servers)
+		{
+			servers.add(new Server(deployer, info));
+		}
+	}
+
 	public void updateMessenger(Server srv, MessengerClient client)
 	{
 		srv.setMessenger(client);
@@ -195,34 +257,6 @@ public class DataManager
 					.findFirst();
 			return op.isPresent() ? op.get() : null;
 		}
-	}
-
-	static String intToString(int i)
-	{
-		ByteBuffer buf = ByteBuffer.wrap(new byte[4]);
-		buf.putInt(i);
-		return new String(buf.array());
-	}
-
-	static int stringToInt(String str)
-	{
-		ByteBuffer buf = ByteBuffer.wrap(str.getBytes());
-		return buf.getInt();
-	}
-
-	static UUID base64ToUUID(String base64)
-	{
-		ByteBuffer buf = ByteBuffer.wrap(Base64.getUrlDecoder().decode((base64 + "==").getBytes()));
-		return new UUID(buf.getLong(), buf.getLong());
-	}
-
-	static String uuidToBase64(UUID uuid)
-	{
-		ByteBuffer buf = ByteBuffer.wrap(new byte[16]);
-		buf.putLong(uuid.getMostSignificantBits());
-		buf.putLong(uuid.getLeastSignificantBits());
-		String str = Base64.getUrlEncoder().encodeToString(buf.array());
-		return str.substring(0, str.length() - 2);
 	}
 
 	@Override
