@@ -3,6 +3,7 @@ package api.deployer;
 import api.Main;
 import api.config.DeployerConfig;
 import api.config.ServerTemplate;
+import api.data.Server;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
 import net.md_5.bungee.Util;
@@ -20,192 +21,213 @@ import java.nio.file.Files;
  */
 public class DeployerServer implements Runnable
 {
-    private final ServerTemplate template;
-    private String name;
-    private int id;
-    private ServerType type;
-    private File spigot;
-    private File map;
-    private File properties;
-    private int port;
-    private File serverFolder;
-    private Thread currentThread;
-    private Process process;
-    private ServerInfo info;
+	private final ServerTemplate template;
+	private String name;
+	private int id;
+	private ServerType type;
+	private File spigot;
+	private File map;
+	private File properties;
+	private int port;
+	private File serverFolder;
+	private Thread currentThread;
+	private Process process;
+	private Server server; //ServerInfo can be found at server.getInfo()
 
-    public enum ServerType {
-        LOBBY,
-        GAME
-    }
+	public enum ServerType
+	{
+		LOBBY,
+		GAME
+	}
 
-    public DeployerServer(int id, String name, ServerType type, ServerTemplate template, int port)
-    {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.template = template;
-        this.port = port;
-        this.currentThread = new Thread(this);
+	public DeployerServer(int id, String name, ServerType type, ServerTemplate template, int port)
+	{
+		this.id = id;
+		this.name = name;
+		this.type = type;
+		this.template = template;
+		this.port = port;
+		this.currentThread = new Thread(this);
 
-        this.spigot = new File(DeployerConfig.getBaseDir(), template.getSpigotPath());
-        this.map = new File(DeployerConfig.getBaseDir(), template.getMapPath());
-        this.properties = new File(DeployerConfig.getBaseDir(), template.getPropsPath());
+		this.spigot = new File(DeployerConfig.getBaseDir(), template.getSpigotPath());
+		this.map = new File(DeployerConfig.getBaseDir(), template.getMapPath());
+		this.properties = new File(DeployerConfig.getBaseDir(), template.getPropsPath());
 
-        File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
-        File servTypeFolder = new File(typeFolder, name);
-        this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
-    }
+		File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
+		File servTypeFolder = new File(typeFolder, name);
+		this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
+	}
 
-    public ServerInfo deploy()
-    {
-        if (!serverFolder.exists())
-        {
-            if (!serverFolder.mkdirs())
-            {
-                Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
-                return null;
-            }
-        }
+	public ServerInfo deploy()
+	{
+		ServerInfo info = null; //no needs to cache cause already cached into #server
+		if (!serverFolder.exists())
+		{
+			if (!serverFolder.mkdirs())
+			{
+				Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
+				return null;
+			}
+		}
 
-        UnzipUtilities unZipper = new UnzipUtilities();
-        try
-        {
-            Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
-            unZipper.unzip(properties, serverFolder);
-            ProxyServer proxy = Main.getInstance().getProxy();
-            info = proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false);
-            proxy.getServers().put(name, info);
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
+		UnzipUtilities unZipper = new UnzipUtilities();
+		try
+		{
+			Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
+			unZipper.unzip(properties, serverFolder);
+			ProxyServer proxy = Main.getInstance().getProxy();
+			info = proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false);
+			proxy.getServers().put(name, info);
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
 
-        return info;
-    }
+		return info; //Returned info is nullable
+		// #server is not initialized yet, but this ServerInfo will help the Deployer to construct a Server instance
+		//  and give it to this DeployerServer
+	}
 
-    @Override
-    public void run()
-    {
-        try
-        {
-            String jvmArgs = String.format("-Xmx%d ", this.template.getMaxRam()) +
-                    String.format("-Xms%d ", this.template.getMinRam()) +
-                    this.template.getJvmArgs() +
-                    " -jar";
-            String spigotArgs = this.spigot.getAbsolutePath() +
-                    " --p " + this.getPort() +
-                    " --s " + this.template.getSlots() +
-                    " --W " + this.getMap().getAbsolutePath() +
-                    " " + this.template.getSpigotArgs();
+	@Override
+	public void run()
+	{
+		try
+		{
+			String jvmArgs = String.format("-Xmx%d ", this.template.getMaxRam()) +
+					String.format("-Xms%d ", this.template.getMinRam()) +
+					this.template.getJvmArgs() +
+					" -jar";
+			String spigotArgs = this.spigot.getAbsolutePath() +
+					" --p " + this.getPort() +
+					" --s " + this.template.getSlots() +
+					" --W " + this.getMap().getAbsolutePath() +
+					" " + this.template.getSpigotArgs();
 
-            ProcessBuilder pb = new ProcessBuilder("java", jvmArgs, spigotArgs);
-            this.process = pb.start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(this.process.getInputStream()));
-            String s;
-            while ((s = in.readLine()) != null)
-            {
-                //TODO: Packet log;
-            }
-            int status = this.process.waitFor();
-            //TODO: Save stop status;
-            remove();
-        }
-        catch (IOException | InterruptedException e)
-        {
-            e.printStackTrace();
-        }
-    }
+			ProcessBuilder pb = new ProcessBuilder("java", jvmArgs, spigotArgs);
+			this.process = pb.start();
+			BufferedReader in = new BufferedReader(new InputStreamReader(this.process.getInputStream()));
+			String s;
+			while ((s = in.readLine()) != null)
+			{
+				//TODO: Packet log;
+			}
+			int status = this.process.waitFor();
+			//TODO: Save stop status;
+			remove();
+		}
+		catch (IOException | InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
 
-    public void remove()
-    {
-        Thread t = new Thread(() ->
-        {
-            try
-            {
-                Utils.deleteFolder(this.serverFolder);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-                Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder.getAbsolutePath() + "\"");
-            }
-        });
-        t.start();
-    }
+	public void remove()
+	{
+		Thread t = new Thread(() ->
+		{
+			try
+			{
+				Utils.deleteFolder(this.serverFolder);
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+				Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder
+						.getAbsolutePath() + "\"");
+			}
+		});
+		t.start();
+	}
 
-    public void start() {
-        this.currentThread.start();
-    }
+	public void start()
+	{
+		this.currentThread.start();
+	}
 
-    public void kill()
-    {
-        this.process.destroy();
-        this.currentThread.interrupt();
-    }
+	public void kill()
+	{
+		this.process.destroy();
+		this.currentThread.interrupt();
+	}
 
-    public String getName()
-    {
-        return "SERVER " + this.name + "#" + this.id;
-    }
+	void setServer(Server server)
+	{ //Called by Deployer in the same package
+		this.server = server;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName()
+	{
+		return "SERVER " + this.name + "#" + this.id;
+	}
 
-    public File getSpigot() {
-        return spigot;
-    }
+	public void setName(String name)
+	{
+		this.name = name;
+	}
 
-    public void setSpigot(File spigot) {
-        this.spigot = spigot;
-    }
+	public File getSpigot()
+	{
+		return spigot;
+	}
 
-    public File getProperties() {
-        return properties;
-    }
+	public void setSpigot(File spigot)
+	{
+		this.spigot = spigot;
+	}
 
-    public void setProperties(File properties) {
-        this.properties = properties;
-    }
+	public File getProperties()
+	{
+		return properties;
+	}
 
-    public File getMap() {
-        return map;
-    }
+	public void setProperties(File properties)
+	{
+		this.properties = properties;
+	}
 
-    public void setMap(File map) {
-        this.map = map;
-    }
+	public File getMap()
+	{
+		return map;
+	}
 
-    public ServerType getType() {
-        return type;
-    }
+	public void setMap(File map)
+	{
+		this.map = map;
+	}
 
-    public void setType(ServerType type) {
-        this.type = type;
-    }
+	public ServerType getType()
+	{
+		return type;
+	}
 
-    public int getPort() {
-        return port;
-    }
+	public void setType(ServerType type)
+	{
+		this.type = type;
+	}
 
-    public File getServerFolder()
-    {
-        return serverFolder;
-    }
+	public int getPort()
+	{
+		return port;
+	}
 
-    public void setServerFolder(File serverFolder)
-    {
-        this.serverFolder = serverFolder;
-    }
+	public File getServerFolder()
+	{
+		return serverFolder;
+	}
 
-    public int getId()
-    {
-        return id;
-    }
+	public void setServerFolder(File serverFolder)
+	{
+		this.serverFolder = serverFolder;
+	}
 
-    public ServerInfo getInfo()
-    {
-        return info;
-    }
+	public int getId()
+	{
+		return id;
+	}
+
+	public Server getServer()
+	{
+		return server;
+	}
 }

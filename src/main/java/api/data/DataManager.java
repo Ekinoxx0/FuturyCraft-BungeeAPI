@@ -361,12 +361,14 @@ public class DataManager
 		}
 	}
 
-	public void constructServer(DeployerServer deployer, ServerInfo info)
+	public Server constructServer(DeployerServer deployer, ServerInfo info)
 	{
 		serversLock.lock();
 		try
 		{
-			servers.add(new Server(deployer, info));
+			Server server = new Server(deployer, info);
+			servers.add(server);
+			return server;
 		}
 		finally
 		{

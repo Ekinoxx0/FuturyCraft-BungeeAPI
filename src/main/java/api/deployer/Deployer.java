@@ -5,6 +5,7 @@ import api.config.DeployerConfig;
 import api.config.ServerConfig;
 import api.config.ServerTemplate;
 import api.data.DataManager;
+import api.data.Server;
 import api.utils.Utils;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -66,7 +67,15 @@ public class Deployer
 
 					ServerInfo info = server.deploy();
 
-					dataManager.constructServer(server, info);
+					if (info != null)
+					{
+						Server srv = dataManager.constructServer(server, info);
+						server.setServer(srv);
+					}
+					else
+					{
+						//TODO what if cannot construct server info?
+					}
 				}
 			}
 		}
