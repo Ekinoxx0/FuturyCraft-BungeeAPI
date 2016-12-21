@@ -31,6 +31,7 @@ public class DeployerServer implements Runnable
     private File serverFolder;
     private Thread currentThread;
     private Process process;
+    private ServerInfo info;
 
     public enum ServerType {
         LOBBY,
@@ -57,8 +58,6 @@ public class DeployerServer implements Runnable
 
     public ServerInfo deploy()
     {
-        ServerInfo info = null;
-        System.out.println("Deploy -> " + getName());
         if (!serverFolder.exists())
         {
             if (!serverFolder.mkdirs())
@@ -73,18 +72,11 @@ public class DeployerServer implements Runnable
         {
             Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
             unZipper.unzip(properties, serverFolder);
-            File serverProps = new File(serverFolder, "server.properties");
-            if (!serverProps.exists())
-            {
-                Main.getInstance().getLogger().severe("Unable to edit server.properties file on \"" + getName() + "\"");
-                return null;
-            }
-
             ProxyServer proxy = Main.getInstance().getProxy();
             info = proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false);
             proxy.getServers().put(name, info);
-
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             ex.printStackTrace();
         }
@@ -210,5 +202,10 @@ public class DeployerServer implements Runnable
     public int getId()
     {
         return id;
+    }
+
+    public ServerInfo getInfo()
+    {
+        return info;
     }
 }

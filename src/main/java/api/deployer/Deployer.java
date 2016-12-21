@@ -7,7 +7,6 @@ import api.config.ServerTemplate;
 import api.data.DataManager;
 import api.utils.Utils;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.plugin.Listener;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.util.Map;
 /**
  * Created by loucass003 on 14/12/16.
  */
-public class Deployer implements Listener
+public class Deployer
 {
 	private final DataManager dataManager = Main.getInstance().getDataManager();
 	public DeployerConfig config;
@@ -92,10 +91,9 @@ public class Deployer implements Listener
 		);
 	}
 
+	@Deprecated
 	public int countLobby(Lobby.LobbyType t)
 	{
-		return dataManager.countServers(server ->
-				server.getDeployer().getType() == DeployerServer.ServerType.LOBBY
-						&& ((Lobby) server.getDeployer()).getLobbyType() == t);
+		return -1;
 	}
 }

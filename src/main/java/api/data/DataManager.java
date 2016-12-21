@@ -146,17 +146,17 @@ public class DataManager
 		public void onServerSwitch(ServerConnectEvent event)
 		{
 			exec.submit(() ->
-					{
-						try (Jedis jedis = jedisPool.getResource())
-						{
-							UserData data = getData(event.getPlayer());
+                {
+                    try (Jedis jedis = jedisPool.getResource())
+                    {
+                        UserData data = getData(event.getPlayer());
 
-							Transaction tr1 = jedis.multi();
-							Response<String> rank = tr1.get(data.getRedisPrefix() + ":rank");
-							tr1.set(data.getRedisPrefix() + ":srv", event.getTarget().getName());
-							tr1.exec();
-						}
-					}
+                        Transaction tr1 = jedis.multi();
+                        Response<String> rank = tr1.get(data.getRedisPrefix() + ":rank");
+                        tr1.set(data.getRedisPrefix() + ":srv", event.getTarget().getName());
+                        tr1.exec();
+                    }
+                }
 			);
 		}
 
@@ -164,62 +164,62 @@ public class DataManager
 		public void onJoin(PostLoginEvent event)
 		{
 			exec.submit(() ->
-					{
-						try (Jedis jedis = jedisPool.getResource())
-						{
-							ProxiedPlayer player = event.getPlayer();
+                {
+                    try (Jedis jedis = jedisPool.getResource())
+                    {
+                        ProxiedPlayer player = event.getPlayer();
 
-							//Get data if cached
+                        //Get data if cached
 
-							Iterator<UserData.Delay> ite = disconnectQueue.iterator();
-							for (UserData.Delay delay = ite.next(); ite.hasNext(); )
-							{
-								UserData data = delay.parent();
-								if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
-								// already cached in Redis
-								{
-									ite.remove();
+                        Iterator<UserData.Delay> ite = disconnectQueue.iterator();
+                        for (UserData.Delay delay = ite.next(); ite.hasNext(); )
+                        {
+                            UserData data = delay.parent();
+                            if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
+                            // already cached in Redis
+                            {
+                                ite.remove();
 
-									usersLock.lock();
-									try
-									{
-										users.add(data);
-									}
-									finally
-									{
-										usersLock.unlock();
-									}
+                                usersLock.lock();
+                                try
+                                {
+                                    users.add(data);
+                                }
+                                finally
+                                {
+                                    usersLock.unlock();
+                                }
 
-									return;
-								}
-							}
+                                return;
+                            }
+                        }
 
-							//Else, create data, read in MongoDB then send to Redis
+                        //Else, create data, read in MongoDB then send to Redis
 
-							String base64 = Utils.uuidToBase64(player.getUniqueId());
-							UserData data = new UserData(player, base64);
+                        String base64 = Utils.uuidToBase64(player.getUniqueId());
+                        UserData data = new UserData(player, base64);
 
-							MongoCollection<Document> col = usersDB.getCollection(base64);
-							Document doc = col.find().first();
-							if (doc == null)
-							{
-								doc = new Document();
-								doc.put("firstJoin", System.currentTimeMillis()); // NEWBIE
-							}
+                        MongoCollection<Document> col = usersDB.getCollection(base64);
+                        Document doc = col.find().first();
+                        if (doc == null)
+                        {
+                            doc = new Document();
+                            doc.put("firstJoin", System.currentTimeMillis()); // NEWBIE
+                        }
 
-							int fc = doc.getInteger("fc", 0);
-							int tc = doc.getInteger("tc", 0);
-							int rank = doc.getInteger("rank", 0);
-							int state = doc.getInteger("state", 0);
+                        int fc = doc.getInteger("fc", 0);
+                        int tc = doc.getInteger("tc", 0);
+                        int rank = doc.getInteger("rank", 0);
+                        int state = doc.getInteger("state", 0);
 
-							Transaction transaction = jedis.multi();
-							transaction.set("fc", Utils.intToString(fc));
-							transaction.set("tc", Utils.intToString(tc));
-							transaction.set("rank", Utils.intToString(rank));
-							transaction.set("state", Utils.intToString(state));
-							transaction.exec();
-						}
-					}
+                        Transaction transaction = jedis.multi();
+                        transaction.set("fc", Utils.intToString(fc));
+                        transaction.set("tc", Utils.intToString(tc));
+                        transaction.set("rank", Utils.intToString(rank));
+                        transaction.set("state", Utils.intToString(state));
+                        transaction.exec();
+                    }
+                }
 			);
 		}
 
@@ -290,17 +290,25 @@ public class DataManager
 		}
 	}
 
+	public List<Server> getServersByType(DeployerServer.ServerType type)
+    {
+        serversLock.lock();
+        try
+        {
+            return servers.stream()
+                    .filter(server -> server.getDeployer().getType().equals(type))
+                    .collect(Collectors.toList());
+        }
+        finally
+        {
+            serversLock.unlock();
+        }
+    }
+
+	@Deprecated
 	public int countServers(Predicate<Server> filter)
 	{
-		serversLock.lock();
-		try
-		{
-			return (int) servers.stream().filter(filter).count();
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return -1;
 	}
 
 	public void forEachUsers(Consumer<UserData> consumer)

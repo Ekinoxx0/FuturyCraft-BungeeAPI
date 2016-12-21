@@ -4,6 +4,7 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.ServerConfig;
 import api.config.ServerTemplate;
+import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
 /**
@@ -40,12 +41,12 @@ public class Lobby extends DeployerServer
     }
 
     @Override
-    public void deploy()
+    public ServerInfo deploy()
     {
         File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
         File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
         this.setServerFolder(new File(lobbyTypeFolder, Integer.toString(getId())));
-        super.deploy();
+        return super.deploy();
     }
 
     @Override
