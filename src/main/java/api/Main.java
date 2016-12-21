@@ -2,6 +2,7 @@ package api;
 
 import api.data.DataManager;
 import api.deployer.Deployer;
+import api.event.PlayerEvents;
 import api.packets.MessengerServer;
 import com.mongodb.MongoClient;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -24,6 +25,8 @@ public class Main extends Plugin
 	private final Deployer deployer;
 	private final DataManager dataManager;
 
+	private final PlayerEvents playerEvents;
+
 	public Main()
 	{
 		instance = this;
@@ -32,6 +35,7 @@ public class Main extends Plugin
 		messenger = new MessengerServer(5555, new String[]{"localhost", "127.0.0.1"});
 		deployer = new Deployer();
 		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
+		playerEvents = new PlayerEvents();
 	}
 
 	@Override
@@ -44,6 +48,7 @@ public class Main extends Plugin
 		deployer.init();
 		messenger.init();
 		dataManager.init();
+		playerEvents.init();
 
 		getLogger().info("FcApiBungee enabled !");
 	}

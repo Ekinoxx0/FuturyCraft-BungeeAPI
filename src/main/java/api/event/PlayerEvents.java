@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class PlayerEvents implements Listener
 {
-    public PlayerEvents()
+    public void init()
     {
         Main.getInstance().getProxy().getPluginManager().registerListener(Main.getInstance(), this);
     }
