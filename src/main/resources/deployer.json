@@ -1,0 +1,43 @@
+{
+  "baseDir" : "",
+  "deployerDir": "",
+  "lobbies": [
+    {
+      "type": "NORMAL",
+      "displayName": "LOBBY NORMAL TROLOLO",
+      "variants": [
+        {
+          "minServers": 1,
+          "maxServers": 2,
+          "slots": 50,
+          "minRam": 512,
+          "maxRam": 1024,
+          "spigotArgs": "",
+          "jvmArgs": "",
+          "spigotPath": "Templates/spigot/spigot.jar",
+          "popsPath": "Templates/properties/lobby/lobby_normal.zip",
+          "mapPath": "Templates/maps/lobby/lobby_normal.zip"
+        }
+      ]
+    },
+    {
+      "type": "VIP",
+      "displayName": "LOBBY VIP TROLOLO",
+      "variants": [
+        {
+
+        }
+      ]
+    }
+  ],
+  "games": [
+    {
+      "displayName": "FIREWARS TROLOLO",
+      "variants": [
+        {
+
+        }
+      ]
+    }
+  ]
+}
