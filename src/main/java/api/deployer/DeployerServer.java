@@ -61,7 +61,7 @@ public class DeployerServer implements Runnable
 
 	public ServerInfo deploy()
 	{
-		ServerInfo info = null; //no needs to cache cause already cached into #server
+		ServerInfo info = null; //no needs to catche cause already cached into #server
 		if (!serverFolder.exists())
 		{
 			if (!serverFolder.mkdirs())

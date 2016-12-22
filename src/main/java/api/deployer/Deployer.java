@@ -49,36 +49,6 @@ public class Deployer
 			e.printStackTrace();
 		}
 
-		/*for (Map.Entry<String, Map<String, Object>> entry : config.getServers().entrySet())
-		{
-			ServerConfig srvConf = new ServerConfig(entry.getKey(), entry.getValue());
-			for (ServerTemplate template : srvConf.getTemplates())
-			{
-				for (int i = 0; i < template.getMinServers(); i++)
-				{
-					DeployerServer server;
-					int id = getNextId();
-					int port = getNextPort();
-					if (srvConf.getType() == DeployerServer.ServerType.LOBBY)
-						server = new Lobby(id, srvConf.getName(), template, port);
-					else
-						server = new DeployerServer(id, srvConf.getName(), srvConf.getType(), template, port);
-
-					ServerInfo info = server.deploy();
-
-					if (info != null)
-					{
-						Server srv = dataManager.constructServer(server, info);
-						server.setServer(srv);
-					}
-					else
-					{
-						//TODO what if cannot construct server info?
-					}
-				}
-			}
-		}*/
-
 		for(Template.LobbyTemplate l : config.getLobbies())
 		{
 			for(Variant v : l.getVariants())

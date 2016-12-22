@@ -21,6 +21,7 @@ public class Template
     }
 
     private List<Variant> variants;
+    private String displayName;
     protected int offset;
 
     public List<Variant> getVariants()
