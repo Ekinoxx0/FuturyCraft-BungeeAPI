@@ -1,41 +1,59 @@
 {
-  "baseDir" : "",
-  "deployerDir": "",
+  "baseDir": "..",
+  "deployerDir": "../deployer",
   "lobbies": [
     {
       "type": "NORMAL",
-      "displayName": "LOBBY NORMAL TROLOLO",
+      "displayName": "LOBBY NORMAL",
       "variants": [
         {
-          "minServers": 1,
-          "maxServers": 2,
+          "minServers": 5,
+          "maxServers": 50,
           "slots": 50,
           "minRam": 512,
           "maxRam": 1024,
           "spigotArgs": "",
           "jvmArgs": "",
-          "spigotPath": "Templates/spigot/spigot.jar",
-          "popsPath": "Templates/properties/lobby/lobby_normal.zip",
-          "mapPath": "Templates/maps/lobby/lobby_normal.zip"
+          "spigotPath": "../Templates/spigot/spigot-1.9-R0.1-SNAPSHOT-latest.jar",
+          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
+          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
         }
       ]
     },
     {
       "type": "VIP",
-      "displayName": "LOBBY VIP TROLOLO",
+      "displayName": "LOBBY VIP",
       "variants": [
         {
-
+          "minServers": 5,
+          "maxServers": 50,
+          "slots": 50,
+          "minRam": 512,
+          "maxRam": 1024,
+          "spigotArgs": "",
+          "jvmArgs": "",
+          "spigotPath": "../Templates/spigot/spigot-1.9-R0.1-SNAPSHOT-latest.jar",
+          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
+          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
         }
       ]
     }
   ],
   "games": [
     {
-      "displayName": "FIREWARS TROLOLO",
+      "displayName": "FIREWARS",
       "variants": [
         {
-
+          "minServers": 5,
+          "maxServers": 50,
+          "slots": 50,
+          "minRam": 512,
+          "maxRam": 1024,
+          "spigotArgs": "",
+          "jvmArgs": "",
+          "spigotPath": "../Templates/spigot/spigot-1.9-R0.1-SNAPSHOT-latest.jar",
+          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
+          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
         }
       ]
     }

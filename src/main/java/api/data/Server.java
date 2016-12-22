@@ -14,6 +14,8 @@ public class Server
 	private final DeployerServer deployer;
 	private final ServerInfo info;
 
+	private long lastKeepAlive;
+
 	Server(DeployerServer deployer, ServerInfo info)
 	{
 		this.deployer = deployer;
@@ -23,6 +25,16 @@ public class Server
 	public static Server get(ServerInfo info)
 	{
 		return Main.getInstance().getDataManager().getServer(info);
+	}
+
+	public long getLastKeepAlive()
+	{
+		return lastKeepAlive;
+	}
+
+	public void setLastKeepAlive(long lastKeepAlive)
+	{
+		this.lastKeepAlive = lastKeepAlive;
 	}
 
 	public MessengerClient getMessenger()
@@ -45,36 +57,19 @@ public class Server
 		return info;
 	}
 
+	public int getID()
+	{
+		return deployer.getId();
+	}
+
 	@Override
 	public String toString()
 	{
 		return "Server{" +
 				"messenger=" + messenger +
-				", template=" + deployer +
+				", deployer=" + deployer +
 				", info=" + info +
+				", lastKeepAlive=" + lastKeepAlive +
 				'}';
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		Server server = (Server) o;
-
-		return messenger != null ? messenger.equals(server.messenger) : server.messenger == null && (deployer != null
-				? deployer.equals(server.deployer) : server.deployer == null && (info != null ? info.equals(server
-				.info) : server.info == null));
-
-	}
-
-	@Override
-	public int hashCode()
-	{
-		int result = messenger != null ? messenger.hashCode() : 0;
-		result = 31 * result + (deployer != null ? deployer.hashCode() : 0);
-		result = 31 * result + (info != null ? info.hashCode() : 0);
-		return result;
 	}
 }

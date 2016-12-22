@@ -24,7 +24,7 @@ public class MessengerClient
 	private short lastTransactionID = 0x0000;
 	private Thread listener;
 	private volatile boolean end = false;
-
+	private Server server;
 
 	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in DeployerServer connection
 	// listener
@@ -122,7 +122,8 @@ public class MessengerClient
 				});
 			}
 
-			ProxyServer.getInstance().getPluginManager().callEvent(new PacketReceivedEvent(packet, transactionID));
+			ProxyServer.getInstance().getPluginManager().callEvent(new PacketReceivedEvent(server, packet,
+					transactionID));
 		}
 		catch (ReflectiveOperationException e)
 		{
@@ -133,11 +134,12 @@ public class MessengerClient
 
 	private boolean identify(int port)
 	{
-		Server srv = Main.getInstance().getDataManager().findServerByPort(port);
-		if (srv == null)
+		Server server = Main.getInstance().getDataManager().findServerByPort(port);
+		if (server == null)
 			return false;
 
-		messengerServer.register(srv, this);
+		this.server = server;
+		messengerServer.register(server, this);
 		return true;
 	}
 
@@ -183,6 +185,30 @@ public class MessengerClient
 		catch (IOException ignored) {}
 	}
 
+	private class PacketListener<T extends IncPacket>
+	{
+		Class<T> clazz;
+		Callback<T> callback;
+		int transactionID;
+
+		PacketListener(Class<T> clazz, Callback<T> callback, int transactionID)
+		{
+			this.clazz = clazz;
+			this.callback = callback;
+			this.transactionID = transactionID;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "PacketListener{" +
+					"clazz=" + clazz +
+					", callback=" + callback +
+					", transactionID=" + transactionID +
+					'}';
+		}
+	}
+
 	@Override
 	public String toString()
 	{
@@ -196,19 +222,5 @@ public class MessengerClient
 				", listener=" + listener +
 				", end=" + end +
 				'}';
-	}
-
-	private static class PacketListener<T>
-	{
-		Class<T> clazz;
-		Callback<T> callback;
-		int transactionID;
-
-		PacketListener(Class<T> clazz, Callback<T> callback, int transactionID)
-		{
-			this.clazz = clazz;
-			this.callback = callback;
-			this.transactionID = transactionID;
-		}
 	}
 }

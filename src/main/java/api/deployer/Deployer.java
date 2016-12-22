@@ -1,16 +1,15 @@
 package api.deployer;
 
 import api.Main;
-import api.config.Variant;
-import api.data.DataManager;
 import api.config.DeployerConfig;
 import api.config.Template;
-import api.data.Server;
+import api.config.Variant;
+import api.data.DataManager;
 import api.utils.Utils;
-import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 /**
  * Created by loucass003 on 14/12/16.
@@ -35,76 +34,37 @@ public class Deployer
 		try
 		{
 			Utils.deleteFolder(config.getDeployerDir());
-			if (!config.getDeployerDir().exists())
+			if (!config.getDeployerDir().exists() && !config.getDeployerDir().mkdirs())
 			{
-				if (!config.getDeployerDir().mkdirs())
-				{
-					Main.getInstance().getLogger().severe("Unable to re-create deployer folder");
-					return;
-				}
+				Main.getInstance().getLogger().log(Level.SEVERE, "Unable to mkdirs (Deployer: " +
+						this + ")");
+				return;
 			}
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			Main.getInstance().getLogger().log(Level.SEVERE, "Error while initializing the Deployer (Deployer: " +
+					this + ")");
 		}
 
-		for(Template.LobbyTemplate l : config.getLobbies())
-		{
-			for(Variant v : l.getVariants())
-			{
+		for (Template.LobbyTemplate l : config.getLobbies())
+			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
-				{
-					int id = getNextId();
-					int port = getNextPort();
-					Lobby lobby = new Lobby(id, l.getType(), v, port);
+					addServer(new Lobby(getNextId(), l.getType(), v, getNextPort()));
 
-					ServerInfo info = lobby.deploy();
 
-					if (info != null)
-					{
-						Server srv = dataManager.constructServer(lobby, info);
-						lobby.setServer(srv);
-					}
-					else
-					{
-						//TODO what if cannot construct server info?
-					}
-				}
-			}
-		}
-
-		for(Template l : config.getGames())
-		{
-			for(Variant v : l.getVariants())
-			{
+		for (Template l : config.getGames())
+			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
-				{
-					int id = getNextId();
-					int port = getNextPort();
-					DeployerServer server = new DeployerServer(id, DeployerServer.ServerType.GAME, v, port);
+					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
 
-					ServerInfo info = server.deploy();
 
-					if (info != null)
-					{
-						Server srv = dataManager.constructServer(server, info);
-						server.setServer(srv);
-					}
-					else
-					{
-						//TODO what if cannot construct server info?
-					}
-				}
-			}
-		}
 	}
 
 
 	public void addServer(DeployerServer server)
 	{
-		ServerInfo info = server.deploy();
-		dataManager.constructServer(server, info);
+		server.setServer(dataManager.constructServer(server, server.deploy()));
 	}
 
 	public int getNextId()
@@ -117,7 +77,6 @@ public class Deployer
 		return dataManager.getNextDeployerPort(MIN_PORT, MAX_PORT);
 	}
 
-
 	public DeployerConfig getConfig()
 	{
 		return config;
@@ -126,9 +85,9 @@ public class Deployer
 	public void stop()
 	{
 		dataManager.forEachServers(server ->
-			{
-				//Undeploy ?
-			}
+				{
+					//Undeploy ?
+				}
 		);
 	}
 

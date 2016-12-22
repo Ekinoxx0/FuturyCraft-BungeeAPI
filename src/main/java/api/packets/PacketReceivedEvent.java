@@ -1,5 +1,6 @@
 package api.packets;
 
+import api.data.Server;
 import net.md_5.bungee.api.plugin.Event;
 
 /**
@@ -7,13 +8,20 @@ import net.md_5.bungee.api.plugin.Event;
  */
 public class PacketReceivedEvent extends Event
 {
+	private final Server from;
 	private final IncPacket packet;
 	private final short transactionID;
 
-	public PacketReceivedEvent(IncPacket packet, short transactionID)
+	public PacketReceivedEvent(Server from, IncPacket packet, short transactionID)
 	{
+		this.from = from;
 		this.packet = packet;
 		this.transactionID = transactionID;
+	}
+
+	public Server getFrom()
+	{
+		return from;
 	}
 
 	public IncPacket getPacket()
@@ -30,7 +38,8 @@ public class PacketReceivedEvent extends Event
 	public String toString()
 	{
 		return "PacketReceivedEvent{" +
-				"packet=" + packet +
+				"from=" + from +
+				", packet=" + packet +
 				", transactionID=" + transactionID +
 				'}';
 	}
@@ -43,15 +52,16 @@ public class PacketReceivedEvent extends Event
 
 		PacketReceivedEvent that = (PacketReceivedEvent) o;
 
-		if (transactionID != that.transactionID) return false;
-		return packet != null ? packet.equals(that.packet) : that.packet == null;
+		return transactionID == that.transactionID && (from != null ? from.equals(that.from) : that.from == null &&
+				(packet != null ? packet.equals(that.packet) : that.packet == null));
 
 	}
 
 	@Override
 	public int hashCode()
 	{
-		int result = packet != null ? packet.hashCode() : 0;
+		int result = from != null ? from.hashCode() : 0;
+		result = 31 * result + (packet != null ? packet.hashCode() : 0);
 		result = 31 * result + (int) transactionID;
 		return result;
 	}
