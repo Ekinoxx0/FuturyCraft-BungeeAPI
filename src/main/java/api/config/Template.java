@@ -22,7 +22,7 @@ public class Template
 
     private List<Variant> variants;
     private String displayName;
-    protected int offset;
+    private transient int offset;
 
     public List<Variant> getVariants()
     {

@@ -24,7 +24,7 @@ public class DeployerConfig
     {
         GsonBuilder gson = new GsonBuilder();
         gson.registerTypeAdapter(File.class, new FileAdaptater());
-        gson.excludeFieldsWithModifiers(Modifier.PROTECTED);
+        gson.excludeFieldsWithModifiers(Modifier.TRANSIENT);
         return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
     }
 
