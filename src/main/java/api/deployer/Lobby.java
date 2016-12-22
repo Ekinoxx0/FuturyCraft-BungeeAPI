@@ -1,9 +1,7 @@
 package api.deployer;
 
 import api.Main;
-import api.config.DeployerConfig;
-import api.config.ServerConfig;
-import api.config.ServerTemplate;
+import api.config.Variant;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
@@ -20,30 +18,16 @@ public class Lobby extends DeployerServer
         NORMAL, VIP
     }
 
-    public Lobby(int id, String name, ServerTemplate template, int port)
+    public Lobby(int id, LobbyType type, Variant variant, int port)
     {
-        super(id, name, ServerType.LOBBY, template, port);
-        this.type = getTypeFromName(name);
-    }
-
-    public LobbyType getTypeFromName(String name)
-    {
-        String[] args = name.split("_");
-        if(args.length <= 1)
-            return null;
-        String out = args[1];
-        for(int i = 2; i < args.length; i++)
-            out += "_" + args[i];
-        for(LobbyType l : LobbyType.values())
-            if(l.toString().equals(out))
-                return l;
-        return null;
+        super(id, ServerType.LOBBY, variant, port);
+        this.type = type;
     }
 
     @Override
     public ServerInfo deploy()
     {
-        File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
+        File typeFolder = new File(Main.getInstance().getDeployer().getConfig().getDeployerDir(), getType().toString());
         File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
         this.setServerFolder(new File(lobbyTypeFolder, Integer.toString(getId())));
         return super.deploy();

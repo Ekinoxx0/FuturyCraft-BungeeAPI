@@ -1,51 +1,57 @@
 package api.config;
 
+import api.deployer.Lobby;
+import api.utils.FileAdaptater;
 import api.utils.Utils;
-import org.yaml.snakeyaml.Yaml;
+import com.google.gson.GsonBuilder;
+
 import java.io.File;
-import java.util.Map;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Created by loucass003 on 19/12/16.
+ * Created by loucass003 on 21/12/16.
  */
 public class DeployerConfig
 {
-    private Map<String, Map<String, Object>> servers;
-    private static File deployerDir;
-    private static File baseDir;
-    public void load(File config)
+    private File baseDir;
+    private File deployerDir;
+    private List<Template.LobbyTemplate> lobbies;
+    private List<Template> games;
+
+    public DeployerConfig load(File f)
     {
-        Yaml yaml = new Yaml();
-        Object o = yaml.load(Utils.readFile(config));
-        if(o instanceof Map<?, ?>)
-        {
-            Map<?, ?> map = (Map<?, ?>)o;
-            if (map.containsKey("servers"))
-                this.servers = (Map<String, Map<String, Object>>) map.get("servers");
-            if(map.containsKey("baseDir"))
-            {
-                Object obj = map.get("baseDir");
-                if(obj instanceof String)
-                    baseDir = new File((String)obj);
-            }
-            if(map.containsKey("deployerDir"))
-            {
-                Object obj = map.get("deployerDir");
-                if(obj instanceof String)
-                    deployerDir = new File(baseDir, (String)obj);
-            }
-        }
+        GsonBuilder gson = new GsonBuilder();
+        gson.registerTypeAdapter(File.class, new FileAdaptater());
+        gson.excludeFieldsWithModifiers(Modifier.PROTECTED);
+        return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
     }
-    public static File getBaseDir()
+
+    public File getDeployerDir()
+    {
+        return new File(getBaseDir(), deployerDir.getAbsolutePath());
+    }
+
+    public File getBaseDir()
     {
         return baseDir;
     }
-    public static File getDeployerDir()
+
+    public List<Template.LobbyTemplate> getLobbies()
     {
-        return deployerDir;
+        return lobbies;
     }
-    public Map<String, Map<String, Object>> getServers()
+
+    public List<Template> getGames()
     {
-        return servers;
+        return games;
+    }
+
+    public List<Template.LobbyTemplate> getLobbiesByType(Lobby.LobbyType type)
+    {
+        return lobbies.stream()
+                .filter(lobbyTemplate -> lobbyTemplate.getType().equals(type))
+                .collect(Collectors.toList());
     }
 }

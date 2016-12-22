@@ -2,7 +2,7 @@ package api.deployer;
 
 import api.Main;
 import api.config.DeployerConfig;
-import api.config.ServerTemplate;
+import api.config.Variant;
 import api.data.Server;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
@@ -21,7 +21,7 @@ import java.nio.file.Files;
  */
 public class DeployerServer implements Runnable
 {
-	private final ServerTemplate template;
+	private final Variant variant;
 	private String name;
 	private int id;
 	private ServerType type;
@@ -32,7 +32,7 @@ public class DeployerServer implements Runnable
 	private File serverFolder;
 	private Thread currentThread;
 	private Process process;
-	private Server server; //ServerInfo can be found at server.getInfo()
+	private Server server;
 
 	public enum ServerType
 	{
@@ -40,20 +40,21 @@ public class DeployerServer implements Runnable
 		GAME
 	}
 
-	public DeployerServer(int id, String name, ServerType type, ServerTemplate template, int port)
+	public DeployerServer(int id, ServerType type, Variant variant, int port)
 	{
 		this.id = id;
-		this.name = name;
 		this.type = type;
-		this.template = template;
+		this.variant = variant;
 		this.port = port;
 		this.currentThread = new Thread(this);
 
-		this.spigot = new File(DeployerConfig.getBaseDir(), template.getSpigotPath());
-		this.map = new File(DeployerConfig.getBaseDir(), template.getMapPath());
-		this.properties = new File(DeployerConfig.getBaseDir(), template.getPropsPath());
+		DeployerConfig c = Main.getInstance().getDeployer().getConfig();
 
-		File typeFolder = new File(DeployerConfig.getDeployerDir(), getType().toString());
+		this.spigot = new File(c.getBaseDir(), variant.getSpigotPath().getAbsolutePath());
+		this.map = new File(c.getBaseDir(), variant.getMapPath().getAbsolutePath());
+		this.properties = new File(c.getBaseDir(), variant.getPropsPath().getAbsolutePath());
+
+		File typeFolder = new File(c.getDeployerDir(), getType().toString());
 		File servTypeFolder = new File(typeFolder, name);
 		this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
 	}
@@ -94,15 +95,15 @@ public class DeployerServer implements Runnable
 	{
 		try
 		{
-			String jvmArgs = String.format("-Xmx%d ", this.template.getMaxRam()) +
-					String.format("-Xms%d ", this.template.getMinRam()) +
-					this.template.getJvmArgs() +
+			String jvmArgs = String.format("-Xmx%d ", this.variant.getMaxRam()) +
+					String.format("-Xms%d ", this.variant.getMinRam()) +
+					this.variant.getJvmArgs() +
 					" -jar";
 			String spigotArgs = this.spigot.getAbsolutePath() +
 					" --p " + this.getPort() +
-					" --s " + this.template.getSlots() +
+					" --s " + this.variant.getSlots() +
 					" --W " + this.getMap().getAbsolutePath() +
-					" " + this.template.getSpigotArgs();
+					" " + this.variant.getSpigotArgs();
 
 			ProcessBuilder pb = new ProcessBuilder("java", jvmArgs, spigotArgs);
 			this.process = pb.start();
@@ -151,7 +152,7 @@ public class DeployerServer implements Runnable
 		this.currentThread.interrupt();
 	}
 
-	void setServer(Server server)
+	public void setServer(Server server)
 	{ //Called by Deployer in the same package
 		this.server = server;
 	}
@@ -230,4 +231,11 @@ public class DeployerServer implements Runnable
 	{
 		return server;
 	}
+
+	public Variant getVariant()
+	{
+		return variant;
+	}
+
+
 }
