@@ -20,7 +20,7 @@ public class DeployerConfig
     private List<Template.LobbyTemplate> lobbies;
     private List<Template> games;
 
-    public DeployerConfig load(File f)
+    public static DeployerConfig load(File f)
     {
         GsonBuilder gson = new GsonBuilder();
         gson.registerTypeAdapter(File.class, new FileAdaptater());

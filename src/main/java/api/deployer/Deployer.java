@@ -31,7 +31,7 @@ public class Deployer
 
 	public void init()
 	{
-		config.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
+		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
 		try
 		{
 			Utils.deleteFolder(config.getDeployerDir());
