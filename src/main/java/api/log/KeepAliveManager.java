@@ -166,7 +166,7 @@ public class KeepAliveManager
 		watcherThread.start();
 	}
 
-	public void end()
+	public void stop()
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");

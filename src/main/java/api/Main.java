@@ -3,6 +3,7 @@ package api;
 import api.data.DataManager;
 import api.deployer.Deployer;
 import api.event.PlayerEvents;
+import api.log.KeepAliveManager;
 import api.packets.MessengerServer;
 import com.mongodb.MongoClient;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -24,6 +25,7 @@ public class Main extends Plugin
 	private final MessengerServer messenger;
 	private final Deployer deployer;
 	private final DataManager dataManager;
+	private final KeepAliveManager keepAliveManager;
 
 	private final PlayerEvents playerEvents;
 
@@ -36,6 +38,7 @@ public class Main extends Plugin
 		deployer = new Deployer();
 		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
 		playerEvents = new PlayerEvents();
+		keepAliveManager = new KeepAliveManager();
 	}
 
 	@Override
@@ -49,6 +52,7 @@ public class Main extends Plugin
 		messenger.init();
 		dataManager.init();
 		playerEvents.init();
+		keepAliveManager.init();
 
 		getLogger().info("FcApiBungee enabled !");
 	}
@@ -59,6 +63,7 @@ public class Main extends Plugin
 		deployer.stop();
 		messenger.stop();
 		dataManager.stop();
+		keepAliveManager.stop();
 
 		if (!jedisPool.isClosed())
 			jedisPool.close();
@@ -94,5 +99,15 @@ public class Main extends Plugin
 	public DataManager getDataManager()
 	{
 		return dataManager;
+	}
+
+	public PlayerEvents getPlayerEvents()
+	{
+		return playerEvents;
+	}
+
+	public KeepAliveManager getKeepAliveManager()
+	{
+		return keepAliveManager;
 	}
 }
