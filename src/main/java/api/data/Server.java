@@ -3,6 +3,7 @@ package api.data;
 import api.Main;
 import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
+import api.packets.server.ServerStatePacket;
 import net.md_5.bungee.api.config.ServerInfo;
 
 /**
@@ -15,6 +16,7 @@ public class Server
 	private final ServerInfo info;
 
 	private long lastKeepAlive;
+	private ServerStatePacket.ServerState serverState = ServerStatePacket.ServerState.STARTING; //Defaults to STARTING
 
 	Server(DeployerServer deployer, ServerInfo info)
 	{
@@ -32,7 +34,7 @@ public class Server
 		return lastKeepAlive;
 	}
 
-	public void setLastKeepAlive(long lastKeepAlive)
+	void setLastKeepAlive(long lastKeepAlive)
 	{
 		this.lastKeepAlive = lastKeepAlive;
 	}
@@ -45,6 +47,16 @@ public class Server
 	void setMessenger(MessengerClient messenger)
 	{
 		this.messenger = messenger;
+	}
+
+	public ServerStatePacket.ServerState getServerState()
+	{
+		return serverState;
+	}
+
+	void setServerState(ServerStatePacket.ServerState serverState)
+	{
+		this.serverState = serverState;
 	}
 
 	public DeployerServer getDeployer()
@@ -70,6 +82,7 @@ public class Server
 				", deployer=" + deployer +
 				", info=" + info +
 				", lastKeepAlive=" + lastKeepAlive +
+				", serverState=" + serverState +
 				'}';
 	}
 }

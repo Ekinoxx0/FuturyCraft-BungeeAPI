@@ -20,7 +20,7 @@ public class SendPlayerDataPacket extends OutPacket
 		this.rank = rank;
 	}
 
-	public UUID getUuid()
+	public UUID getUUID()
 	{
 		return uuid;
 	}

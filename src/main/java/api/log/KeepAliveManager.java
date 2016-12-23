@@ -5,6 +5,7 @@ import api.data.Server;
 import api.packets.IncPacket;
 import api.packets.PacketReceivedEvent;
 import api.packets.server.KeepAlivePacket;
+import api.packets.server.ServerStatePacket;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import net.md_5.bungee.api.ProxyServer;
@@ -180,21 +181,27 @@ public class KeepAliveManager
 		public void onPacket(PacketReceivedEvent event)
 		{
 			IncPacket packet = event.getPacket();
-			if (!(packet instanceof KeepAlivePacket))
-				return;
-
-			cacheLock.lock();
-			try
+			if (packet instanceof KeepAlivePacket)
 			{
-				cache.put(event.getFrom(), (KeepAlivePacket) packet);
-				cacheNotEmpty.signal();
-			}
-			finally
-			{
-				cacheLock.unlock();
-			}
 
-			event.getFrom().setLastKeepAlive(System.currentTimeMillis());
+				cacheLock.lock();
+				try
+				{
+					cache.put(event.getFrom(), (KeepAlivePacket) packet);
+					cacheNotEmpty.signal();
+				}
+				finally
+				{
+					cacheLock.unlock();
+				}
+
+				Main.getInstance().getDataManager().updateLastKeepAlive(event.getFrom(), System.currentTimeMillis());
+			}
+			else if (packet instanceof ServerStatePacket)
+			{
+				Main.getInstance().getDataManager().updateServerState(event.getFrom(), ((ServerStatePacket) packet)
+						.getServerState());
+			}
 		}
 	}
 

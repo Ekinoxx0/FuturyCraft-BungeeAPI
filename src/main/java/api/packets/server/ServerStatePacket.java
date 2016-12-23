@@ -53,6 +53,11 @@ public class ServerStatePacket extends IncPacket
 	{
 
 		/**
+		 * The server is starting
+		 */
+		STARTING,
+
+		/**
 		 * The server is started
 		 */
 		STARTED,

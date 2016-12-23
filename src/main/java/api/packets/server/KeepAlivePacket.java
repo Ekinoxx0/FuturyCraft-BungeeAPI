@@ -4,6 +4,7 @@ import api.packets.IncPacket;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by SkyBeast on 22/12/2016.
@@ -52,11 +53,10 @@ public class KeepAlivePacket extends IncPacket
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		KeepAlivePacket keepAlivePacket = (KeepAlivePacket) o;
+		KeepAlivePacket that = (KeepAlivePacket) o;
 
-		return freeMemory == keepAlivePacket.freeMemory && totalMemory == keepAlivePacket.totalMemory && Double
-				.compare(keepAlivePacket
-				.processCpuLoad, processCpuLoad) == 0;
+		return freeMemory == that.freeMemory && totalMemory == that.totalMemory && Double.compare(that.processCpuLoad,
+				processCpuLoad) == 0 && Arrays.equals(lastTPS, that.lastTPS);
 
 	}
 
@@ -69,6 +69,7 @@ public class KeepAlivePacket extends IncPacket
 		result = 31 * result + (int) (totalMemory ^ (totalMemory >>> 32));
 		temp = Double.doubleToLongBits(processCpuLoad);
 		result = 31 * result + (int) (temp ^ (temp >>> 32));
+		result = 31 * result + Arrays.hashCode(lastTPS);
 		return result;
 	}
 
@@ -79,6 +80,7 @@ public class KeepAlivePacket extends IncPacket
 				"freeMemory=" + freeMemory +
 				", totalMemory=" + totalMemory +
 				", processCpuLoad=" + processCpuLoad +
+				", lastTPS=" + Arrays.toString(lastTPS) +
 				'}';
 	}
 }

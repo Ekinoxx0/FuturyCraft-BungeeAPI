@@ -3,6 +3,7 @@ package api.data;
 import api.Main;
 import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
+import api.packets.server.ServerStatePacket;
 import api.utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -393,6 +394,16 @@ public class DataManager
 	public void updateMessenger(Server srv, MessengerClient client)
 	{
 		srv.setMessenger(client);
+	}
+
+	public void updateServerState(Server srv, ServerStatePacket.ServerState state)
+	{
+		srv.setServerState(state);
+	}
+
+	public void updateLastKeepAlive(Server srv, long lastKeepAlive)
+	{
+		srv.setLastKeepAlive(lastKeepAlive);
 	}
 
 	@Override
