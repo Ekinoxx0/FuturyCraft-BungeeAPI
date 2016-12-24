@@ -22,7 +22,6 @@ import java.nio.file.Files;
 public class DeployerServer implements Runnable
 {
 	private final Variant variant;
-	private String name;
 	private int id;
 	private ServerType type;
 	private File spigot;
@@ -55,7 +54,7 @@ public class DeployerServer implements Runnable
 		this.properties = new File(c.getBaseDir(), variant.getPropsPath().getAbsolutePath());
 
 		File typeFolder = new File(c.getDeployerDir(), getType().toString());
-		File servTypeFolder = new File(typeFolder, name);
+		File servTypeFolder = new File(typeFolder, type.toString());
 		this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
 	}
 
@@ -77,13 +76,15 @@ public class DeployerServer implements Runnable
 			Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
 			unZipper.unzip(properties, serverFolder);
 			ProxyServer proxy = Main.getInstance().getProxy();
-			info = proxy.constructServerInfo(name, Util.getAddr("127.0.0.1"), getName(), false);
-			proxy.getServers().put(name, info);
+			info = proxy.constructServerInfo(this.getType().toString(), Util.getAddr("127.0.0.1"), getName(), false);
+			proxy.getServers().put(this.getType().toString(), info);
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
+
+
 
 		return info; //Returned info is nullable
 		// #server is not initialized yet, but this ServerInfo will help the Deployer to construct a Server instance
@@ -159,12 +160,7 @@ public class DeployerServer implements Runnable
 
 	public String getName()
 	{
-		return "SERVER " + this.name + "#" + this.id;
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
+		return "SERVER " + this.getType().toString() + "#" + this.id;
 	}
 
 	public File getSpigot()
