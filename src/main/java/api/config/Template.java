@@ -12,7 +12,7 @@ public class Template
 
     public class LobbyTemplate extends Template
     {
-        public Lobby.LobbyType type;
+        private Lobby.LobbyType type;
 
         public Lobby.LobbyType getType()
         {

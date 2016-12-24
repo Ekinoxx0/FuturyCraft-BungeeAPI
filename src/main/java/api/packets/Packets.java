@@ -2,6 +2,7 @@ package api.packets;
 
 import api.packets.players.SendPlayerDataPacket;
 import api.packets.server.KeepAlivePacket;
+import api.packets.server.ServerStatePacket;
 import api.packets.server.StopPacket;
 
 import java.io.DataInputStream;
@@ -14,10 +15,11 @@ public enum Packets
 {
 	// OUTGOING - Spigot-bound
 	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerDataPacket.class),
-	REQUEST_STOP((byte) 0x02, false, StopPacket.class),
+	REQUEST_STOP((byte) 0x01, false, StopPacket.class),
 
 	// INCOMING - Bungee-bound
-	SEND_TPS((byte) 0x01, true, KeepAlivePacket.class);
+	KEEP_ALIVE((byte) 0x00, true, KeepAlivePacket.class),
+	SERVER_STATE((byte) 0x01, true, ServerStatePacket.class);
 
 	private final byte id;
 	private final boolean in;

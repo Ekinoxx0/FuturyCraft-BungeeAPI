@@ -35,8 +35,8 @@ public class Main extends Plugin
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
 		messenger = new MessengerServer(5555, new String[]{"localhost", "127.0.0.1"});
-		deployer = new Deployer();
 		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
+		deployer = new Deployer();
 		playerEvents = new PlayerEvents();
 		keepAliveManager = new KeepAliveManager();
 	}
