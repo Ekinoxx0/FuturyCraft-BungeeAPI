@@ -2,6 +2,8 @@ package api.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -16,6 +18,20 @@ import java.util.stream.Collectors;
  * Created by loucass003 on 15/12/16.
  */
 public class Utils {
+
+	public static final InetAddress LOCAL_HOST = getLocalHost();
+
+	private static InetAddress getLocalHost()
+	{
+		try
+		{
+			return InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+		}
+		catch (UnknownHostException e)
+		{
+			throw new IllegalStateException();
+		}
+	}
 
     public static String readFile(File f)
     {
@@ -35,7 +51,7 @@ public class Utils {
         {
             return Integer.valueOf(str);
         }
-        catch (Exception e)
+        catch (NumberFormatException e)
         {
             return null;
         }
@@ -86,6 +102,6 @@ public class Utils {
 		buf.putLong(uuid.getMostSignificantBits());
 		buf.putLong(uuid.getLeastSignificantBits());
 		String str = Base64.getUrlEncoder().encodeToString(buf.array());
-		return str.substring(0, str.length() - 2);
+		return str.substring(0, str.length() - 3);
 	}
 }

@@ -3,10 +3,8 @@ package api.deployer;
 import api.Main;
 import api.config.DeployerConfig;
 import api.config.Variant;
-import api.data.Server;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
-import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -14,7 +12,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by loucass003 on 15/12/16.
@@ -31,7 +32,7 @@ public class DeployerServer implements Runnable
 	private File serverFolder;
 	private Thread currentThread;
 	private Process process;
-	private Server server;
+	protected String name;
 
 	public enum ServerType
 	{
@@ -46,12 +47,13 @@ public class DeployerServer implements Runnable
 		this.variant = variant;
 		this.port = port;
 		this.currentThread = new Thread(this);
+		this.name = "SERVER#" + this.id;
 
 		DeployerConfig c = Main.getInstance().getDeployer().getConfig();
 
-		this.spigot = new File(c.getBaseDir(), variant.getSpigotPath().getAbsolutePath());
-		this.map = new File(c.getBaseDir(), variant.getMapPath().getAbsolutePath());
-		this.properties = new File(c.getBaseDir(), variant.getPropsPath().getAbsolutePath());
+		this.spigot = new File(c.getBaseDir(), variant.getSpigotPath());
+		this.map = new File(c.getBaseDir(), variant.getMapPath());
+		this.properties = new File(c.getBaseDir(), variant.getPropsPath());
 
 		File typeFolder = new File(c.getDeployerDir(), getType().toString());
 		File servTypeFolder = new File(typeFolder, type.toString());
@@ -60,31 +62,29 @@ public class DeployerServer implements Runnable
 
 	public ServerInfo deploy()
 	{
-		ServerInfo info = null; //no needs to catche cause already cached into #server
-		if (!serverFolder.exists())
+		ServerInfo info = null; //no needs to catch cause already cached into #server
+		if (!serverFolder.exists() && !serverFolder.mkdirs())
 		{
-			if (!serverFolder.mkdirs())
-			{
-				Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
-				return null;
-			}
+			Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
+			return null;
 		}
 
 		UnzipUtilities unZipper = new UnzipUtilities();
 		try
 		{
-			Files.copy(spigot.getAbsoluteFile().toPath(), new File(serverFolder, spigot.getName()).toPath());
+			Files.copy(spigot.toPath(), new File(serverFolder, spigot.getName()).toPath());
 			unZipper.unzip(properties, serverFolder);
+			unZipper.unzip(map, serverFolder);
 			ProxyServer proxy = Main.getInstance().getProxy();
-			info = proxy.constructServerInfo(this.getType().toString(), Util.getAddr("127.0.0.1"), getName(), false);
-			proxy.getServers().put(this.getType().toString(), info);
+			info = proxy.constructServerInfo(name, new InetSocketAddress(Utils.LOCAL_HOST, port), "", false);
+			proxy.getServers().put(name, info);
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
 
-
+		start(); //Don't forget to start ;)
 
 		return info; //Returned info is nullable
 		// #server is not initialized yet, but this ServerInfo will help the Deployer to construct a Server instance
@@ -96,7 +96,7 @@ public class DeployerServer implements Runnable
 	{
 		try
 		{
-			String jvmArgs = String.format("-Xmx%d ", this.variant.getMaxRam()) +
+			/*String jvmArgs = String.format("-Xmx%d ", this.variant.getMaxRam()) +
 					String.format("-Xms%d ", this.variant.getMinRam()) +
 					this.variant.getJvmArgs() +
 					" -jar";
@@ -104,21 +104,39 @@ public class DeployerServer implements Runnable
 					" --p " + this.getPort() +
 					" --s " + this.variant.getSlots() +
 					" --W " + this.getMap().getAbsolutePath() +
-					" " + this.variant.getSpigotArgs();
+					" " + this.variant.getSpigotArgs();*/
 
-			ProcessBuilder pb = new ProcessBuilder("java", jvmArgs, spigotArgs);
+			List<String> args = new ArrayList<>();
+			args.add("java");
+			args.add("-Xmx" + variant.getMaxRam() + "M");
+			args.add("-Xms" + variant.getMinRam() + "M");
+			args.add("-Dcom.mojang.eula.agree=true"); // :p
+			variant.getJvmArgs().forEach(args::add);
+			args.add("-jar");
+
+			args.add(spigot.getAbsolutePath());
+			args.add("-p");
+			args.add(String.valueOf(port));
+			args.add("-s");
+			args.add(String.valueOf(variant.getSlots()));
+			variant.getSpigotArgs().forEach(args::add);
+
+			ProcessBuilder pb = new ProcessBuilder(args);
+			pb.directory(serverFolder);
 			this.process = pb.start();
 			BufferedReader in = new BufferedReader(new InputStreamReader(this.process.getInputStream()));
+
 			String s;
-			while ((s = in.readLine()) != null)
+			while ((s = in.readLine()) != null && process.isAlive())
 			{
-				//TODO: Packet log;
+				Main.getInstance().getLogger().info(id + ": " + s);
 			}
-			int status = this.process.waitFor();
-			//TODO: Save stop status;
+
 			remove();
+
+			Main.getInstance().getLogger().info(this + " stopped.");
 		}
-		catch (IOException | InterruptedException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -126,41 +144,38 @@ public class DeployerServer implements Runnable
 
 	public void remove()
 	{
-		Thread t = new Thread(() ->
+		try
 		{
-			try
-			{
-				Utils.deleteFolder(this.serverFolder);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-				Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder
-						.getAbsolutePath() + "\"");
-			}
-		});
-		t.start();
+			Utils.deleteFolder(this.serverFolder);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder
+					.getAbsolutePath() + "\"");
+		}
 	}
 
 	public void start()
 	{
-		this.currentThread.start();
+		if (currentThread != null)
+		{
+			this.currentThread.start();
+			Main.getInstance().getLogger().info("Server " + this + " started.");
+		}
 	}
 
 	public void kill()
 	{
-		this.process.destroy();
-		this.currentThread.interrupt();
-	}
-
-	public void setServer(Server server)
-	{ //Called by Deployer in the same package
-		this.server = server;
+		if (process != null)
+			this.process.destroy();
+		if (currentThread != null)
+			this.currentThread.interrupt();
 	}
 
 	public String getName()
 	{
-		return "SERVER " + this.getType().toString() + "#" + this.id;
+		return name;
 	}
 
 	public File getSpigot()
@@ -223,15 +238,25 @@ public class DeployerServer implements Runnable
 		return id;
 	}
 
-	public Server getServer()
-	{
-		return server;
-	}
-
 	public Variant getVariant()
 	{
 		return variant;
 	}
 
-
+	@Override
+	public String toString()
+	{
+		return "DeployerServer{" +
+				"variant=" + variant +
+				", id=" + id +
+				", type=" + type +
+				", spigot=" + spigot +
+				", map=" + map +
+				", properties=" + properties +
+				", port=" + port +
+				", serverFolder=" + serverFolder +
+				", currentThread=" + currentThread +
+				", process=" + process +
+				'}';
+	}
 }

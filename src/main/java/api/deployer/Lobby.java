@@ -10,7 +10,6 @@ import java.io.File;
  */
 public class Lobby extends DeployerServer
 {
-
     private LobbyType type;
 
     public enum LobbyType
@@ -22,6 +21,7 @@ public class Lobby extends DeployerServer
     {
         super(id, ServerType.LOBBY, variant, port);
         this.type = type;
+	    this.name = "LOBBY-" + getLobbyType() + "#" + getId();
     }
 
     @Override
@@ -31,12 +31,6 @@ public class Lobby extends DeployerServer
         File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
         this.setServerFolder(new File(lobbyTypeFolder, Integer.toString(getId())));
         return super.deploy();
-    }
-
-    @Override
-    public String getName()
-    {
-        return "LOBBY " + getLobbyType() + "#" + getId();
     }
 
     public LobbyType getLobbyType()

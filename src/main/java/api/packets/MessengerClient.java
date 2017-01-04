@@ -16,7 +16,6 @@ import java.util.logging.Level;
  */
 public class MessengerClient
 {
-	private final MessengerServer messengerServer;
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
@@ -26,10 +25,10 @@ public class MessengerClient
 	private volatile boolean end = false;
 	private Server server;
 
-	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in DeployerServer connection
+	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in DeployerServer
+	// connection
 	// listener
 	{
-		this.messengerServer = messengerServer;
 		this.socket = socket;
 		in = new DataInputStream(socket.getInputStream());
 		out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
@@ -47,13 +46,15 @@ public class MessengerClient
 				if (!identify(port))
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "The socket sent a non-registered port for " +
-							"identification! Disconnecting it... (Client: " + this + ")");
+							"identification! Disconnecting it... (Port = " + port + ", Client: " + this + ")");
 					disconnect(); //Disconnect
 					return; //Don't run the infinite loop
 				}
 
 				out.writeBoolean(true);
 				out.flush();
+
+				Main.getInstance().getLogger().info(this + " identified");
 			}
 			catch (Exception e)
 			{
@@ -71,7 +72,8 @@ public class MessengerClient
 				{
 					byte id = in.readByte();
 					short transactionID = in.readShort();
-					byte[] data = new byte[in.readShort()];
+					int size = in.readUnsignedShort();
+					byte[] data = new byte[size];
 					in.readFully(data); //Read all data and store it to the array
 
 					handleData(id, transactionID, data);
@@ -139,7 +141,7 @@ public class MessengerClient
 			return false;
 
 		this.server = server;
-		messengerServer.register(server, this);
+		Main.getInstance().getMessenger().register(server, this);
 		return true;
 	}
 
@@ -161,14 +163,15 @@ public class MessengerClient
 	public void sendPacket(OutPacket packet, short transactionID) throws IOException
 	{
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
-		DataOutputStream data = new DataOutputStream(new ByteArrayOutputStream());
+		DataOutputStream data = new DataOutputStream(array);
 		packet.write(data);
 
 		synchronized (out)
 		{
-			out.write(Packets.getID(packet.getClass()));
-			out.write(transactionID);
-			out.write(array.size());
+			Main.getInstance().getLogger().info("Sending " + packet + " in client " + this);
+			out.writeByte(Packets.getID(packet.getClass()));
+			out.writeShort(transactionID);
+			out.writeShort(array.size());
 			out.write(array.toByteArray());
 			out.flush();
 		}
@@ -176,7 +179,7 @@ public class MessengerClient
 
 	public void disconnect()
 	{
-		messengerServer.unregister(this);
+		Main.getInstance().getMessenger().unregister(this);
 		end = true;
 		try
 		{
@@ -213,8 +216,7 @@ public class MessengerClient
 	public String toString()
 	{
 		return "MessengerClient{" +
-				"messengerServer=" + messengerServer +
-				", socket=" + socket +
+				"socket=" + socket +
 				", in=" + in +
 				", out=" + out +
 				", listeners=" + listeners +

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class DeployerConfig
 {
 	private File baseDir;
-	private File deployerDir;
+	private String deployerDir;
 	private List<Template.LobbyTemplate> lobbies;
 	private List<Template> games;
 
@@ -33,7 +33,7 @@ public class DeployerConfig
 	public File getDeployerDir()
 	{
 		if (deployerDirCache == null)
-			deployerDirCache = new File(getBaseDir(), deployerDir.getAbsolutePath());
+			deployerDirCache = new File(getBaseDir(), deployerDir);
 		return deployerDirCache;
 	}
 
@@ -57,5 +57,17 @@ public class DeployerConfig
 		return lobbies.stream()
 				.filter(lobbyTemplate -> lobbyTemplate.getType().equals(type))
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public String toString()
+	{
+		return "DeployerConfig{" +
+				"baseDir=" + baseDir +
+				", deployerDir='" + deployerDir + '\'' +
+				", lobbies=" + lobbies +
+				", games=" + games +
+				", deployerDirCache=" + deployerDirCache +
+				'}';
 	}
 }

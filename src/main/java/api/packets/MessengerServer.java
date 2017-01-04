@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+
 /**
  * Created by SkyBeast on 17/12/2016.
  */
@@ -24,11 +25,13 @@ public class MessengerServer
 	private Thread connectionListener;
 	private volatile boolean end = false;
 	private boolean init = false;
+
 	public MessengerServer(int port, String[] whiteList)
 	{
 		this.port = port;
 		this.whiteList = whiteList;
 	}
+
 	public void init()
 	{
 		if (!init)
@@ -48,6 +51,7 @@ public class MessengerServer
 			}
 		}
 	}
+
 	private void setupConnectionListener()
 	{
 		connectionListener = new Thread(() ->
@@ -57,7 +61,10 @@ public class MessengerServer
 				try
 				{
 					Socket socket = server.accept();
-					if (Stream.of(whiteList)
+					Main.getInstance().getLogger().info("Socket accepted: " +
+							socket);
+
+					if (!Stream.of(whiteList)
 							.anyMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
 									socket.getInetAddress().getHostAddress().equals(entry)))
 					{
@@ -91,6 +98,7 @@ public class MessengerServer
 		);
 		connectionListener.start();
 	}
+
 	public void stop()
 	{
 		end = true;
@@ -100,14 +108,22 @@ public class MessengerServer
 		}
 		catch (IOException ignored) {}
 
-		Main.getInstance().getDataManager().forEachServers(srv -> srv.getMessenger().disconnect());
+		Main.getInstance().getDataManager().forEachServers(srv ->
+				{
+					if (srv.getMessenger() != null)
+						srv.getMessenger().disconnect();
+				}
+		);
 
 		synchronized (nonRegistered)
 		{
 			nonRegistered.forEach(MessengerClient::disconnect);
 			nonRegistered.clear();
 		}
+
+		Main.getInstance().getLogger().info(this + " stopped.");
 	}
+
 	void register(Server server, MessengerClient client) //Called by the client listener once identified
 	{
 		synchronized (nonRegistered)
@@ -116,6 +132,7 @@ public class MessengerServer
 		}
 		Main.getInstance().getDataManager().updateMessenger(server, client);
 	}
+
 	void unregister(MessengerClient client)
 	{
 		synchronized (nonRegistered)
@@ -123,6 +140,7 @@ public class MessengerServer
 			nonRegistered.remove(client); //Remove if present
 		}
 	}
+
 	@Override
 	public String toString()
 	{

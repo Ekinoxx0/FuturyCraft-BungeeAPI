@@ -4,7 +4,6 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.Template;
 import api.config.Variant;
-import api.data.DataManager;
 import api.utils.Utils;
 
 import java.io.File;
@@ -16,7 +15,6 @@ import java.util.logging.Level;
  */
 public class Deployer
 {
-	private final DataManager dataManager = Main.getInstance().getDataManager();
 	private DeployerConfig config;
 
 	private static final int MIN_PORT = 12000;
@@ -58,23 +56,22 @@ public class Deployer
 				for (int i = 0; i < v.getMinServers(); i++)
 					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
 
-
 	}
 
 
 	public void addServer(DeployerServer server)
 	{
-		server.setServer(dataManager.constructServer(server, server.deploy()));
+		Main.getInstance().getDataManager().constructServer(server, server.deploy());
 	}
 
 	public int getNextId()
 	{
-		return dataManager.getNextDeployerID(MAX_SERVERS);
+		return Main.getInstance().getDataManager().getNextDeployerID(MAX_SERVERS);
 	}
 
 	public int getNextPort()
 	{
-		return dataManager.getNextDeployerPort(MIN_PORT, MAX_PORT);
+		return Main.getInstance().getDataManager().getNextDeployerPort(MIN_PORT, MAX_PORT);
 	}
 
 	public DeployerConfig getConfig()
@@ -84,16 +81,26 @@ public class Deployer
 
 	public void stop()
 	{
-		dataManager.forEachServers(server ->
+		Main.getInstance().getDataManager().forEachServers(server ->
 				{
 					//Undeploy ?
 				}
 		);
+
+		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
 	@Deprecated
 	public int countLobby(Lobby.LobbyType t)
 	{
 		return -1;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Deployer{" +
+				"config=" + config +
+				'}';
 	}
 }

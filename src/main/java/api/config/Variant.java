@@ -1,6 +1,6 @@
 package api.config;
 
-import java.io.File;
+import java.util.List;
 
 /**
  * Created by loucass003 on 21/12/16.
@@ -13,11 +13,11 @@ public class Variant
     private int minRam;
     private int maxRam;
 
-    private String spigotArgs;
-    private String jvmArgs;
-    private File spigotPath;
-    private File propsPath;
-    private File mapPath;
+	private List<String> spigotArgs;
+	private List<String> jvmArgs;
+	private String spigotPath;
+	private String propsPath;
+	private String mapPath;
 
     public int getMinServers()
     {
@@ -29,18 +29,18 @@ public class Variant
         return maxServers;
     }
 
-    public File getMapPath()
-    {
+	public String getMapPath()
+	{
         return mapPath;
     }
 
-    public File getPropsPath()
-    {
+	public String getPropsPath()
+	{
         return propsPath;
     }
 
-    public File getSpigotPath()
-    {
+	public String getSpigotPath()
+	{
         return spigotPath;
     }
 
@@ -59,13 +59,30 @@ public class Variant
         return slots;
     }
 
-    public String getJvmArgs()
-    {
+	public List<String> getJvmArgs()
+	{
         return jvmArgs;
     }
 
-    public String getSpigotArgs()
-    {
+	public List<String> getSpigotArgs()
+	{
         return spigotArgs;
     }
+
+	@Override
+	public String toString()
+	{
+		return "Variant{" +
+				"minServers=" + minServers +
+				", maxServers=" + maxServers +
+				", slots=" + slots +
+				", minRam=" + minRam +
+				", maxRam=" + maxRam +
+				", spigotArgs=" + spigotArgs +
+				", jvmArgs=" + jvmArgs +
+				", spigotPath='" + spigotPath + '\'' +
+				", propsPath='" + propsPath + '\'' +
+				", mapPath='" + mapPath + '\'' +
+				'}';
+	}
 }

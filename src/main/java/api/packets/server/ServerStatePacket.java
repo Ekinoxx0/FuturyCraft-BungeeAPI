@@ -15,7 +15,7 @@ public class ServerStatePacket extends IncPacket
 	public ServerStatePacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		this.serverState = ServerState.values()[data.readInt()];
+		this.serverState = ServerState.values()[data.readUnsignedByte()];
 	}
 
 	public ServerState getServerState()

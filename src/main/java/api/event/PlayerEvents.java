@@ -28,7 +28,7 @@ public class PlayerEvents implements Listener
 	}
 
 	@EventHandler
-	public void onPlayerJoin(PostLoginEvent e)
+	public void onPostLogin(PostLoginEvent e)
 	{
 		List<Server> lobbies = Main.getInstance().getDataManager().getServersByType(DeployerServer.ServerType.LOBBY);
 		if (lobbies.size() == 0)
@@ -38,13 +38,18 @@ public class PlayerEvents implements Listener
 		}
 
 		Collections.sort(lobbies, (o1, o2) ->
-		{
-			int i0 = o1.getInfo().getPlayers().size();
-			int i1 = o2.getInfo().getPlayers().size();
-			return i0 > i1 ? 1 : i0 < i1 ? -1 : 0;
-		});
+				{
+					int i0 = o1.getInfo().getPlayers().size();
+					int i1 = o2.getInfo().getPlayers().size();
+					return i0 > i1 ? 1 : i0 < i1 ? -1 : 0;
+				}
+		);
 
-		e.getPlayer().connect(lobbies.get(0).getInfo());
+		e.getPlayer().connect(lobbies.get(0).getInfo(), (bool, ex) ->
+				{
+					if (ex != null) ex.printStackTrace();
+				}
+		);
 
 		int players = Main.getInstance().getProxy().getOnlineCount();
 		int totalSlots = 0;
@@ -65,7 +70,7 @@ public class PlayerEvents implements Listener
 	}
 
 
-	public Variant getNextLobbyVariant(Lobby.LobbyType type)
+	private Variant getNextLobbyVariant(Lobby.LobbyType type)
 	{
 		List<Template.LobbyTemplate> lobbies = deployer.getConfig().getLobbiesByType(type);
 		if (lobbies.size() == 0)

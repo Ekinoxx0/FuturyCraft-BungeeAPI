@@ -74,6 +74,11 @@ public class Server
 		return deployer.getId();
 	}
 
+	public String getName()
+	{
+		return deployer.getName();
+	}
+
 	@Override
 	public String toString()
 	{

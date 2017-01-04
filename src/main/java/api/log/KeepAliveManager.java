@@ -6,14 +6,16 @@ import api.packets.IncPacket;
 import api.packets.PacketReceivedEvent;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import org.bson.Document;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -27,7 +29,6 @@ public class KeepAliveManager
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	private final Condition cacheNotEmpty = cacheLock.newCondition();
 	private final Listen listener = new Listen();
-	private final MongoClient mongoClient;
 	private final MongoDatabase mongoDatabase;
 	private final Calendar calendar = Calendar.getInstance();
 	private int day;
@@ -38,9 +39,7 @@ public class KeepAliveManager
 
 	public KeepAliveManager()
 	{
-		mongoClient = Main.getInstance().getMongoClient();
-		mongoDatabase = mongoClient.getDatabase("keep-alive");
-		calendar.setTime(new Date());
+		mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive");
 	}
 
 	public void init()
@@ -73,7 +72,6 @@ public class KeepAliveManager
 			{
 				try
 				{
-					Thread.sleep(1000 * 60 * 5);
 
 					cacheLock.lock();
 					try
@@ -84,12 +82,14 @@ public class KeepAliveManager
 							continue;
 						}
 
+						Main.getInstance().getLogger().info("Sending keep-alives...");
+
 						Document doc = new Document("ts", System.currentTimeMillis());
 						cache.keySet().forEach(server ->
 								{
 									KeepAlivePacket packet = cache.get(server);
 									byte[] tps = packet.getLastTPS();
-									doc.put(String.valueOf(server.getID()),
+									doc.put(String.valueOf(server.getName()),
 											new Document("freeMem", packet.getFreeMemory())
 													.append("totMem", packet.getTotalMemory())
 													.append("cpu", packet.getProcessCpuLoad())
@@ -97,9 +97,11 @@ public class KeepAliveManager
 								}
 						);
 
-						mongoDatabase.getCollection(calendar.get(Calendar
-								.DAY_OF_MONTH) + "-" + calendar.get(Calendar
-								.MONTH) + "-" + calendar.get(Calendar.YEAR)).insertOne(doc);
+						mongoDatabase.getCollection(
+								calendar.get(Calendar.DAY_OF_MONTH) + "-"
+										+ calendar.get(Calendar.MONTH) + "-"
+										+ calendar.get(Calendar.YEAR)
+						).insertOne(doc);
 
 
 						cache.clear();
@@ -108,6 +110,8 @@ public class KeepAliveManager
 					{
 						cacheLock.unlock();
 					}
+
+					Thread.sleep(1000 * 60 * 5);
 
 				}
 				catch (InterruptedException e)
@@ -135,17 +139,19 @@ public class KeepAliveManager
 			{
 				try
 				{
-					Thread.sleep(1000 * 60 + 30 * 1000);
+					Thread.sleep(1000 * 90);
 
 					Main.getInstance().getDataManager().forEachServers(server ->
 							{
-								if (System.currentTimeMillis() - server.getLastKeepAlive() < 1000 * 60 + 1000 * 30)
+								if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
 								{
 									/*ProxyServer.getInstance().getPlayers().stream().filter(player -> player.getServer
 											().getInfo().equals(server)).forEach(player -> player.connect(null));*/
 									// connect to lobby
 
 									//TODO finish him
+									Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server + " did not " +
+											"send keep-alive");
 								}
 							}
 					);
@@ -173,9 +179,11 @@ public class KeepAliveManager
 			throw new IllegalStateException("Already ended!");
 
 		end = true;
+
+		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
-	private class Listen implements Listener
+	public class Listen implements Listener
 	{
 		@EventHandler
 		public void onPacket(PacketReceivedEvent event)
@@ -213,7 +221,6 @@ public class KeepAliveManager
 				", cacheLock=" + cacheLock +
 				", cacheNotEmpty=" + cacheNotEmpty +
 				", listener=" + listener +
-				", mongoClient=" + mongoClient +
 				", mongoDatabase=" + mongoDatabase +
 				", calendar=" + calendar +
 				", day=" + day +

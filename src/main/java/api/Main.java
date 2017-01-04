@@ -54,7 +54,7 @@ public class Main extends Plugin
 		playerEvents.init();
 		keepAliveManager.init();
 
-		getLogger().info("FcApiBungee enabled !");
+		getLogger().info("FcApiBungee enabled!");
 	}
 
 	@Override
@@ -65,8 +65,7 @@ public class Main extends Plugin
 		dataManager.stop();
 		keepAliveManager.stop();
 
-		if (!jedisPool.isClosed())
-			jedisPool.close();
+		jedisPool.close();
 		jedisPool.destroy();
 		mongoClient.close();
 	}
@@ -109,5 +108,19 @@ public class Main extends Plugin
 	public KeepAliveManager getKeepAliveManager()
 	{
 		return keepAliveManager;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Main{" +
+				"jedisPool=" + jedisPool +
+				", mongoClient=" + mongoClient +
+				", messenger=" + messenger +
+				", deployer=" + deployer +
+				", dataManager=" + dataManager +
+				", keepAliveManager=" + keepAliveManager +
+				", playerEvents=" + playerEvents +
+				'}';
 	}
 }

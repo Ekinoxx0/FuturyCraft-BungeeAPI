@@ -10,14 +10,25 @@ import java.util.List;
 public class Template
 {
 
-    public class LobbyTemplate extends Template
-    {
+	public static class LobbyTemplate extends Template
+	{
         private Lobby.LobbyType type;
 
         public Lobby.LobbyType getType()
         {
             return type;
         }
+
+	    @Override
+	    public String toString()
+	    {
+		    return "LobbyTemplate{" +
+				    "variants=" + super.variants +
+				    ", displayName='" + super.displayName + '\'' +
+				    ", offset=" + super.offset +
+				    ", type=" + type +
+				    '}';
+	    }
     }
 
     private List<Variant> variants;
@@ -38,4 +49,14 @@ public class Template
     {
         this.offset = offset;
     }
+
+	@Override
+	public String toString()
+	{
+		return "Template{" +
+				"variants=" + variants +
+				", displayName='" + displayName + '\'' +
+				", offset=" + offset +
+				'}';
+	}
 }

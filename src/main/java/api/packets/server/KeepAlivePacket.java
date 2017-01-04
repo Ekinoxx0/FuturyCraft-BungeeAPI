@@ -13,7 +13,7 @@ public class KeepAlivePacket extends IncPacket
 {
 	private final long freeMemory;
 	private final long totalMemory;
-	private final double processCpuLoad;
+	private final float processCpuLoad;
 	private final byte[] lastTPS = new byte[3];
 
 	public KeepAlivePacket(DataInputStream data) throws IOException
@@ -21,7 +21,7 @@ public class KeepAlivePacket extends IncPacket
 		super(data);
 		freeMemory = data.readLong();
 		totalMemory = data.readLong();
-		processCpuLoad = data.readDouble();
+		processCpuLoad = data.readFloat();
 		lastTPS[0] = data.readByte();
 		lastTPS[1] = data.readByte();
 		lastTPS[2] = data.readByte();
