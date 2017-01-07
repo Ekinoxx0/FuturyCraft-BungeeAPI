@@ -11,11 +11,11 @@ import java.lang.reflect.Type;
 /**
  * Created by loucass003 on 21/12/16.
  */
-public class FileAdaptater implements JsonDeserializer<File>
+public class FileAdapter implements JsonDeserializer<File>
 {
-    public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException
-    {
-        return new File(json.getAsJsonPrimitive().getAsString());
-    }
+	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+			throws JsonParseException
+	{
+		return new File(json.getAsJsonPrimitive().getAsString());
+	}
 }

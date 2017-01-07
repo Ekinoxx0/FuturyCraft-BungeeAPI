@@ -3,6 +3,10 @@ package api.deployer;
 import api.Main;
 import api.config.DeployerConfig;
 import api.config.Variant;
+import api.data.Server;
+import api.events.NewConsoleLineEvent;
+import api.events.ServerUndeployedEvent;
+import api.utils.ListBuilder;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
 import net.md_5.bungee.api.ProxyServer;
@@ -14,50 +18,51 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * Created by loucass003 on 15/12/16.
  */
 public class DeployerServer implements Runnable
 {
-	private final Variant variant;
-	private int id;
-	private ServerType type;
-	private File spigot;
-	private File map;
-	private File properties;
-	private int port;
-	private File serverFolder;
-	private Thread currentThread;
-	private Process process;
-	protected String name;
+	protected final UUID uuid = Main.getInstance().getDataManager().newUUID();
+	protected final String base64UUID = Utils.formatToUUID(uuid);
+	protected String name = "#" + base64UUID;
+	protected final Variant variant;
+	protected final int offset;
+	protected final ServerType type;
+	protected final File spigot;
+	protected final File map;
+	protected final File properties;
+	protected final Path log;
+	protected final int port;
+	protected File serverFolder;
+	protected Thread currentThread;
+	protected Process process;
+	protected Server server;
 
-	public enum ServerType
+	public DeployerServer(int offset, ServerType type, Variant variant, int port)
 	{
-		LOBBY,
-		GAME
-	}
-
-	public DeployerServer(int id, ServerType type, Variant variant, int port)
-	{
-		this.id = id;
+		this.offset = offset;
 		this.type = type;
 		this.variant = variant;
 		this.port = port;
-		this.currentThread = new Thread(this);
-		this.name = "SERVER#" + this.id;
+		currentThread = new Thread(this);
 
 		DeployerConfig c = Main.getInstance().getDeployer().getConfig();
 
-		this.spigot = new File(c.getBaseDir(), variant.getSpigotPath());
-		this.map = new File(c.getBaseDir(), variant.getMapPath());
-		this.properties = new File(c.getBaseDir(), variant.getPropsPath());
+		spigot = new File(c.getBaseDir(), variant.getSpigotPath());
+		map = new File(c.getBaseDir(), variant.getMapPath());
+		properties = new File(c.getBaseDir(), variant.getPropsPath());
 
 		File typeFolder = new File(c.getDeployerDir(), getType().toString());
 		File servTypeFolder = new File(typeFolder, type.toString());
-		this.setServerFolder(new File(servTypeFolder, Integer.toString(getId())));
+		serverFolder = new File(servTypeFolder, Integer.toString(offset));
+		log = new File(serverFolder, "logs/latest.log").toPath();
 	}
 
 	public ServerInfo deploy()
@@ -84,6 +89,7 @@ public class DeployerServer implements Runnable
 			ex.printStackTrace();
 		}
 
+
 		start(); //Don't forget to start ;)
 
 		return info; //Returned info is nullable
@@ -96,40 +102,37 @@ public class DeployerServer implements Runnable
 	{
 		try
 		{
-			/*String jvmArgs = String.format("-Xmx%d ", this.variant.getMaxRam()) +
-					String.format("-Xms%d ", this.variant.getMinRam()) +
-					this.variant.getJvmArgs() +
-					" -jar";
-			String spigotArgs = this.spigot.getAbsolutePath() +
-					" --p " + this.getPort() +
-					" --s " + this.variant.getSlots() +
-					" --W " + this.getMap().getAbsolutePath() +
-					" " + this.variant.getSpigotArgs();*/
-
-			List<String> args = new ArrayList<>();
-			args.add("java");
-			args.add("-Xmx" + variant.getMaxRam() + "M");
-			args.add("-Xms" + variant.getMinRam() + "M");
-			args.add("-Dcom.mojang.eula.agree=true"); // :p
-			variant.getJvmArgs().forEach(args::add);
-			args.add("-jar");
-
-			args.add(spigot.getAbsolutePath());
-			args.add("-p");
-			args.add(String.valueOf(port));
-			args.add("-s");
-			args.add(String.valueOf(variant.getSlots()));
-			variant.getSpigotArgs().forEach(args::add);
+			List<String> args = ListBuilder
+					.of
+							(
+									"java",
+									"-Xmx" + variant.getMaxRam() + "M",
+									"-Xms" + variant.getMinRam() + "M",
+									"-Dcom.mojang.eula.agree=true" // :p
+							)
+					.addAll(variant.getJvmArgs())
+					.appendAll
+							(
+									"-jar",
+									spigot.getAbsolutePath(),
+									"-p",
+									String.valueOf(port),
+									"-s",
+									String.valueOf(variant.getSlots())
+							)
+					.addAll(variant.getSpigotArgs())
+					.immutable();
 
 			ProcessBuilder pb = new ProcessBuilder(args);
 			pb.directory(serverFolder);
-			this.process = pb.start();
-			BufferedReader in = new BufferedReader(new InputStreamReader(this.process.getInputStream()));
+			process = pb.start();
+			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-			String s;
-			while ((s = in.readLine()) != null && process.isAlive())
+			String line;
+			while ((line = in.readLine()) != null && process.isAlive())
 			{
-				Main.getInstance().getLogger().info(id + ": " + s);
+				Main.getInstance().getLogger().info(offset + ": " + line);
+				ProxyServer.getInstance().getPluginManager().callEvent(new NewConsoleLineEvent(server, line));
 			}
 
 			remove();
@@ -154,6 +157,10 @@ public class DeployerServer implements Runnable
 			Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder
 					.getAbsolutePath() + "\"");
 		}
+
+		Server srv = Main.getInstance().getDataManager().getServer(base64UUID);
+		Main.getInstance().getDataManager().unregisterServer(srv);
+		ProxyServer.getInstance().getPluginManager().callEvent(new ServerUndeployedEvent(srv));
 	}
 
 	public void start()
@@ -173,6 +180,19 @@ public class DeployerServer implements Runnable
 			this.currentThread.interrupt();
 	}
 
+	public String getConsole()
+	{
+		try
+		{
+			return Files.readAllLines(log).stream().collect(Collectors.joining("\n"));
+		}
+		catch (IOException e)
+		{
+			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to get console from server " + server, e);
+			return "";
+		}
+	}
+
 	public String getName()
 	{
 		return name;
@@ -183,19 +203,9 @@ public class DeployerServer implements Runnable
 		return spigot;
 	}
 
-	public void setSpigot(File spigot)
-	{
-		this.spigot = spigot;
-	}
-
 	public File getProperties()
 	{
 		return properties;
-	}
-
-	public void setProperties(File properties)
-	{
-		this.properties = properties;
 	}
 
 	public File getMap()
@@ -203,19 +213,9 @@ public class DeployerServer implements Runnable
 		return map;
 	}
 
-	public void setMap(File map)
-	{
-		this.map = map;
-	}
-
 	public ServerType getType()
 	{
 		return type;
-	}
-
-	public void setType(ServerType type)
-	{
-		this.type = type;
 	}
 
 	public int getPort()
@@ -228,14 +228,9 @@ public class DeployerServer implements Runnable
 		return serverFolder;
 	}
 
-	public void setServerFolder(File serverFolder)
+	public int getOffset()
 	{
-		this.serverFolder = serverFolder;
-	}
-
-	public int getId()
-	{
-		return id;
+		return offset;
 	}
 
 	public Variant getVariant()
@@ -243,20 +238,58 @@ public class DeployerServer implements Runnable
 		return variant;
 	}
 
+	public UUID getServerUUID()
+	{
+		return uuid;
+	}
+
+	public String getServerBase64UUID()
+	{
+		return base64UUID;
+	}
+
+	void setServer(Server server)
+	{
+		this.server = server;
+	}
+
 	@Override
 	public String toString()
 	{
 		return "DeployerServer{" +
-				"variant=" + variant +
-				", id=" + id +
+				"uuid=" + uuid +
+				", base64UUID='" + base64UUID + '\'' +
+				", name='" + name + '\'' +
+				", variant=" + variant +
+				", offset=" + offset +
 				", type=" + type +
 				", spigot=" + spigot +
 				", map=" + map +
 				", properties=" + properties +
+				", log=" + log +
 				", port=" + port +
 				", serverFolder=" + serverFolder +
 				", currentThread=" + currentThread +
 				", process=" + process +
 				'}';
+	}
+
+	public enum ServerType
+	{
+		LOBBY("Lobby"),
+		GAME("Game");
+
+		private String name;
+
+		ServerType(String name)
+		{
+			this.name = name;
+		}
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
 	}
 }

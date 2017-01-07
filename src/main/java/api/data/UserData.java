@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
  */
 public final class UserData extends OfflineUserData
 {
-	private ProxiedPlayer player;
 	private final String redisPrefix;
 	private final String base64UUID;
 	private final Delay delay = new Delay();
+	private ProxiedPlayer player;
 
 	UserData(ProxiedPlayer player, String base64UUID)
 	{
@@ -29,14 +29,14 @@ public final class UserData extends OfflineUserData
 		return Main.getInstance().getDataManager().getData(player);
 	}
 
-	public void setPlayer(ProxiedPlayer player)
-	{
-		this.player = player;
-	}
-
 	public ProxiedPlayer getPlayer()
 	{
 		return player;
+	}
+
+	public void setPlayer(ProxiedPlayer player)
+	{
+		this.player = player;
 	}
 
 	String getRedisPrefix()
@@ -98,6 +98,17 @@ public final class UserData extends OfflineUserData
 		return result;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "UserData{" +
+				"player=" + player +
+				", redisPrefix='" + redisPrefix + '\'' +
+				", base64UUID='" + base64UUID + '\'' +
+				", delay=" + delay +
+				'}';
+	}
+
 	class Delay implements Delayed
 	{
 		long deadLine;
@@ -127,16 +138,5 @@ public final class UserData extends OfflineUserData
 		{
 			return (deadLine == ((Delay) o).deadLine ? 0 : (deadLine < ((Delay) o).deadLine ? -1 : 1));
 		}
-	}
-
-	@Override
-	public String toString()
-	{
-		return "UserData{" +
-				"player=" + player +
-				", redisPrefix='" + redisPrefix + '\'' +
-				", base64UUID='" + base64UUID + '\'' +
-				", delay=" + delay +
-				'}';
 	}
 }

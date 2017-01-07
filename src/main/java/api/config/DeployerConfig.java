@@ -1,7 +1,7 @@
 package api.config;
 
 import api.deployer.Lobby;
-import api.utils.FileAdaptater;
+import api.utils.FileAdapter;
 import api.utils.Utils;
 import com.google.gson.GsonBuilder;
 
@@ -19,16 +19,15 @@ public class DeployerConfig
 	private String deployerDir;
 	private List<Template.LobbyTemplate> lobbies;
 	private List<Template> games;
+	private transient File deployerDirCache;
 
 	public static DeployerConfig load(File f)
 	{
 		GsonBuilder gson = new GsonBuilder();
-		gson.registerTypeAdapter(File.class, new FileAdaptater());
+		gson.registerTypeAdapter(File.class, new FileAdapter());
 		gson.excludeFieldsWithModifiers(Modifier.TRANSIENT);
 		return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
 	}
-
-	private transient File deployerDirCache;
 
 	public File getDeployerDir()
 	{

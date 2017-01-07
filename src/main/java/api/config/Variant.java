@@ -7,11 +7,11 @@ import java.util.List;
  */
 public class Variant
 {
-    private int minServers;
-    private int maxServers;
-    private int slots;
-    private int minRam;
-    private int maxRam;
+	private int minServers;
+	private int maxServers;
+	private int slots;
+	private int minRam;
+	private int maxRam;
 
 	private List<String> spigotArgs;
 	private List<String> jvmArgs;
@@ -19,55 +19,55 @@ public class Variant
 	private String propsPath;
 	private String mapPath;
 
-    public int getMinServers()
-    {
-        return minServers;
-    }
+	public int getMinServers()
+	{
+		return minServers;
+	}
 
-    public int getMaxServers()
-    {
-        return maxServers;
-    }
+	public int getMaxServers()
+	{
+		return maxServers;
+	}
 
 	public String getMapPath()
 	{
-        return mapPath;
-    }
+		return mapPath;
+	}
 
 	public String getPropsPath()
 	{
-        return propsPath;
-    }
+		return propsPath;
+	}
 
 	public String getSpigotPath()
 	{
-        return spigotPath;
-    }
+		return spigotPath;
+	}
 
-    public int getMaxRam()
-    {
-        return maxRam;
-    }
+	public int getMaxRam()
+	{
+		return maxRam;
+	}
 
-    public int getMinRam()
-    {
-        return minRam;
-    }
+	public int getMinRam()
+	{
+		return minRam;
+	}
 
-    public int getSlots()
-    {
-        return slots;
-    }
+	public int getSlots()
+	{
+		return slots;
+	}
 
 	public List<String> getJvmArgs()
 	{
-        return jvmArgs;
-    }
+		return jvmArgs;
+	}
 
 	public List<String> getSpigotArgs()
 	{
-        return spigotArgs;
-    }
+		return spigotArgs;
+	}
 
 	@Override
 	public String toString()

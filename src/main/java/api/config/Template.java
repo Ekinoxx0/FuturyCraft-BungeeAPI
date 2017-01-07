@@ -10,45 +10,24 @@ import java.util.List;
 public class Template
 {
 
-	public static class LobbyTemplate extends Template
+	private List<Variant> variants;
+	private String displayName;
+	private transient int offset;
+
+	public List<Variant> getVariants()
 	{
-        private Lobby.LobbyType type;
+		return variants;
+	}
 
-        public Lobby.LobbyType getType()
-        {
-            return type;
-        }
+	public int getOffset()
+	{
+		return offset;
+	}
 
-	    @Override
-	    public String toString()
-	    {
-		    return "LobbyTemplate{" +
-				    "variants=" + super.variants +
-				    ", displayName='" + super.displayName + '\'' +
-				    ", offset=" + super.offset +
-				    ", type=" + type +
-				    '}';
-	    }
-    }
-
-    private List<Variant> variants;
-    private String displayName;
-    private transient int offset;
-
-    public List<Variant> getVariants()
-    {
-        return variants;
-    }
-
-    public int getOffset()
-    {
-        return offset;
-    }
-
-    public void setOffset(int offset)
-    {
-        this.offset = offset;
-    }
+	public void setOffset(int offset)
+	{
+		this.offset = offset;
+	}
 
 	@Override
 	public String toString()
@@ -58,5 +37,26 @@ public class Template
 				", displayName='" + displayName + '\'' +
 				", offset=" + offset +
 				'}';
+	}
+
+	public static class LobbyTemplate extends Template
+	{
+		private Lobby.LobbyType type;
+
+		public Lobby.LobbyType getType()
+		{
+			return type;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "LobbyTemplate{" +
+					"variants=" + super.variants +
+					", displayName='" + super.displayName + '\'' +
+					", offset=" + super.offset +
+					", type=" + type +
+					'}';
+		}
 	}
 }

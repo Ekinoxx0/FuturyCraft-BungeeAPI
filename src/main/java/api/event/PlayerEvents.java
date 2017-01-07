@@ -7,6 +7,7 @@ import api.data.Server;
 import api.deployer.Deployer;
 import api.deployer.DeployerServer;
 import api.deployer.Lobby;
+import api.utils.SimpleManager;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -18,12 +19,16 @@ import java.util.List;
 /**
  * Created by loucass003 on 21/12/16.
  */
-public class PlayerEvents implements Listener
+public class PlayerEvents implements Listener, SimpleManager
 {
 	private final Deployer deployer = Main.getInstance().getDeployer();
+	private boolean init = false;
 
 	public void init()
 	{
+		if (init)
+			throw new IllegalStateException("Already initialised!");
+
 		Main.getInstance().getProxy().getPluginManager().registerListener(Main.getInstance(), this);
 	}
 
@@ -86,4 +91,11 @@ public class PlayerEvents implements Listener
 		return t.getVariants().get(t.getOffset());
 	}
 
+	@Override
+	public String toString()
+	{
+		return "PlayerEvents{" +
+				"init=" + init +
+				'}';
+	}
 }

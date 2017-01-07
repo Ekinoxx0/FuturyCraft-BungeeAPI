@@ -1,6 +1,7 @@
-package api.packets;
+package api.events;
 
 import api.data.Server;
+import api.packets.IncPacket;
 import net.md_5.bungee.api.plugin.Event;
 
 /**

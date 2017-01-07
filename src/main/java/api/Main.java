@@ -1,10 +1,12 @@
 package api;
 
+import api.commands.DispatchCommand;
 import api.data.DataManager;
 import api.deployer.Deployer;
 import api.event.PlayerEvents;
 import api.log.KeepAliveManager;
 import api.packets.MessengerServer;
+import api.panel.PanelManager;
 import com.mongodb.MongoClient;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
@@ -23,22 +25,30 @@ public class Main extends Plugin
 	private final MongoClient mongoClient;
 
 	private final MessengerServer messenger;
-	private final Deployer deployer;
 	private final DataManager dataManager;
-	private final KeepAliveManager keepAliveManager;
-
+	private final Deployer deployer;
 	private final PlayerEvents playerEvents;
+	private final KeepAliveManager keepAliveManager;
+	private final PanelManager panelManager;
 
 	public Main()
 	{
 		instance = this;
+
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
-		messenger = new MessengerServer(5555, new String[]{"localhost", "127.0.0.1"});
+
+		messenger = new MessengerServer(5555, "localhost", "127.0.0.1");
 		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
 		deployer = new Deployer();
 		playerEvents = new PlayerEvents();
 		keepAliveManager = new KeepAliveManager();
+		panelManager = new PanelManager();
+	}
+
+	public static Main getInstance()
+	{
+		return instance;
 	}
 
 	@Override
@@ -48,11 +58,14 @@ public class Main extends Plugin
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
 
-		deployer.init();
 		messenger.init();
 		dataManager.init();
+		deployer.init();
 		playerEvents.init();
 		keepAliveManager.init();
+		panelManager.init();
+
+		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
 
 		getLogger().info("FcApiBungee enabled!");
 	}
@@ -60,19 +73,16 @@ public class Main extends Plugin
 	@Override
 	public void onDisable()
 	{
-		deployer.stop();
 		messenger.stop();
 		dataManager.stop();
+		deployer.stop();
+		playerEvents.stop();
 		keepAliveManager.stop();
+		panelManager.stop();
 
 		jedisPool.close();
 		jedisPool.destroy();
 		mongoClient.close();
-	}
-
-	public static Main getInstance()
-	{
-		return instance;
 	}
 
 	public JedisPool getJedisPool()
@@ -90,14 +100,14 @@ public class Main extends Plugin
 		return messenger;
 	}
 
-	public Deployer getDeployer()
-	{
-		return deployer;
-	}
-
 	public DataManager getDataManager()
 	{
 		return dataManager;
+	}
+
+	public Deployer getDeployer()
+	{
+		return deployer;
 	}
 
 	public PlayerEvents getPlayerEvents()
@@ -110,6 +120,11 @@ public class Main extends Plugin
 		return keepAliveManager;
 	}
 
+	public PanelManager getPanelManager()
+	{
+		return panelManager;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -117,10 +132,11 @@ public class Main extends Plugin
 				"jedisPool=" + jedisPool +
 				", mongoClient=" + mongoClient +
 				", messenger=" + messenger +
-				", deployer=" + deployer +
 				", dataManager=" + dataManager +
-				", keepAliveManager=" + keepAliveManager +
+				", deployer=" + deployer +
 				", playerEvents=" + playerEvents +
+				", keepAliveManager=" + keepAliveManager +
+				", panelManager=" + panelManager +
 				'}';
 	}
 }

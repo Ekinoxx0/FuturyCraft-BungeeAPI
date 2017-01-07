@@ -2,10 +2,11 @@ package api.log;
 
 import api.Main;
 import api.data.Server;
+import api.events.PacketReceivedEvent;
 import api.packets.IncPacket;
-import api.packets.PacketReceivedEvent;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
+import api.utils.SimpleManager;
 import com.mongodb.client.MongoDatabase;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
@@ -23,15 +24,13 @@ import java.util.logging.Level;
 /**
  * Created by SkyBeast on 22/12/2016.
  */
-public class KeepAliveManager
+public class KeepAliveManager implements SimpleManager
 {
 	private final Map<Server, KeepAlivePacket> cache = new HashMap<>();
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	private final Condition cacheNotEmpty = cacheLock.newCondition();
 	private final Listen listener = new Listen();
 	private final MongoDatabase mongoDatabase;
-	private final Calendar calendar = Calendar.getInstance();
-	private int day;
 	private Thread senderThread;
 	private Thread watcherThread;
 	private boolean init = false;
@@ -84,13 +83,23 @@ public class KeepAliveManager
 
 						Main.getInstance().getLogger().info("Sending keep-alives...");
 
-						Document doc = new Document("ts", System.currentTimeMillis());
+						Calendar calendar = Calendar.getInstance();
+
+						Document doc = new Document("ts", System.currentTimeMillis())
+								.append("date",
+										calendar.get(Calendar.HOUR_OF_DAY) + "-"
+												+ calendar.get(Calendar.MINUTE) + "-"
+												+ calendar.get(Calendar.SECOND)
+								);
+
 						cache.keySet().forEach(server ->
 								{
 									KeepAlivePacket packet = cache.get(server);
 									byte[] tps = packet.getLastTPS();
-									doc.put(String.valueOf(server.getName()),
+									doc.put(server.getBase64UUID(),
 											new Document("freeMem", packet.getFreeMemory())
+													.append("name", server.getName())
+													.append("offset", server.getOffset())
 													.append("totMem", packet.getTotalMemory())
 													.append("cpu", packet.getProcessCpuLoad())
 													.append("tps", Arrays.asList(tps[0], tps[1], tps[2])));
@@ -183,8 +192,26 @@ public class KeepAliveManager
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
+	@Override
+	public String toString()
+	{
+		return "KeepAliveManager{" +
+				"cache=" + cache +
+				", cacheLock=" + cacheLock +
+				", cacheNotEmpty=" + cacheNotEmpty +
+				", listener=" + listener +
+				", mongoDatabase=" + mongoDatabase +
+				", senderThread=" + senderThread +
+				", watcherThread=" + watcherThread +
+				", init=" + init +
+				", end=" + end +
+				'}';
+	}
+
 	public class Listen implements Listener
 	{
+		private Listen() {}
+
 		@EventHandler
 		public void onPacket(PacketReceivedEvent event)
 		{
@@ -211,23 +238,5 @@ public class KeepAliveManager
 						.getServerState());
 			}
 		}
-	}
-
-	@Override
-	public String toString()
-	{
-		return "KeepAliveManager{" +
-				"cache=" + cache +
-				", cacheLock=" + cacheLock +
-				", cacheNotEmpty=" + cacheNotEmpty +
-				", listener=" + listener +
-				", mongoDatabase=" + mongoDatabase +
-				", calendar=" + calendar +
-				", day=" + day +
-				", senderThread=" + senderThread +
-				", watcherThread=" + watcherThread +
-				", init=" + init +
-				", end=" + end +
-				'}';
 	}
 }

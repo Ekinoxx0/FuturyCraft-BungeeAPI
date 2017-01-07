@@ -4,7 +4,11 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.Template;
 import api.config.Variant;
+import api.data.Server;
+import api.events.ServerDeployedEvent;
+import api.utils.SimpleManager;
 import api.utils.Utils;
+import net.md_5.bungee.api.ProxyServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,21 +17,26 @@ import java.util.logging.Level;
 /**
  * Created by loucass003 on 14/12/16.
  */
-public class Deployer
+public class Deployer implements SimpleManager
 {
-	private DeployerConfig config;
-
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;
 	private static final int MAX_SERVERS = MAX_PORT - MIN_PORT;
+	private DeployerConfig config;
+	private boolean init = false;
+	private volatile boolean end = false;
 
 	public Deployer()
 	{
 		this.config = new DeployerConfig();
 	}
 
+	@Override
 	public void init()
 	{
+		if (init)
+			throw new IllegalStateException("Already initialised!");
+
 		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
 		try
 		{
@@ -59,9 +68,13 @@ public class Deployer
 	}
 
 
-	public void addServer(DeployerServer server)
+	public void addServer(DeployerServer deployerServer)
 	{
-		Main.getInstance().getDataManager().constructServer(server, server.deploy());
+		Server server = Main.getInstance().getDataManager().constructServer(deployerServer, deployerServer.deploy());
+		ProxyServer.getInstance().getPluginManager().callEvent(
+				new ServerDeployedEvent(server)
+		);
+		deployerServer.setServer(server);
 	}
 
 	public int getNextId()
@@ -79,13 +92,17 @@ public class Deployer
 		return config;
 	}
 
+	@Override
 	public void stop()
 	{
-		Main.getInstance().getDataManager().forEachServers(server ->
+		if (end)
+			throw new IllegalStateException("Already ended!");
+
+		/*Main.getInstance().getDataManager().forEachServers(server ->
 				{
 					//Undeploy ?
 				}
-		);
+		);*/
 
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
@@ -101,6 +118,8 @@ public class Deployer
 	{
 		return "Deployer{" +
 				"config=" + config +
+				", init=" + init +
+				", end=" + end +
 				'}';
 	}
 }

@@ -2,6 +2,7 @@ package api.packets;
 
 import api.Main;
 import api.data.Server;
+import api.events.PacketReceivedEvent;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.io.*;
@@ -20,18 +21,19 @@ public class MessengerClient
 	private final DataInputStream in;
 	private final DataOutputStream out;
 	private final List<PacketListener<?>> listeners = new ArrayList<>();
+	protected Server server;
 	private short lastTransactionID = 0x0000;
 	private Thread listener;
 	private volatile boolean end = false;
-	private Server server;
 
-	MessengerClient(Socket socket, MessengerServer messengerServer) throws IOException //Called in DeployerServer
-	// connection
-	// listener
+	public MessengerClient(Socket socket, DataInputStream in, DataOutputStream out, Server server) throws IOException
+	//Called in DeployerServer
+	// identifier thread
 	{
 		this.socket = socket;
-		in = new DataInputStream(socket.getInputStream());
-		out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+		this.in = in;
+		this.out = out;
+		this.server = server;
 		setupSocketListener();
 	}
 
@@ -39,33 +41,6 @@ public class MessengerClient
 	{
 		listener = new Thread(() ->
 		{
-			try
-			{
-				int port = in.readInt(); //Identify
-
-				if (!identify(port))
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "The socket sent a non-registered port for " +
-							"identification! Disconnecting it... (Port = " + port + ", Client: " + this + ")");
-					disconnect(); //Disconnect
-					return; //Don't run the infinite loop
-				}
-
-				out.writeBoolean(true);
-				out.flush();
-
-				Main.getInstance().getLogger().info(this + " identified");
-			}
-			catch (Exception e)
-			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier (Client: " + this
-								+ ")",
-						e);
-				return;
-			}
-
-			//Socket identified
-
 			while (!socket.isClosed())
 			{
 				try
@@ -99,7 +74,7 @@ public class MessengerClient
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
+	protected void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
 	{
 		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
 		// from the byte array, so it can be redistributed
@@ -134,17 +109,6 @@ public class MessengerClient
 		}
 	}
 
-	private boolean identify(int port)
-	{
-		Server server = Main.getInstance().getDataManager().findServerByPort(port);
-		if (server == null)
-			return false;
-
-		this.server = server;
-		Main.getInstance().getMessenger().register(server, this);
-		return true;
-	}
-
 	public <T extends IncPacket> void listenPacket(Class<T> clazz, int transactionID, Callback<T> callback)
 	{
 		synchronized (listeners)
@@ -153,27 +117,36 @@ public class MessengerClient
 		}
 	}
 
-	public short sendPacket(OutPacket packet) throws IOException
+	public short sendPacket(OutPacket packet)
 	{
 		short transactionID = lastTransactionID++;
 		sendPacket(packet, transactionID);
 		return transactionID;
 	}
 
-	public void sendPacket(OutPacket packet, short transactionID) throws IOException
+	public void sendPacket(OutPacket packet, short transactionID)
 	{
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(array);
-		packet.write(data);
 
-		synchronized (out)
+		try
 		{
-			Main.getInstance().getLogger().info("Sending " + packet + " in client " + this);
-			out.writeByte(Packets.getID(packet.getClass()));
-			out.writeShort(transactionID);
-			out.writeShort(array.size());
-			out.write(array.toByteArray());
-			out.flush();
+			packet.write(data);
+
+			synchronized (out)
+			{
+				Main.getInstance().getLogger().info("Sending " + packet + " in client " + this);
+				out.writeByte(Packets.getID(packet.getClass()));
+				out.writeShort(transactionID);
+				out.writeShort(array.size());
+				out.write(array.toByteArray());
+				out.flush();
+			}
+		}
+		catch (IOException e)
+		{
+			Main.getInstance().getLogger().log(Level.SEVERE, "Error while sending packet " + packet + " with " +
+					"transactionID " + transactionID + " (Client: " + this + ")", e);
 		}
 	}
 
@@ -186,6 +159,25 @@ public class MessengerClient
 			socket.close();
 		}
 		catch (IOException ignored) {}
+	}
+
+	Server getServer()
+	{
+		return server;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "MessengerClient{" +
+				"socket=" + socket +
+				", in=" + in +
+				", out=" + out +
+				", listeners=" + listeners +
+				", lastTransactionID=" + lastTransactionID +
+				", listener=" + listener +
+				", end=" + end +
+				'}';
 	}
 
 	private class PacketListener<T extends IncPacket>
@@ -210,19 +202,5 @@ public class MessengerClient
 					", transactionID=" + transactionID +
 					'}';
 		}
-	}
-
-	@Override
-	public String toString()
-	{
-		return "MessengerClient{" +
-				"socket=" + socket +
-				", in=" + in +
-				", out=" + out +
-				", listeners=" + listeners +
-				", lastTransactionID=" + lastTransactionID +
-				", listener=" + listener +
-				", end=" + end +
-				'}';
 	}
 }

@@ -4,6 +4,7 @@ import api.Main;
 import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
 import api.packets.server.ServerStatePacket;
+import api.utils.SimpleManager;
 import api.utils.Utils;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -23,12 +24,13 @@ import redis.clients.jedis.Transaction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,12 +38,10 @@ import java.util.stream.Stream;
 /**
  * Created by SkyBeast on 19/12/2016.
  */
-public class DataManager
+public class DataManager implements SimpleManager
 {
 	private static final Document EMPTY_DOCUMENT = new Document();
 	private final long saveDelay;
-	private boolean init = false;
-	private volatile boolean end = false;
 	private final Listen listener = new Listen();
 	private final MongoDatabase usersDB;
 	private final ExecutorService exec = Executors.newCachedThreadPool();
@@ -50,6 +50,10 @@ public class DataManager
 	private final List<Server> servers = new ArrayList<>();
 	private final ReentrantLock serversLock = new ReentrantLock();
 	private final DelayQueue<UserData.Delay> disconnectQueue = new DelayQueue<>();
+	private final List<UUID> uuids = new ArrayList<>();
+	private final AtomicInteger severCount = new AtomicInteger();
+	private boolean init = false;
+	private volatile boolean end = false;
 	private Thread saverThread;
 
 	public DataManager(long saveDelay)
@@ -58,6 +62,7 @@ public class DataManager
 		usersDB = Main.getInstance().getMongoClient().getDatabase("users");
 	}
 
+	@Override
 	public void init()
 	{
 		if (init)
@@ -70,6 +75,7 @@ public class DataManager
 		init = true;
 	}
 
+	@Override
 	public void stop()
 	{
 		if (end)
@@ -136,102 +142,6 @@ public class DataManager
 		);
 
 		saverThread.start();
-	}
-
-	public class Listen implements Listener
-	{
-
-		@EventHandler
-		public void onServerSwitch(ServerConnectEvent event)
-		{
-			exec.submit(() ->
-					{
-						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-						{
-							UserData data = getData(event.getPlayer());
-
-							Transaction tr1 = jedis.multi();
-							Response<String> rank = tr1.get(data.getRedisPrefix() + ":rank");
-							tr1.set(data.getRedisPrefix() + ":srv", event.getTarget().getName());
-							tr1.exec();
-						}
-					}
-			);
-		}
-
-		@EventHandler
-		public void onJoin(PostLoginEvent event)
-		{
-			exec.submit(() ->
-					{
-						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-						{
-							ProxiedPlayer player = event.getPlayer();
-
-							//Get data if cached
-
-							Iterator<UserData.Delay> ite = disconnectQueue.iterator();
-							for (UserData.Delay delay = ite.next(); ite.hasNext(); )
-							{
-								UserData data = delay.parent();
-								if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
-								// already cached in Redis
-								{
-									ite.remove();
-
-									usersLock.lock();
-									try
-									{
-										users.add(data);
-									}
-									finally
-									{
-										usersLock.unlock();
-									}
-
-									return;
-								}
-							}
-
-							//Else, create data, read in MongoDB then send to Redis
-
-							String base64 = Utils.uuidToBase64(player.getUniqueId());
-							UserData data = new UserData(player, base64);
-
-							MongoCollection<Document> col = usersDB.getCollection(base64);
-							Document doc = col.find().first();
-							if (doc == null)
-							{
-								doc = new Document();
-								doc.put("firstJoin", System.currentTimeMillis()); // NEWBIE
-							}
-
-							int fc = doc.getInteger("fc", 0);
-							int tc = doc.getInteger("tc", 0);
-							int rank = doc.getInteger("rank", 0);
-							int state = doc.getInteger("state", 0);
-
-							Transaction transaction = jedis.multi();
-							transaction.set("fc", Utils.intToString(fc));
-							transaction.set("tc", Utils.intToString(tc));
-							transaction.set("rank", Utils.intToString(rank));
-							transaction.set("state", Utils.intToString(state));
-							transaction.exec();
-						}
-					}
-			);
-		}
-
-		@EventHandler
-		public void onQuit(PlayerDisconnectEvent event)
-		{
-			UserData data = getData(event.getPlayer());
-			if (data == null)
-				return;
-			UserData.Delay delay = data.getDelayer();
-			delay.deadLine = saveDelay + System.currentTimeMillis();
-			disconnectQueue.add(delay);
-		}
 	}
 
 	public Server findServerByPort(int port)
@@ -307,12 +217,6 @@ public class DataManager
 		}
 	}
 
-	@Deprecated
-	public int countServers(Predicate<Server> filter)
-	{
-		return -1;
-	}
-
 	public void forEachUsers(Consumer<UserData> consumer)
 	{
 		usersLock.lock();
@@ -331,7 +235,7 @@ public class DataManager
 		serversLock.lock();
 		try
 		{
-			List<Integer> ports = servers.stream().map(server -> server.getDeployer().getId()).collect(Collectors
+			List<Integer> ports = servers.stream().map(server -> server.getDeployer().getOffset()).collect(Collectors
 					.toList());
 			return Stream.iterate(0, id -> id + 1).limit(maxServers)
 					.filter(i -> !ports.contains(i))
@@ -354,7 +258,6 @@ public class DataManager
 
 			return Stream.iterate(minPort, port -> port + 1).limit(maxPort)
 					.filter(i -> !ports.contains(i))
-					.filter(i -> Utils.isReachable())
 					.findFirst().orElse(-1);
 		}
 		finally
@@ -365,11 +268,14 @@ public class DataManager
 
 	public Server constructServer(DeployerServer deployer, ServerInfo info)
 	{
+		severCount.getAndIncrement();
+
 		serversLock.lock();
 		try
 		{
 			Server server = new Server(deployer, info);
 			servers.add(server);
+			uuids.add(deployer.getServerUUID());
 			return server;
 		}
 		finally
@@ -390,6 +296,61 @@ public class DataManager
 		{
 			serversLock.unlock();
 		}
+	}
+
+	public Server getServer(UUID uuid)
+	{
+		serversLock.lock();
+		try
+		{
+			return servers.stream().filter(server -> server.getUUID().equals(uuid))
+					.findFirst().orElse(null);
+		}
+		finally
+		{
+			serversLock.unlock();
+		}
+	}
+
+	public Server getServer(String base64UUID)
+	{
+		serversLock.lock();
+		try
+		{
+			return servers.stream().filter(server -> server.getBase64UUID().equalsIgnoreCase(base64UUID))
+					.findFirst().orElse(null);
+		}
+		finally
+		{
+			serversLock.unlock();
+		}
+	}
+
+	public void unregisterServer(Server server)
+	{
+		serversLock.lock();
+		try
+		{
+			servers.remove(server);
+		}
+		finally
+		{
+			serversLock.unlock();
+		}
+	}
+
+	public int getServerCount()
+	{
+		return severCount.get();
+	}
+
+	public UUID newUUID()
+	{
+		UUID uuid;
+		do uuid = UUID.randomUUID();
+		while (uuids.contains(uuid));
+
+		return uuid;
 	}
 
 	public void updateMessenger(Server srv, MessengerClient client)
@@ -422,7 +383,106 @@ public class DataManager
 				", servers=" + servers +
 				", serversLock=" + serversLock +
 				", disconnectQueue=" + disconnectQueue +
+				", uuids=" + uuids +
+				", severCount=" + severCount +
 				", saverThread=" + saverThread +
 				'}';
+	}
+
+	public class Listen implements Listener
+	{
+		private Listen() {}
+
+		@EventHandler
+		public void onServerSwitch(ServerConnectEvent event)
+		{
+			exec.submit(() ->
+					{
+						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
+						{
+							UserData data = getData(event.getPlayer());
+
+							Transaction tr1 = jedis.multi();
+							Response<String> rank = tr1.get(data.getRedisPrefix() + ":rank");
+							tr1.set(data.getRedisPrefix() + ":srv", event.getTarget().getName());
+							tr1.exec();
+						}
+					}
+			);
+		}
+
+		@EventHandler
+		public void onJoin(PostLoginEvent event)
+		{
+			exec.submit(() ->
+					{
+						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
+						{
+							ProxiedPlayer player = event.getPlayer();
+
+							//Get data if cached
+
+							Iterator<UserData.Delay> ite = disconnectQueue.iterator();
+							for (UserData.Delay delay = ite.next(); ite.hasNext(); )
+							{
+								UserData data = delay.parent();
+								if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
+								// already cached in Redis
+								{
+									ite.remove();
+
+									usersLock.lock();
+									try
+									{
+										users.add(data);
+									}
+									finally
+									{
+										usersLock.unlock();
+									}
+
+									return;
+								}
+							}
+
+							//Else, create data, read in MongoDB then send to Redis
+
+							String base64 = Utils.formatToUUID(player.getUniqueId());
+							UserData data = new UserData(player, base64);
+
+							MongoCollection<Document> col = usersDB.getCollection(base64);
+							Document doc = col.find().first();
+							if (doc == null)
+							{
+								doc = new Document();
+								doc.put("firstJoin", System.currentTimeMillis()); // NEWBIE
+							}
+
+							int fc = doc.getInteger("fc", 0);
+							int tc = doc.getInteger("tc", 0);
+							int rank = doc.getInteger("rank", 0);
+							int state = doc.getInteger("state", 0);
+
+							Transaction transaction = jedis.multi();
+							transaction.set("fc", Utils.intToString(fc));
+							transaction.set("tc", Utils.intToString(tc));
+							transaction.set("rank", Utils.intToString(rank));
+							transaction.set("state", Utils.intToString(state));
+							transaction.exec();
+						}
+					}
+			);
+		}
+
+		@EventHandler
+		public void onQuit(PlayerDisconnectEvent event)
+		{
+			UserData data = getData(event.getPlayer());
+			if (data == null)
+				return;
+			UserData.Delay delay = data.getDelayer();
+			delay.deadLine = saveDelay + System.currentTimeMillis();
+			disconnectQueue.add(delay);
+		}
 	}
 }

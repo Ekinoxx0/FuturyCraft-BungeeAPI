@@ -88,7 +88,7 @@ public class ServerStatePacket extends IncPacket
 		/**
 		 * The server is stopping because of an error
 		 */
-		STOP_ERROR,
+		STOPPING_ERROR,
 
 		/**
 		 * The server is auto-stopping
@@ -98,6 +98,11 @@ public class ServerStatePacket extends IncPacket
 		/**
 		 * The server is stopping because we told him to do
 		 */
-		STOPPING_ASKED
+		STOPPING_ASKED,
+
+		/**
+		 * The server is stopped. Actually not sent but updated.
+		 */
+		STOPPED
 	}
 }
