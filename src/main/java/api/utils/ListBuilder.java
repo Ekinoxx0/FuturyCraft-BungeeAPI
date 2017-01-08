@@ -1,5 +1,9 @@
 package api.utils;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -8,6 +12,9 @@ import java.util.stream.Stream;
 /**
  * Created by SkyBeast on 07/01/2017.
  */
+@ToString
+@EqualsAndHashCode
+@Getter
 public class ListBuilder<E>
 {
 	private final List<E> list;
@@ -96,11 +103,6 @@ public class ListBuilder<E>
 		return this;
 	}
 
-	public List<E> getList()
-	{
-		return list;
-	}
-
 	public List<E> build()
 	{
 		if (built) throw new IllegalStateException("List already built!");
@@ -115,34 +117,5 @@ public class ListBuilder<E>
 		if (list.size() == 0)
 			return Collections.emptyList();
 		return Collections.unmodifiableList(list);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "ListBuilder{" +
-				"list=" + list +
-				", built=" + built +
-				'}';
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		ListBuilder<?> that = (ListBuilder<?>) o;
-
-		return built == that.built && (list != null ? list.equals(that.list) : that.list == null);
-
-	}
-
-	@Override
-	public int hashCode()
-	{
-		int result = list != null ? list.hashCode() : 0;
-		result = 31 * result + (built ? 1 : 0);
-		return result;
 	}
 }

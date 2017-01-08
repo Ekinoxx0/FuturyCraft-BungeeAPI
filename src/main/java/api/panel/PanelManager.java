@@ -65,7 +65,7 @@ public class PanelManager implements SimpleManager
 			}
 			else if (packet instanceof InServerInfoPacket)
 			{
-				Server server = Main.getInstance().getDataManager().getServer(((InServerInfoPacket) packet).getUUID());
+				Server server = Main.getInstance().getDataManager().getServer(((InServerInfoPacket) packet).getUuid());
 				if (((InServerInfoPacket) packet).isListen())
 				{
 					if (!listenServerInfo.contains(server)) {listenServerInfo.add(server);}

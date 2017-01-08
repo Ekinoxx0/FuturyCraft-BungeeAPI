@@ -1,5 +1,9 @@
 package api.utils;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +11,9 @@ import java.util.Map;
 /**
  * Created by SkyBeast on 07/01/2017.
  */
+@ToString
+@EqualsAndHashCode
+@Getter
 public class MapBuilder<K, V>
 {
 	private final Map<K, V> map;
@@ -107,11 +114,6 @@ public class MapBuilder<K, V>
 		return this;
 	}
 
-	public Map<K, V> getMap()
-	{
-		return map;
-	}
-
 	public Map<K, V> build()
 	{
 		if (built) throw new IllegalStateException("Map already built!");
@@ -123,41 +125,8 @@ public class MapBuilder<K, V>
 	{
 		if (built) throw new IllegalStateException("Map already built!");
 		built = true;
+		if (map.size() == 0)
+			return Collections.emptyMap();
 		return Collections.unmodifiableMap(map);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "MapBuilder{" +
-				"map=" + map +
-				", kClass=" + kClass +
-				", vClass=" + vClass +
-				", built=" + built +
-				'}';
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		MapBuilder<?, ?> that = (MapBuilder<?, ?>) o;
-
-		return built == that.built && (map != null ? map.equals(that.map) : that.map == null && (kClass != null ?
-				kClass.equals(that.kClass) : that.kClass == null && (vClass != null ? vClass.equals(that.vClass) :
-				that.vClass == null)));
-
-	}
-
-	@Override
-	public int hashCode()
-	{
-		int result = map != null ? map.hashCode() : 0;
-		result = 31 * result + (kClass != null ? kClass.hashCode() : 0);
-		result = 31 * result + (vClass != null ? vClass.hashCode() : 0);
-		result = 31 * result + (built ? 1 : 0);
-		return result;
 	}
 }
