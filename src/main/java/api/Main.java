@@ -5,6 +5,7 @@ import api.data.DataManager;
 import api.deployer.Deployer;
 import api.event.PlayerEvents;
 import api.log.KeepAliveManager;
+import api.log.LogManager;
 import api.packets.MessengerServer;
 import api.panel.PanelManager;
 import com.mongodb.MongoClient;
@@ -30,6 +31,7 @@ public class Main extends Plugin
 	private final PlayerEvents playerEvents;
 	private final KeepAliveManager keepAliveManager;
 	private final PanelManager panelManager;
+	private final LogManager logManager;
 
 	public Main()
 	{
@@ -44,6 +46,7 @@ public class Main extends Plugin
 		playerEvents = new PlayerEvents();
 		keepAliveManager = new KeepAliveManager();
 		panelManager = new PanelManager();
+		logManager = new LogManager();
 	}
 
 	public static Main getInstance()
@@ -64,6 +67,7 @@ public class Main extends Plugin
 		playerEvents.init();
 		keepAliveManager.init();
 		panelManager.init();
+		logManager.init();
 
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
 
@@ -79,6 +83,7 @@ public class Main extends Plugin
 		playerEvents.stop();
 		keepAliveManager.stop();
 		panelManager.stop();
+		logManager.stop();
 
 		jedisPool.close();
 		jedisPool.destroy();
@@ -125,6 +130,11 @@ public class Main extends Plugin
 		return panelManager;
 	}
 
+	public LogManager getLogManager()
+	{
+		return logManager;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -137,6 +147,7 @@ public class Main extends Plugin
 				", playerEvents=" + playerEvents +
 				", keepAliveManager=" + keepAliveManager +
 				", panelManager=" + panelManager +
+				", logManager=" + logManager +
 				'}';
 	}
 }

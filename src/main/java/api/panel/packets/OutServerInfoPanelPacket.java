@@ -18,18 +18,21 @@ public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
 	private final UUID uuid;
 	private final String name;
 	private final short online;
+	private final short maxOnline;
 	private final short offset;
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
 	private final String console;
 
-	public OutServerInfoPanelPacket(UUID uuid, String name, short online, short offset, ServerStatePacket.ServerState
-			state, String serverType, String category, String console)
+	public OutServerInfoPanelPacket(UUID uuid, String name, short online, short maxOnline, short offset,
+	                                ServerStatePacket.ServerState state, String serverType, String category, String
+			                                console)
 	{
 		this.uuid = uuid;
 		this.name = name;
 		this.online = online;
+		this.maxOnline = maxOnline;
 		this.offset = offset;
 		this.state = state;
 		this.serverType = serverType;
@@ -44,8 +47,11 @@ public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
 		out.writeLong(uuid.getLeastSignificantBits());
 		out.writeUTF(name);
 		out.writeShort(online);
+		out.writeShort(maxOnline);
 		out.writeShort(offset);
 		out.writeByte(state.ordinal());
+		out.writeUTF(serverType);
+		out.writeUTF(category);
 		out.writeUTF(console);
 	}
 
@@ -54,6 +60,7 @@ public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
 		return new OutServerInfoPanelPacket(server.getUUID(),
 				server.getName(),
 				(short) server.getInfo().getPlayers().size(),
+				(short) server.getDeployer().getVariant().getSlots(),
 				(short) server.getOffset(),
 				server.getServerState(),
 				server.getDeployer().getConsole(),

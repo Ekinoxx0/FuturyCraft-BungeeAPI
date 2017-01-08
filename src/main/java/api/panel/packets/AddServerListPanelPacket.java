@@ -18,17 +18,19 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 	private final UUID uuid;
 	private final String name;
 	private final short online;
+	private final short maxOnline;
 	private final short offset;
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
 
-	public AddServerListPanelPacket(UUID uuid, String name, short online, short offset, ServerStatePacket.ServerState
-			state, String serverType, String category)
+	public AddServerListPanelPacket(UUID uuid, String name, short online, short maxOnline, short offset,
+	                                ServerStatePacket.ServerState state, String serverType, String category)
 	{
 		this.uuid = uuid;
 		this.name = name;
 		this.online = online;
+		this.maxOnline = maxOnline;
 		this.offset = offset;
 		this.state = state;
 		this.serverType = serverType;
@@ -40,6 +42,7 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 		return new AddServerListPanelPacket(server.getUUID(),
 				server.getName(),
 				(short) server.getInfo().getPlayers().size(),
+				(short) server.getDeployer().getVariant().getSlots(),
 				(short) server.getOffset(),
 				server.getServerState(),
 				server.getDeployer().getType().toString(),
@@ -54,6 +57,7 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 		out.writeLong(uuid.getLeastSignificantBits());
 		out.writeUTF(name);
 		out.writeShort(online);
+		out.writeShort(maxOnline);
 		out.writeShort(offset);
 		out.writeByte(state.ordinal());
 		out.writeUTF(serverType);
@@ -73,6 +77,11 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 	public short getOnline()
 	{
 		return online;
+	}
+
+	public short getMaxOnline()
+	{
+		return maxOnline;
 	}
 
 	public short getOffset()
@@ -102,6 +111,7 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 				"uuid=" + uuid +
 				", name='" + name + '\'' +
 				", online=" + online +
+				", maxOnline=" + maxOnline +
 				", offset=" + offset +
 				", state=" + state +
 				", serverType='" + serverType + '\'' +
@@ -117,10 +127,10 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 
 		AddServerListPanelPacket that = (AddServerListPanelPacket) o;
 
-		return online == that.online && offset == that.offset && (uuid != null ? uuid.equals(that.uuid) : that.uuid ==
-				null && (name != null ? name.equals(that.name) : that.name == null && state == that.state &&
-				(serverType != null ? serverType.equals(that.serverType) : that.serverType == null && (category !=
-						null ? category.equals(that.category) : that.category == null))));
+		return online == that.online && maxOnline == that.maxOnline && offset == that.offset && (uuid != null ? uuid
+				.equals(that.uuid) : that.uuid == null && (name != null ? name.equals(that.name) : that.name == null
+				&& state == that.state && (serverType != null ? serverType.equals(that.serverType) : that.serverType
+				== null && (category != null ? category.equals(that.category) : that.category == null))));
 
 	}
 
@@ -130,6 +140,7 @@ public class AddServerListPanelPacket extends OutPacket implements PanelPacket
 		int result = uuid != null ? uuid.hashCode() : 0;
 		result = 31 * result + (name != null ? name.hashCode() : 0);
 		result = 31 * result + (int) online;
+		result = 31 * result + (int) maxOnline;
 		result = 31 * result + (int) offset;
 		result = 31 * result + (state != null ? state.hashCode() : 0);
 		result = 31 * result + (serverType != null ? serverType.hashCode() : 0);
