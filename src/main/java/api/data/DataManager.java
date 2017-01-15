@@ -346,11 +346,8 @@ public class DataManager implements SimpleManager
 
 	public UUID newUUID()
 	{
-		UUID uuid;
-		do uuid = UUID.randomUUID();
-		while (uuids.contains(uuid));
-
-		return uuid;
+		UUID uuid = UUID.randomUUID();
+		return uuids.contains(uuid) ? newUUID() : uuid;
 	}
 
 	public void updateMessenger(Server srv, MessengerClient client)

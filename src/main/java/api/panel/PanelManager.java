@@ -90,8 +90,7 @@ public class PanelManager implements SimpleManager
 		void sendHeader()
 		{
 			if (!listenHeader || messengerPanel == null) return;
-			messengerPanel.sendPacket(new OutHeaderPanelPacket((short) ProxyServer.getInstance().getOnlineCount(),
-					(short) Main.getInstance().getDataManager().getServerCount()));
+			messengerPanel.sendPacket(new OutHeaderPanelPacket((short) ProxyServer.getInstance().getOnlineCount(), (short) Main.getInstance().getDataManager().getServerCount()));
 		}
 
 		//@formatter:off
