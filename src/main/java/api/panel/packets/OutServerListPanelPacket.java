@@ -4,7 +4,7 @@ import api.data.Server;
 import api.deployer.Lobby;
 import api.packets.OutPacket;
 import api.packets.server.ServerStatePacket;
-import api.panel.PanelPacket;
+import api.panel.OutPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class OutServerListPanelPacket extends OutPacket implements PanelPacket
+public class OutServerListPanelPacket extends OutPacket implements OutPanelPacket
 {
 	private final List<ServerData> servers;
 
@@ -37,6 +37,11 @@ public class OutServerListPanelPacket extends OutPacket implements PanelPacket
 			out.writeByte(data.state.ordinal());
 			out.writeUTF(data.serverType);
 			out.writeUTF(data.category);
+			out.writeLong(data.lastKeepAlive);
+			out.writeLong(data.freeMemory);
+			out.writeLong(data.totalMemory);
+			out.writeFloat(data.processCpuLoad);
+			out.write(data.lastTPS);
 		}
 	}
 
@@ -51,10 +56,16 @@ public class OutServerListPanelPacket extends OutPacket implements PanelPacket
 		private final ServerStatePacket.ServerState state;
 		private final String serverType;
 		private final String category;
+		private final long lastKeepAlive;
+		private final long freeMemory;
+		private final long totalMemory;
+		private final float processCpuLoad;
+		private final byte[] lastTPS;
 
 		public static ServerData from(Server server)
 		{
-			return new ServerData(server.getUUID(),
+			return new ServerData(
+					server.getUuid(),
 					server.getName(),
 					(short) server.getInfo().getPlayers().size(),
 					(short) server.getDeployer().getVariant().getSlots(),
@@ -62,7 +73,13 @@ public class OutServerListPanelPacket extends OutPacket implements PanelPacket
 					server.getServerState(),
 					server.getDeployer().getType().toString(),
 					server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-							"Game");
+							"Game",
+					server.getLastKeepAlive(),
+					server.getFreeMemory(),
+					server.getTotalMemory(),
+					server.getProcessCpuLoad(),
+					server.getLastTPS()
+			);
 		}
 	}
 }

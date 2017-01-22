@@ -2,6 +2,8 @@ package api.panel;
 
 import api.packets.IncPacket;
 import api.panel.packets.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -9,6 +11,8 @@ import java.io.IOException;
 /**
  * Created by SkyBeast on 04/01/2017.
  */
+@AllArgsConstructor
+@Getter
 public enum PanelPackets
 {
 	// OUTGOING - Panel-bound
@@ -26,42 +30,20 @@ public enum PanelPackets
 	private final boolean in;
 	private final Class<? extends PanelPacket> clazz;
 
-	PanelPackets(byte id, boolean in, Class<? extends PanelPacket> clazz)
-	{
-		this.id = id;
-		this.in = in;
-		this.clazz = clazz;
-	}
-
-	static IncPacket constructIncomingPacket(byte id, DataInputStream dis)
+	static IncPanelPacket constructIncomingPacket(byte id, DataInputStream dis)
 			throws IOException, ReflectiveOperationException
 	{
 		for (PanelPackets p : values())
 			if (p.in && id == p.id)
-				return (IncPacket) p.clazz.getConstructor(DataInputStream.class).newInstance(dis);
+				return (IncPanelPacket) p.clazz.getConstructor(DataInputStream.class).newInstance(dis);
 		return null;
 	}
 
-	static byte getID(Class<? extends PanelPacket> clazz)
+	static byte getId(Class<? extends PanelPacket> clazz)
 	{
 		for (PanelPackets p : values())
 			if (clazz == p.clazz)
 				return p.id;
 		throw new IllegalArgumentException("ID not found"); //Should never happen
-	}
-
-	public byte getID()
-	{
-		return id;
-	}
-
-	public boolean isServerBound()
-	{
-		return in;
-	}
-
-	public Class<? extends PanelPacket> getPacketClass()
-	{
-		return clazz;
 	}
 }

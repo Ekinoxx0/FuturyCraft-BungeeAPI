@@ -1,7 +1,7 @@
 package api.panel.packets;
 
 import api.packets.OutPacket;
-import api.panel.PanelPacket;
+import api.panel.OutPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RemoveServerListPanelPacket extends OutPacket implements PanelPacket
+public class RemoveServerListPanelPacket extends OutPacket implements OutPanelPacket
 {
 	private final UUID uuid;
 

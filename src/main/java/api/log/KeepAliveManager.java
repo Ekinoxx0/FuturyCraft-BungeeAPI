@@ -212,7 +212,7 @@ public class KeepAliveManager implements SimpleManager
 					cacheLock.unlock();
 				}
 
-				Main.getInstance().getDataManager().updateLastKeepAlive(event.getFrom(), System.currentTimeMillis());
+				event.getFrom().updateData((KeepAlivePacket) packet);
 			}
 			else if (packet instanceof ServerStatePacket)
 			{

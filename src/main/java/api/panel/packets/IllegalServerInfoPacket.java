@@ -10,20 +10,18 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Created by SkyBeast on 06/01/2017.
+ * Created by SkyBeast on 22/01/17.
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ConsoleOutputServerInfoPanelPacket extends OutPacket implements OutPanelPacket
+public class IllegalServerInfoPacket extends OutPacket implements OutPanelPacket
 {
-	private final UUID serverUUID;
-	private final String line;
+	private final UUID uuid;
 
 	@Override
 	public void write(DataOutputStream out) throws IOException
 	{
-		out.writeLong(serverUUID.getMostSignificantBits());
-		out.writeLong(serverUUID.getLeastSignificantBits());
-		out.writeUTF(line);
+		out.writeLong(uuid.getMostSignificantBits());
+		out.writeLong(uuid.getLeastSignificantBits());
 	}
 }

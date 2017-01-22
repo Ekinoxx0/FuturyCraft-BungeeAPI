@@ -1,7 +1,7 @@
 package api.panel.packets;
 
 import api.packets.OutPacket;
-import api.panel.PanelPacket;
+import api.panel.OutPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,17 +13,17 @@ import java.io.IOException;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class OutHeaderPanelPacket extends OutPacket implements PanelPacket
+public class OutHeaderPanelPacket extends OutPacket implements OutPanelPacket
 {
 	private final short online;
-	private final short maxPlayer;
+	private final short maxPlayers;
 	private final short servers;
 
 	@Override
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeShort(online);
-		out.writeShort(maxPlayer);
+		out.writeShort(maxPlayers);
 		out.writeShort(servers);
 	}
 }

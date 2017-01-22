@@ -4,6 +4,7 @@ import api.Main;
 import api.events.PanelPacketReceivedEvent;
 import api.packets.IncPacket;
 import api.packets.MessengerClient;
+import api.packets.Packet;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +34,7 @@ public class MessengerPanel extends MessengerClient
 
 		try
 		{
-			IncPacket packet = PanelPackets.constructIncomingPacket(id, data);
+			IncPanelPacket packet = PanelPackets.constructIncomingPacket(id, data);
 
 			if (packet == null)
 				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
@@ -48,5 +49,11 @@ public class MessengerPanel extends MessengerClient
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
 					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ')', e);
 		}
+	}
+
+	@Override
+	protected byte getPacketID(Packet packet)
+	{
+		return PanelPackets.getId(((PanelPacket) packet).getClass());
 	}
 }

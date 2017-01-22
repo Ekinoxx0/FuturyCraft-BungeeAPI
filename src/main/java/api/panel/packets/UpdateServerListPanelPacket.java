@@ -4,7 +4,7 @@ import api.data.Server;
 import api.deployer.Lobby;
 import api.packets.OutPacket;
 import api.packets.server.ServerStatePacket;
-import api.panel.PanelPacket;
+import api.panel.OutPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class UpdateServerListPanelPacket extends OutPacket implements PanelPacket
+public class UpdateServerListPanelPacket extends OutPacket implements OutPanelPacket
 {
 	private final UUID uuid;
 	private final String name;
@@ -27,17 +27,29 @@ public class UpdateServerListPanelPacket extends OutPacket implements PanelPacke
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
+	private final long lastKeepAlive;
+	private final long freeMemory;
+	private final long totalMemory;
+	private final float processCpuLoad;
+	private final byte[] lastTPS;
 
 	public static UpdateServerListPanelPacket from(Server server)
 	{
-		return new UpdateServerListPanelPacket(server.getUUID(),
+		return new UpdateServerListPanelPacket(
+				server.getUuid(),
 				server.getName(),
 				(short) server.getInfo().getPlayers().size(),
 				(short) server.getDeployer().getVariant().getSlots(),
 				(short) server.getOffset(), server.getServerState(),
 				server.getDeployer().getType().toString(),
 				server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-						"Game");
+						"Game",
+				server.getLastKeepAlive(),
+				server.getFreeMemory(),
+				server.getTotalMemory(),
+				server.getProcessCpuLoad(),
+				server.getLastTPS()
+		);
 	}
 
 	@SuppressWarnings("Duplicates")
@@ -53,5 +65,10 @@ public class UpdateServerListPanelPacket extends OutPacket implements PanelPacke
 		out.writeByte(state.ordinal());
 		out.writeUTF(serverType);
 		out.writeUTF(category);
+		out.writeLong(lastKeepAlive);
+		out.writeLong(freeMemory);
+		out.writeLong(totalMemory);
+		out.writeFloat(processCpuLoad);
+		out.write(lastTPS);
 	}
 }

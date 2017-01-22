@@ -1,7 +1,7 @@
 package api.panel.packets;
 
 import api.packets.IncPacket;
-import api.panel.PanelPacket;
+import api.panel.IncPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class InHeaderPanelPacket extends IncPacket implements PanelPacket
+public class InHeaderPanelPacket extends IncPacket implements IncPanelPacket
 {
 	private final boolean listen;
 

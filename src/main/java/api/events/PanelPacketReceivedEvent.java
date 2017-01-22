@@ -2,7 +2,7 @@ package api.events;
 
 import api.data.Server;
 import api.packets.IncPacket;
-import api.panel.PanelPacket;
+import api.panel.IncPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,10 +13,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class PanelPacketReceivedEvent extends PacketReceivedEvent
 {
-	public PanelPacketReceivedEvent(Server from, IncPacket packet, short transactionID)
+	public PanelPacketReceivedEvent(Server from, IncPanelPacket packet, short transactionID)
 	{
-		super(from, packet, transactionID);
-		if (!(packet instanceof PanelPacket))
-			throw new IllegalArgumentException("The packet is not a PanelPacket");
+		super(from, (IncPacket) packet, transactionID);
 	}
 }

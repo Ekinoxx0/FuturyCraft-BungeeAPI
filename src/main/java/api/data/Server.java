@@ -3,8 +3,12 @@ package api.data;
 import api.Main;
 import api.deployer.DeployerServer;
 import api.packets.MessengerClient;
+import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.util.UUID;
@@ -12,7 +16,8 @@ import java.util.UUID;
 /**
  * Created by SkyBeast on 19/12/2016.
  */
-@Data
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class Server
 {
 	private final DeployerServer deployer;
@@ -20,15 +25,13 @@ public class Server
 	@Setter(AccessLevel.PACKAGE)
 	private MessengerClient messenger;
 	@Setter(AccessLevel.PACKAGE)
-	private long lastKeepAlive = -1;
-	@Setter(AccessLevel.PACKAGE)
 	private ServerStatePacket.ServerState serverState = ServerStatePacket.ServerState.STARTING; //Defaults to STARTING
 
-	Server(DeployerServer deployer, ServerInfo info)
-	{
-		this.deployer = deployer;
-		this.info = info;
-	}
+	private long lastKeepAlive = -1;
+	private long freeMemory;
+	private long totalMemory;
+	private float processCpuLoad;
+	private byte[] lastTPS = new byte[3];
 
 	public static Server get(ServerInfo info)
 	{
@@ -50,7 +53,7 @@ public class Server
 		return deployer.getOffset();
 	}
 
-	public UUID getUUID()
+	public UUID getUuid()
 	{
 		return deployer.getUuid();
 	}
@@ -63,5 +66,14 @@ public class Server
 	public String getName()
 	{
 		return deployer.getName();
+	}
+
+	public void updateData(KeepAlivePacket keepAlivePacket)
+	{
+		lastKeepAlive = System.currentTimeMillis();
+		freeMemory = keepAlivePacket.getFreeMemory();
+		totalMemory = keepAlivePacket.getTotalMemory();
+		processCpuLoad = keepAlivePacket.getProcessCpuLoad();
+		lastTPS = keepAlivePacket.getLastTPS();
 	}
 }

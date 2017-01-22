@@ -123,7 +123,7 @@ public class PanelManager implements SimpleManager
 		void removeServerList(Server server)
 		{
 			if (!listenServerList || messengerPanel == null) return;
-			messengerPanel.sendPacket(new RemoveServerListPanelPacket(server.getUUID()));
+			messengerPanel.sendPacket(new RemoveServerListPanelPacket(server.getUuid()));
 		}
 
 		void updateServerList(Server server)
@@ -151,7 +151,7 @@ public class PanelManager implements SimpleManager
 		void newLineServerInfo(Server server, String line)
 		{
 			if (!listenServerInfo.contains(server) || messengerPanel == null) return;
-			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUUID(), line));
+			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUuid(), line));
 		}
 
 	}

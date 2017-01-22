@@ -1,7 +1,7 @@
 package api.panel.packets;
 
 import api.packets.IncPacket;
-import api.panel.PanelPacket;
+import api.panel.IncPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class InServerInfoPacket extends IncPacket implements PanelPacket
+public class InServerInfoPacket extends IncPacket implements IncPanelPacket
 {
 	private final UUID uuid;
 	private final boolean listen;

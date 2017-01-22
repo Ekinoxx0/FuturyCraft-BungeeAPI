@@ -5,6 +5,8 @@ import api.packets.server.DispatchCommandPacket;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
 import api.packets.server.StopPacket;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,6 +14,8 @@ import java.io.IOException;
 /**
  * Created by loucass003 on 07/12/16.
  */
+@AllArgsConstructor
+@Getter
 public enum Packets
 {
 	// OUTGOING - Spigot-bound
@@ -27,13 +31,6 @@ public enum Packets
 	private final boolean in;
 	private final Class<? extends Packet> clazz;
 
-	Packets(byte id, boolean in, Class<? extends Packet> clazz)
-	{
-		this.id = id;
-		this.in = in;
-		this.clazz = clazz;
-	}
-
 	static IncPacket constructIncomingPacket(byte id, DataInputStream dis)
 			throws IOException, ReflectiveOperationException
 	{
@@ -43,26 +40,11 @@ public enum Packets
 		return null;
 	}
 
-	static byte getID(Class<? extends Packet> clazz)
+	static byte getId(Class<? extends Packet> clazz)
 	{
 		for (Packets p : values())
 			if (clazz == p.clazz)
 				return p.id;
 		throw new IllegalArgumentException("ID not found"); //Should never happen
-	}
-
-	public byte getID()
-	{
-		return id;
-	}
-
-	public boolean isServerBound()
-	{
-		return in;
-	}
-
-	public Class<? extends Packet> getPacketClass()
-	{
-		return clazz;
 	}
 }

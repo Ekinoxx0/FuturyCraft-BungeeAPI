@@ -4,7 +4,7 @@ import api.data.Server;
 import api.deployer.Lobby;
 import api.packets.OutPacket;
 import api.packets.server.ServerStatePacket;
-import api.panel.PanelPacket;
+import api.panel.OutPanelPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
+public class OutServerInfoPanelPacket extends OutPacket implements OutPanelPacket
 {
 	private final UUID uuid;
 	private final String name;
@@ -27,6 +27,11 @@ public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
+	private final long lastKeepAlive;
+	private final long freeMemory;
+	private final long totalMemory;
+	private final float processCpuLoad;
+	private final byte[] lastTPS;
 	private final String console;
 
 	@Override
@@ -46,15 +51,22 @@ public class OutServerInfoPanelPacket extends OutPacket implements PanelPacket
 
 	public static OutServerInfoPanelPacket from(Server server, boolean console)
 	{
-		return new OutServerInfoPanelPacket(server.getUUID(),
+		return new OutServerInfoPanelPacket(
+				server.getUuid(),
 				server.getName(),
 				(short) server.getInfo().getPlayers().size(),
 				(short) server.getDeployer().getVariant().getSlots(),
 				(short) server.getOffset(),
 				server.getServerState(),
-				server.getDeployer().getConsole(),
 				server.getDeployer().getType().toString(),
 				server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-						"Game");
+						"Game",
+				server.getLastKeepAlive(),
+				server.getFreeMemory(),
+				server.getTotalMemory(),
+				server.getProcessCpuLoad(),
+				server.getLastTPS(),
+				server.getDeployer().getConsole()
+		);
 	}
 }

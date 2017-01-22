@@ -1,7 +1,7 @@
 package api.panel;
 
 /**
- * Created by SkyBeast on 04/01/2017.
+ * Created by SkyBeast on 22/01/17.
  */
 public interface PanelPacket
 {

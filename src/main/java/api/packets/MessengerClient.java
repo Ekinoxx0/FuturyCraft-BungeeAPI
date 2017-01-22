@@ -158,7 +158,7 @@ public class MessengerClient
 
 	protected byte getPacketID(Packet packet)
 	{
-		return Packets.getID(packet.getClass());
+		return Packets.getId(packet.getClass());
 	}
 
 	public void disconnect()

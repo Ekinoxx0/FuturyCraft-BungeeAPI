@@ -306,7 +306,7 @@ public class DataManager implements SimpleManager
 		serversLock.lock();
 		try
 		{
-			return servers.stream().filter(server -> server.getUUID().equals(uuid))
+			return servers.stream().filter(server -> server.getUuid().equals(uuid))
 					.findFirst().orElse(null);
 		}
 		finally
@@ -362,11 +362,6 @@ public class DataManager implements SimpleManager
 	{
 		ProxyServer.getInstance().getPluginManager().callEvent(new ServerChangeStateEvent(srv, state));
 		srv.setServerState(state);
-	}
-
-	public void updateLastKeepAlive(Server srv, long lastKeepAlive)
-	{
-		srv.setLastKeepAlive(lastKeepAlive);
 	}
 
 	public class Listen implements Listener
