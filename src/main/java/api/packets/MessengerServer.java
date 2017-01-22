@@ -4,6 +4,7 @@ import api.Main;
 import api.data.Server;
 import api.panel.MessengerPanel;
 import api.utils.SimpleManager;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.io.BufferedOutputStream;
@@ -13,7 +14,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Stream;
@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 /**
  * Created by SkyBeast on 17/12/2016.
  */
+@ToString
 public class MessengerServer implements SimpleManager
 {
 	private final int port;
@@ -28,8 +29,8 @@ public class MessengerServer implements SimpleManager
 	private final List<Socket> nonRegistered = new ArrayList<>();
 	private ServerSocket server;
 	private Thread connectionListener;
-	private volatile boolean end = false;
-	private boolean init = false;
+	private volatile boolean end;
+	private boolean init;
 
 	public MessengerServer(int port, String... whiteList)
 	{
@@ -51,8 +52,7 @@ public class MessengerServer implements SimpleManager
 		catch (Exception e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while creating the ServerSocket (Server: " +
-					this
-					+ ")", e);
+					this + ')', e);
 			ProxyServer.getInstance().stop();
 			throw new IllegalStateException(e);
 		}
@@ -70,8 +70,8 @@ public class MessengerServer implements SimpleManager
 					Main.getInstance().getLogger().info("Socket accepted: " +
 							socket);
 
-					if (!Stream.of(whiteList)
-							.anyMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
+					if (Stream.of(whiteList)
+							.noneMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
 									socket.getInetAddress().getHostAddress().equals(entry)))
 					{
 						Main.getInstance().getLogger().log(Level.WARNING, "Socket did not pass the white-list: " +
@@ -92,13 +92,13 @@ public class MessengerServer implements SimpleManager
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-										"connection (Server: " + this + ")",
+										"connection (Server: " + this + ')',
 								e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-									"connection (Server: " + this + ")",
+									"connection (Server: " + this + ')',
 							e);
 				}
 			}
@@ -120,7 +120,7 @@ public class MessengerServer implements SimpleManager
 
 				if (port == -1 && Main.getInstance().getPanelManager().getMessengerPanel() != null)
 				{ //Panel
-					new MessengerPanel(socket, in, out); //Will auto-register itself
+					MessengerClient client = new MessengerPanel(socket, in, out); //Will auto-register itself
 				}
 
 				Server server = Main.getInstance().getDataManager().findServerByPort(port);
@@ -128,7 +128,7 @@ public class MessengerServer implements SimpleManager
 				if (server == null)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "The socket sent a non-registered port for " +
-							"identification! Disconnecting it... (Port: " + port + ", Socket: " + socket + ")");
+							"identification! Disconnecting it... (Port: " + port + ", Socket: " + socket + ')');
 
 					try {socket.close();}
 					catch (IOException ignored) {} //Disconnect
@@ -152,9 +152,7 @@ public class MessengerServer implements SimpleManager
 			catch (Exception e)
 			{
 				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier (Socket: " +
-								socket
-								+ ")",
-						e);
+								socket + ')', e);
 			}
 		}
 		);
@@ -207,19 +205,5 @@ public class MessengerServer implements SimpleManager
 	void unregister(MessengerClient client)
 	{
 		Main.getInstance().getDataManager().updateMessenger(client.getServer(), null);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "MessengerServer{" +
-				"server=" + server +
-				", port=" + port +
-				", whiteList=" + Arrays.toString(whiteList) +
-				", nonRegistered=" + nonRegistered +
-				", connectionListener=" + connectionListener +
-				", end=" + end +
-				", init=" + init +
-				'}';
 	}
 }

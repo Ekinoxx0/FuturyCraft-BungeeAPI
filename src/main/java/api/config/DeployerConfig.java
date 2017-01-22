@@ -4,6 +4,9 @@ import api.deployer.Lobby;
 import api.utils.FileAdapter;
 import api.utils.Utils;
 import com.google.gson.GsonBuilder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
@@ -13,11 +16,16 @@ import java.util.stream.Collectors;
 /**
  * Created by loucass003 on 21/12/16.
  */
+@ToString
+@EqualsAndHashCode
 public class DeployerConfig
 {
+	@Getter
 	private File baseDir;
 	private String deployerDir;
+	@Getter
 	private List<Template.LobbyTemplate> lobbies;
+	@Getter
 	private List<Template> games;
 	private transient File deployerDirCache;
 
@@ -36,37 +44,10 @@ public class DeployerConfig
 		return deployerDirCache;
 	}
 
-	public File getBaseDir()
-	{
-		return baseDir;
-	}
-
-	public List<Template.LobbyTemplate> getLobbies()
-	{
-		return lobbies;
-	}
-
-	public List<Template> getGames()
-	{
-		return games;
-	}
-
 	public List<Template.LobbyTemplate> getLobbiesByType(Lobby.LobbyType type)
 	{
 		return lobbies.stream()
-				.filter(lobbyTemplate -> lobbyTemplate.getType().equals(type))
+				.filter(lobbyTemplate -> lobbyTemplate.getType() == type)
 				.collect(Collectors.toList());
-	}
-
-	@Override
-	public String toString()
-	{
-		return "DeployerConfig{" +
-				"baseDir=" + baseDir +
-				", deployerDir='" + deployerDir + '\'' +
-				", lobbies=" + lobbies +
-				", games=" + games +
-				", deployerDirCache=" + deployerDirCache +
-				'}';
 	}
 }

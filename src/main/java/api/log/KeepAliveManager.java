@@ -8,15 +8,15 @@ import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
 import com.mongodb.client.MongoDatabase;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import org.bson.Document;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -24,21 +24,27 @@ import java.util.logging.Level;
 /**
  * Created by SkyBeast on 22/12/2016.
  */
+@ToString
 public class KeepAliveManager implements SimpleManager
 {
 	private final Map<Server, KeepAlivePacket> cache = new HashMap<>();
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	private final Condition cacheNotEmpty = cacheLock.newCondition();
 	private final Listen listener = new Listen();
-	private final MongoDatabase mongoDatabase;
+	private final MongoDatabase mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive");
+	private final DateFormat dateFormat;
+	private final DateFormat timeFormat;
 	private Thread senderThread;
 	private Thread watcherThread;
-	private boolean init = false;
-	private volatile boolean end = false;
+	private boolean init;
+	private volatile boolean end;
 
 	public KeepAliveManager()
 	{
-		mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive");
+		dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+1"));
+		timeFormat = new SimpleDateFormat("HH:mm:ss");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT+1"));
 	}
 
 	public void init()
@@ -64,7 +70,7 @@ public class KeepAliveManager implements SimpleManager
 			catch (InterruptedException e)
 			{
 				Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-						+ this + ")", e);
+						+ this + ')', e);
 			}
 
 			while (!end)
@@ -83,14 +89,10 @@ public class KeepAliveManager implements SimpleManager
 
 						Main.getInstance().getLogger().info("Sending keep-alives...");
 
-						Calendar calendar = Calendar.getInstance();
+						Date now = new Date();
 
 						Document doc = new Document("ts", System.currentTimeMillis())
-								.append("date",
-										calendar.get(Calendar.HOUR_OF_DAY) + "-"
-												+ calendar.get(Calendar.MINUTE) + "-"
-												+ calendar.get(Calendar.SECOND)
-								);
+								.append("time", timeFormat.format(now));
 
 						cache.keySet().forEach(server ->
 								{
@@ -106,11 +108,7 @@ public class KeepAliveManager implements SimpleManager
 								}
 						);
 
-						mongoDatabase.getCollection(
-								calendar.get(Calendar.DAY_OF_MONTH) + "-"
-										+ calendar.get(Calendar.MONTH) + "-"
-										+ calendar.get(Calendar.YEAR)
-						).insertOne(doc);
+						mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
 
 
 						cache.clear();
@@ -127,12 +125,12 @@ public class KeepAliveManager implements SimpleManager
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-								+ this + ")", e);
+								+ this + ')', e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-							+ this + ")", e);
+							+ this + ')', e);
 				}
 			}
 		}
@@ -169,12 +167,12 @@ public class KeepAliveManager implements SimpleManager
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-								+ this + ")", e);
+								+ this + ')', e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-							+ this + ")", e);
+							+ this + ')', e);
 				}
 			}
 		}
@@ -190,22 +188,6 @@ public class KeepAliveManager implements SimpleManager
 		end = true;
 
 		Main.getInstance().getLogger().info(this + " stopped.");
-	}
-
-	@Override
-	public String toString()
-	{
-		return "KeepAliveManager{" +
-				"cache=" + cache +
-				", cacheLock=" + cacheLock +
-				", cacheNotEmpty=" + cacheNotEmpty +
-				", listener=" + listener +
-				", mongoDatabase=" + mongoDatabase +
-				", senderThread=" + senderThread +
-				", watcherThread=" + watcherThread +
-				", init=" + init +
-				", end=" + end +
-				'}';
 	}
 
 	public class Listen implements Listener

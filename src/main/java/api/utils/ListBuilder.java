@@ -20,7 +20,7 @@ public class ListBuilder<E>
 	private final List<E> list;
 	private static final Collector COLLECTOR = Collector.of(ListBuilder::new, ListBuilder::append,
 			ListBuilder::addAll);
-	private boolean built = false;
+	private boolean built;
 
 	public ListBuilder(List<E> list)
 	{
@@ -29,12 +29,12 @@ public class ListBuilder<E>
 
 	public ListBuilder()
 	{
-		this.list = new ArrayList<>();
+		list = new ArrayList<>();
 	}
 
 	public ListBuilder(ListBuilder<E> clone)
 	{
-		this.list = new ArrayList<>(clone.list);
+		list = new ArrayList<>(clone.list);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -49,6 +49,9 @@ public class ListBuilder<E>
 	{
 		if (elements.length == 0)
 			return Collections.emptyList();
+		else if (elements.length == 1)
+			return Collections.singletonList(elements[0]);
+
 		return Arrays.asList(elements);
 	}
 
@@ -114,8 +117,11 @@ public class ListBuilder<E>
 	{
 		if (built) throw new IllegalStateException("List already built!");
 		built = true;
-		if (list.size() == 0)
+		if (list.isEmpty())
 			return Collections.emptyList();
+		else if (list.size() == 1)
+			return Collections.singletonList(list.get(0));
+
 		return Collections.unmodifiableList(list);
 	}
 }

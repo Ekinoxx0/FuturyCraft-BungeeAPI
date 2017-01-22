@@ -8,10 +8,8 @@ import java.io.IOException;
  */
 public abstract class IncPacket extends Packet
 {
-	protected DataInputStream data;
 
 	protected IncPacket(DataInputStream data) throws IOException
 	{
-		this.data = data;
 	}
 }

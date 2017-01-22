@@ -10,6 +10,7 @@ import java.util.zip.ZipInputStream;
  *
  * @author www.codejava.net
  */
+@SuppressWarnings("ALL")
 public class UnzipUtilities
 {
 

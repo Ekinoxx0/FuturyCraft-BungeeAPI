@@ -20,6 +20,6 @@ public class InHeaderPanelPacket extends IncPacket implements PanelPacket
 	public InHeaderPanelPacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		this.listen = data.readBoolean();
+		listen = data.readBoolean();
 	}
 }

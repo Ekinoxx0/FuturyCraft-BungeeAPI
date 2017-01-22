@@ -11,13 +11,13 @@ import java.io.File;
  */
 public class Lobby extends DeployerServer
 {
-	private LobbyType type;
+	private final LobbyType type;
 
 	public Lobby(int id, LobbyType type, Variant variant, int port)
 	{
 		super(id, ServerType.LOBBY, variant, port);
 		this.type = type;
-		this.name = "LOBBY-" + type + "#" + base64UUID;
+		name = "LOBBY-" + type + '#' + base64UUID;
 	}
 
 	@Override
@@ -39,7 +39,7 @@ public class Lobby extends DeployerServer
 	{
 		NORMAL("Normal"), VIP("VIP");
 
-		private String name;
+		private final String name;
 
 		LobbyType(String name)
 		{

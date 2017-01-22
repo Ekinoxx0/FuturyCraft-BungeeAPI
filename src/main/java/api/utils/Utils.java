@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 /**
  * Created by loucass003 on 15/12/16.
  */
-public class Utils
+public enum Utils
 {
+	;
+
 	public static final InetAddress LOCAL_HOST = getLocalHost();
 	private static final char[] C64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
 	private static final int[] I256 = new int[256];
@@ -38,7 +40,7 @@ public class Utils
 		}
 		catch (UnknownHostException e)
 		{
-			throw new IllegalStateException();
+			throw new IllegalStateException(e);
 		}
 	}
 
@@ -50,9 +52,8 @@ public class Utils
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
-		return null;
 	}
 
 	public static Integer isNumeric(String str)
@@ -61,7 +62,7 @@ public class Utils
 		{
 			return Integer.valueOf(str);
 		}
-		catch (NumberFormatException e)
+		catch (NumberFormatException ignored)
 		{
 			return null;
 		}
@@ -69,7 +70,7 @@ public class Utils
 
 	public static void deleteContent(File f) throws IOException
 	{
-		Files.walk(Paths.get(f.getAbsolutePath()))
+		Files.walk(f.toPath())
 				.filter(Files::isRegularFile)
 				.map(Path::toFile)
 				.forEach(File::delete);

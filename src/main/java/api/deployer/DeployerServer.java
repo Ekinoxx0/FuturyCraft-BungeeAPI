@@ -9,6 +9,10 @@ import api.events.ServerUndeployedEvent;
 import api.utils.ListBuilder;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -27,22 +31,31 @@ import java.util.stream.Collectors;
 /**
  * Created by loucass003 on 15/12/16.
  */
+@ToString(exclude = {"server"})
 public class DeployerServer implements Runnable
 {
+	@Getter
 	protected final UUID uuid = Main.getInstance().getDataManager().newUUID();
+	@Getter
 	protected final String base64UUID = Utils.formatToUUID(uuid);
-	protected String name = "#" + base64UUID;
+	@Getter
+	protected String name = '#' + base64UUID;
+	@Getter
 	protected final Variant variant;
+	@Getter
 	protected final int offset;
+	@Getter
 	protected final ServerType type;
 	protected final File spigot;
 	protected final File map;
 	protected final File properties;
 	protected final Path log;
+	@Getter
 	protected final int port;
 	protected File serverFolder;
 	protected Thread currentThread;
 	protected Process process;
+	@Setter(AccessLevel.PACKAGE)
 	protected Server server;
 
 	public DeployerServer(int offset, ServerType type, Variant variant, int port)
@@ -67,14 +80,14 @@ public class DeployerServer implements Runnable
 
 	public ServerInfo deploy()
 	{
-		ServerInfo info = null; //no needs to catch cause already cached into #server
 		if (!serverFolder.exists() && !serverFolder.mkdirs())
 		{
-			Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + "\"");
+			Main.getInstance().getLogger().severe("Unable to create server folder on \"" + getName() + '"');
 			return null;
 		}
 
 		UnzipUtilities unZipper = new UnzipUtilities();
+		ServerInfo info = null; //no needs to catch cause already cached into #server
 		try
 		{
 			Files.copy(spigot.toPath(), new File(serverFolder, spigot.getName()).toPath());
@@ -84,9 +97,9 @@ public class DeployerServer implements Runnable
 			info = proxy.constructServerInfo(name, new InetSocketAddress(Utils.LOCAL_HOST, port), "", false);
 			proxy.getServers().put(name, info);
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			ex.printStackTrace();
+			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to deploy server " + this + '.', e);
 		}
 
 
@@ -106,8 +119,8 @@ public class DeployerServer implements Runnable
 					.of
 							(
 									"java",
-									"-Xmx" + variant.getMaxRam() + "M",
-									"-Xms" + variant.getMinRam() + "M",
+									"-Xmx" + variant.getMaxRam() + 'M',
+									"-Xms" + variant.getMinRam() + 'M',
 									"-Dcom.mojang.eula.agree=true" // :p
 							)
 					.addAll(variant.getJvmArgs())
@@ -141,7 +154,7 @@ public class DeployerServer implements Runnable
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to start server " + this + '.', e);
 		}
 	}
 
@@ -149,13 +162,12 @@ public class DeployerServer implements Runnable
 	{
 		try
 		{
-			Utils.deleteFolder(this.serverFolder);
+			Utils.deleteFolder(serverFolder);
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
-			Main.getInstance().getLogger().severe("Unable to remove server on \"" + this.serverFolder
-					.getAbsolutePath() + "\"");
+			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to remove server on \"" + serverFolder
+					.getAbsolutePath() + '\"', e);
 		}
 
 		Server srv = Main.getInstance().getDataManager().getServer(base64UUID);
@@ -167,7 +179,7 @@ public class DeployerServer implements Runnable
 	{
 		if (currentThread != null)
 		{
-			this.currentThread.start();
+			currentThread.start();
 			Main.getInstance().getLogger().info("Server " + this + " started.");
 		}
 	}
@@ -175,9 +187,9 @@ public class DeployerServer implements Runnable
 	public void kill()
 	{
 		if (process != null)
-			this.process.destroy();
+			process.destroy();
 		if (currentThread != null)
-			this.currentThread.interrupt();
+			currentThread.interrupt();
 	}
 
 	public String getConsole()
@@ -189,89 +201,8 @@ public class DeployerServer implements Runnable
 		catch (IOException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to get console from server " + server, e);
-			return "";
+			return "Internal Error :(";
 		}
-	}
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public File getSpigot()
-	{
-		return spigot;
-	}
-
-	public File getProperties()
-	{
-		return properties;
-	}
-
-	public File getMap()
-	{
-		return map;
-	}
-
-	public ServerType getType()
-	{
-		return type;
-	}
-
-	public int getPort()
-	{
-		return port;
-	}
-
-	public File getServerFolder()
-	{
-		return serverFolder;
-	}
-
-	public int getOffset()
-	{
-		return offset;
-	}
-
-	public Variant getVariant()
-	{
-		return variant;
-	}
-
-	public UUID getServerUUID()
-	{
-		return uuid;
-	}
-
-	public String getServerBase64UUID()
-	{
-		return base64UUID;
-	}
-
-	void setServer(Server server)
-	{
-		this.server = server;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "DeployerServer{" +
-				"uuid=" + uuid +
-				", base64UUID='" + base64UUID + '\'' +
-				", name='" + name + '\'' +
-				", variant=" + variant +
-				", offset=" + offset +
-				", type=" + type +
-				", spigot=" + spigot +
-				", map=" + map +
-				", properties=" + properties +
-				", log=" + log +
-				", port=" + port +
-				", serverFolder=" + serverFolder +
-				", currentThread=" + currentThread +
-				", process=" + process +
-				'}';
 	}
 
 	public enum ServerType
@@ -279,7 +210,7 @@ public class DeployerServer implements Runnable
 		LOBBY("Lobby"),
 		GAME("Game");
 
-		private String name;
+		private final String name;
 
 		ServerType(String name)
 		{

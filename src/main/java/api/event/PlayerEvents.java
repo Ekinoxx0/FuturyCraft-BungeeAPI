@@ -8,21 +8,23 @@ import api.deployer.Deployer;
 import api.deployer.DeployerServer;
 import api.deployer.Lobby;
 import api.utils.SimpleManager;
+import lombok.ToString;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by loucass003 on 21/12/16.
  */
+@ToString(exclude = {"deployer"})
 public class PlayerEvents implements Listener, SimpleManager
 {
 	private final Deployer deployer = Main.getInstance().getDeployer();
-	private boolean init = false;
+	private boolean init;
 
 	public void init()
 	{
@@ -36,13 +38,13 @@ public class PlayerEvents implements Listener, SimpleManager
 	public void onPostLogin(PostLoginEvent e)
 	{
 		List<Server> lobbies = Main.getInstance().getDataManager().getServersByType(DeployerServer.ServerType.LOBBY);
-		if (lobbies.size() == 0)
+		if (lobbies.isEmpty())
 		{
 			e.getPlayer().disconnect(new TextComponent("Server is starting !"));
 			return;
 		}
 
-		Collections.sort(lobbies, (o1, o2) ->
+		lobbies.sort((o1, o2) ->
 				{
 					int i0 = o1.getInfo().getPlayers().size();
 					int i1 = o2.getInfo().getPlayers().size();
@@ -52,7 +54,8 @@ public class PlayerEvents implements Listener, SimpleManager
 
 		e.getPlayer().connect(lobbies.get(0).getInfo(), (bool, ex) ->
 				{
-					if (ex != null) ex.printStackTrace();
+					if (ex != null)
+						Main.getInstance().getLogger().log(Level.SEVERE, "Error while connecting player!", e);
 				}
 		);
 
@@ -78,7 +81,7 @@ public class PlayerEvents implements Listener, SimpleManager
 	private Variant getNextLobbyVariant(Lobby.LobbyType type)
 	{
 		List<Template.LobbyTemplate> lobbies = deployer.getConfig().getLobbiesByType(type);
-		if (lobbies.size() == 0)
+		if (lobbies.isEmpty())
 			return null;
 		Template.LobbyTemplate t = lobbies.stream().findFirst().orElse(null);
 		if (t == null)
@@ -89,13 +92,5 @@ public class PlayerEvents implements Listener, SimpleManager
 		if (t.getOffset() >= t.getVariants().size())
 			t.setOffset(0);
 		return t.getVariants().get(t.getOffset());
-	}
-
-	@Override
-	public String toString()
-	{
-		return "PlayerEvents{" +
-				"init=" + init +
-				'}';
 	}
 }

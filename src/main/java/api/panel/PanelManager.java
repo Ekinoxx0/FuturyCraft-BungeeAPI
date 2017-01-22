@@ -22,7 +22,7 @@ public class PanelManager implements SimpleManager
 {
 	private final Listen listener = new Listen();
 	private MessengerPanel messengerPanel;
-	private boolean init = false;
+	private boolean init;
 
 	@Override
 	public void init()
@@ -44,7 +44,7 @@ public class PanelManager implements SimpleManager
 		this.messengerPanel = messengerPanel;
 	}
 
-	public class Listen implements Listener
+	class Listen implements Listener
 	{
 
 		private Listen() {}
@@ -90,7 +90,9 @@ public class PanelManager implements SimpleManager
 		void sendHeader()
 		{
 			if (!listenHeader || messengerPanel == null) return;
-			messengerPanel.sendPacket(new OutHeaderPanelPacket((short) ProxyServer.getInstance().getOnlineCount(), (short) Main.getInstance().getDataManager().getServerCount()));
+			messengerPanel.sendPacket(new OutHeaderPanelPacket((short) ProxyServer.getInstance().getOnlineCount(),
+					(short) 1,
+					(short) Main.getInstance().getDataManager().getServerCount()));
 		}
 
 		//@formatter:off

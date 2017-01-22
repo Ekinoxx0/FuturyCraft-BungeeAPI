@@ -3,6 +3,10 @@ package api.packets;
 import api.Main;
 import api.data.Server;
 import api.events.PacketReceivedEvent;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.io.*;
@@ -15,16 +19,18 @@ import java.util.logging.Level;
 /**
  * Created by SkyBeast on 17/12/2016.
  */
+@ToString(exclude = {"server"})
 public class MessengerClient
 {
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
 	private final List<PacketListener<?>> listeners = new ArrayList<>();
+	@Getter(AccessLevel.PACKAGE)
 	protected Server server;
-	private short lastTransactionID = 0x0000;
+	private short lastTransactionID;
 	private Thread listener;
-	private volatile boolean end = false;
+	private volatile boolean end;
 
 	public MessengerClient(Socket socket, DataInputStream in, DataOutputStream out, Server server) throws IOException
 	//Called in DeployerServer
@@ -57,13 +63,13 @@ public class MessengerClient
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
-										this + ")",
+										this + ')',
 								e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the socket (Client: " +
-									this + ")",
+									this + ')',
 							e);
 				}
 			}
@@ -85,7 +91,7 @@ public class MessengerClient
 
 			if (packet == null)
 				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
-						+ ", in=" + Arrays.toString(arrayIn) + ")");
+						+ ", in=" + Arrays.toString(arrayIn) + ')');
 
 			synchronized (listeners)
 			{
@@ -105,7 +111,7 @@ public class MessengerClient
 		catch (ReflectiveOperationException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
-					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ")", e);
+					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ')', e);
 		}
 	}
 
@@ -135,8 +141,8 @@ public class MessengerClient
 
 			synchronized (out)
 			{
-				Main.getInstance().getLogger().info("Sending " + packet + " in client " + this);
-				out.writeByte(Packets.getID(packet.getClass()));
+				Main.getInstance().getLogger().info("Sending " + packet + " in client " + this + '.');
+				out.writeByte(getPacketID(packet));
 				out.writeShort(transactionID);
 				out.writeShort(array.size());
 				out.write(array.toByteArray());
@@ -146,8 +152,13 @@ public class MessengerClient
 		catch (IOException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while sending packet " + packet + " with " +
-					"transactionID " + transactionID + " (Client: " + this + ")", e);
+					"transactionID " + transactionID + " (Client: " + this + ')', e);
 		}
+	}
+
+	protected byte getPacketID(Packet packet)
+	{
+		return Packets.getID(packet.getClass());
 	}
 
 	public void disconnect()
@@ -161,46 +172,12 @@ public class MessengerClient
 		catch (IOException ignored) {}
 	}
 
-	Server getServer()
-	{
-		return server;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "MessengerClient{" +
-				"socket=" + socket +
-				", in=" + in +
-				", out=" + out +
-				", listeners=" + listeners +
-				", lastTransactionID=" + lastTransactionID +
-				", listener=" + listener +
-				", end=" + end +
-				'}';
-	}
-
-	private class PacketListener<T extends IncPacket>
+	@ToString
+	@AllArgsConstructor
+	private static class PacketListener<T extends IncPacket>
 	{
 		Class<T> clazz;
 		Callback<T> callback;
 		int transactionID;
-
-		PacketListener(Class<T> clazz, Callback<T> callback, int transactionID)
-		{
-			this.clazz = clazz;
-			this.callback = callback;
-			this.transactionID = transactionID;
-		}
-
-		@Override
-		public String toString()
-		{
-			return "PacketListener{" +
-					"clazz=" + clazz +
-					", callback=" + callback +
-					", transactionID=" + transactionID +
-					'}';
-		}
 	}
 }

@@ -40,11 +40,12 @@ public class UpdateServerListPanelPacket extends OutPacket implements PanelPacke
 						"Game");
 	}
 
+	@SuppressWarnings("Duplicates")
 	@Override
 	public void write(DataOutputStream out) throws IOException
 	{
-		out.writeLong(this.uuid.getMostSignificantBits());
-		out.writeLong(this.uuid.getLeastSignificantBits());
+		out.writeLong(uuid.getMostSignificantBits());
+		out.writeLong(uuid.getLeastSignificantBits());
 		out.writeUTF(name);
 		out.writeShort(online);
 		out.writeShort(maxOnline);

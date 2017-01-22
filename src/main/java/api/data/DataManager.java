@@ -2,12 +2,14 @@ package api.data;
 
 import api.Main;
 import api.deployer.DeployerServer;
+import api.events.ServerChangeStateEvent;
 import api.packets.MessengerClient;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
 import api.utils.Utils;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -38,6 +40,7 @@ import java.util.stream.Stream;
 /**
  * Created by SkyBeast on 19/12/2016.
  */
+@ToString
 public class DataManager implements SimpleManager
 {
 	private static final Document EMPTY_DOCUMENT = new Document();
@@ -52,8 +55,8 @@ public class DataManager implements SimpleManager
 	private final DelayQueue<UserData.Delay> disconnectQueue = new DelayQueue<>();
 	private final List<UUID> uuids = new ArrayList<>();
 	private final AtomicInteger severCount = new AtomicInteger();
-	private boolean init = false;
-	private volatile boolean end = false;
+	private boolean init;
+	private volatile boolean end;
 	private Thread saverThread;
 
 	public DataManager(long saveDelay)
@@ -130,12 +133,12 @@ public class DataManager implements SimpleManager
 				{
 					if (!end)
 						Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving to MongoDB " +
-								"(DataManager: " + this + ")", e);
+								"(DataManager: " + this + ')', e);
 				}
 				catch (Exception e)
 				{
 					Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving to MongoDB " +
-							"(DataManager: " + this + ")", e);
+							"(DataManager: " + this + ')', e);
 				}
 			}
 		}
@@ -180,7 +183,7 @@ public class DataManager implements SimpleManager
 		try
 		{
 			return users.stream()
-					.filter(userData -> userData.getUUID().equals(player.getUUID()))
+					.filter(userData -> userData.getUuid().equals(player.getUuid()))
 					.findFirst().orElse(null);
 		}
 		finally
@@ -208,7 +211,7 @@ public class DataManager implements SimpleManager
 		try
 		{
 			return servers.stream()
-					.filter(server -> server.getDeployer().getType().equals(type))
+					.filter(server -> server.getDeployer().getType() == type)
 					.collect(Collectors.toList());
 		}
 		finally
@@ -275,7 +278,7 @@ public class DataManager implements SimpleManager
 		{
 			Server server = new Server(deployer, info);
 			servers.add(server);
-			uuids.add(deployer.getServerUUID());
+			uuids.add(deployer.getUuid());
 			return server;
 		}
 		finally
@@ -347,7 +350,7 @@ public class DataManager implements SimpleManager
 	public UUID newUUID()
 	{
 		UUID uuid = UUID.randomUUID();
-		return uuids.contains(uuid) ? newUUID() : uuid;
+		return uuids.contains(uuid) ? uuid : newUUID();
 	}
 
 	public void updateMessenger(Server srv, MessengerClient client)
@@ -357,33 +360,13 @@ public class DataManager implements SimpleManager
 
 	public void updateServerState(Server srv, ServerStatePacket.ServerState state)
 	{
+		ProxyServer.getInstance().getPluginManager().callEvent(new ServerChangeStateEvent(srv, state));
 		srv.setServerState(state);
 	}
 
 	public void updateLastKeepAlive(Server srv, long lastKeepAlive)
 	{
 		srv.setLastKeepAlive(lastKeepAlive);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "DataManager{" +
-				"saveDelay=" + saveDelay +
-				", init=" + init +
-				", end=" + end +
-				", listener=" + listener +
-				", usersDB=" + usersDB +
-				", exec=" + exec +
-				", users=" + users +
-				", usersLock=" + usersLock +
-				", servers=" + servers +
-				", serversLock=" + serversLock +
-				", disconnectQueue=" + disconnectQueue +
-				", uuids=" + uuids +
-				", severCount=" + severCount +
-				", saverThread=" + saverThread +
-				'}';
 	}
 
 	public class Listen implements Listener
@@ -427,6 +410,7 @@ public class DataManager implements SimpleManager
 								// already cached in Redis
 								{
 									ite.remove();
+									data.setPlayer(player);
 
 									usersLock.lock();
 									try
@@ -477,6 +461,17 @@ public class DataManager implements SimpleManager
 			UserData data = getData(event.getPlayer());
 			if (data == null)
 				return;
+
+			usersLock.lock();
+			try
+			{
+				users.remove(data);
+			}
+			finally
+			{
+				usersLock.unlock();
+			}
+
 			UserData.Delay delay = data.getDelayer();
 			delay.deadLine = saveDelay + System.currentTimeMillis();
 			disconnectQueue.add(delay);

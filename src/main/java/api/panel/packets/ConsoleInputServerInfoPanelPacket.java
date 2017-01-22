@@ -20,6 +20,6 @@ public class ConsoleInputServerInfoPanelPacket extends IncPacket implements Pane
 	public ConsoleInputServerInfoPanelPacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		this.in = data.readUTF();
+		in = data.readUTF();
 	}
 }

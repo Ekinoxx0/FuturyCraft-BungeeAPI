@@ -19,11 +19,11 @@ public class MapBuilder<K, V>
 	private final Map<K, V> map;
 	private final Class<K> kClass;
 	private final Class<V> vClass;
-	private boolean built = false;
+	private boolean built;
 
 	public MapBuilder(Class<K> kClass, Class<V> vClass)
 	{
-		this.map = new HashMap<>();
+		map = new HashMap<>();
 		this.kClass = kClass;
 		this.vClass = vClass;
 	}
@@ -37,9 +37,9 @@ public class MapBuilder<K, V>
 
 	public MapBuilder(MapBuilder<K, V> clone)
 	{
-		this.map = new HashMap<>(clone.map);
-		this.kClass = clone.kClass;
-		this.vClass = clone.vClass;
+		map = new HashMap<>(clone.map);
+		kClass = clone.kClass;
+		vClass = clone.vClass;
 	}
 
 	public static <K, V> MapBuilder<K, V> of(Class<K> kClass, Class<V> vClass, Object... pairs)
@@ -50,7 +50,7 @@ public class MapBuilder<K, V>
 	@SuppressWarnings("unchecked")
 	public static <K, V> Map<K, V> mapOf(Class<K> kClass, Class<V> vClass, Object... pairs)
 	{
-		if (pairs.length % 2 == 1) throw new IllegalArgumentException("Invalid key/value pairs");
+		if ((pairs.length & 1) == 1) throw new IllegalArgumentException("Invalid key/value pairs");
 
 		Map<K, V> map = new HashMap<>();
 		for (int i = 0; i < pairs.length; i += 2)
@@ -84,7 +84,7 @@ public class MapBuilder<K, V>
 	public MapBuilder<K, V> appendAll(Object... pairs)
 	{
 		if (built) throw new IllegalStateException("Map already built!");
-		if (pairs.length % 2 == 1) throw new IllegalArgumentException("Invalid key/value pairs");
+		if ((pairs.length & 1) == 1) throw new IllegalArgumentException("Invalid key/value pairs");
 
 		for (int i = 0; i < pairs.length; i += 2)
 		{
@@ -125,7 +125,7 @@ public class MapBuilder<K, V>
 	{
 		if (built) throw new IllegalStateException("Map already built!");
 		built = true;
-		if (map.size() == 0)
+		if (map.isEmpty())
 			return Collections.emptyMap();
 		return Collections.unmodifiableMap(map);
 	}

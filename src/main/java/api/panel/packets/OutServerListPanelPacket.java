@@ -40,11 +40,6 @@ public class OutServerListPanelPacket extends OutPacket implements PanelPacket
 		}
 	}
 
-	public List<ServerData> getServers()
-	{
-		return servers;
-	}
-
 	@Data
 	public static class ServerData
 	{

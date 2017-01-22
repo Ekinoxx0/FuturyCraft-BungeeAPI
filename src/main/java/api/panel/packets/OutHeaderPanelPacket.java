@@ -16,12 +16,14 @@ import java.io.IOException;
 public class OutHeaderPanelPacket extends OutPacket implements PanelPacket
 {
 	private final short online;
+	private final short maxPlayer;
 	private final short servers;
 
 	@Override
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeShort(online);
+		out.writeShort(maxPlayer);
 		out.writeShort(servers);
 	}
 }

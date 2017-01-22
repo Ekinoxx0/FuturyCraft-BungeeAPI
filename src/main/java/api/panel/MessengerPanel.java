@@ -37,7 +37,7 @@ public class MessengerPanel extends MessengerClient
 
 			if (packet == null)
 				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
-						+ ", in=" + Arrays.toString(arrayIn) + ")");
+						+ ", in=" + Arrays.toString(arrayIn) + ')');
 
 
 			ProxyServer.getInstance().getPluginManager().callEvent(new PanelPacketReceivedEvent(server, packet,
@@ -46,7 +46,7 @@ public class MessengerPanel extends MessengerClient
 		catch (ReflectiveOperationException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
-					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ")", e);
+					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ')', e);
 		}
 	}
 }

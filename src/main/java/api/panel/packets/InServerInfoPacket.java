@@ -22,7 +22,7 @@ public class InServerInfoPacket extends IncPacket implements PanelPacket
 	public InServerInfoPacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		this.uuid = new UUID(data.readLong(), data.readLong());
-		this.listen = data.readBoolean();
+		uuid = new UUID(data.readLong(), data.readLong());
+		listen = data.readBoolean();
 	}
 }

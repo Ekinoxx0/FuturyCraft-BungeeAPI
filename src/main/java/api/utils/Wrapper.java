@@ -1,8 +1,13 @@
 package api.utils;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * Created by SkyBeast on 18/12/2016.
  */
+@Data
+@NoArgsConstructor
 public class Wrapper<T>
 {
 	private T instance;

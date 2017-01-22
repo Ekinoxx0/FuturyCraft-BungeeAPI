@@ -7,9 +7,4 @@ import api.utils.SimpleManager;
  */
 public class LogManager implements SimpleManager
 {
-	@Override
-	public void init()
-	{
-
-	}
 }

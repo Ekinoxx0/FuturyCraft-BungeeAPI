@@ -9,6 +9,7 @@ import api.log.LogManager;
 import api.packets.MessengerServer;
 import api.panel.PanelManager;
 import com.mongodb.MongoClient;
+import lombok.ToString;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -18,6 +19,7 @@ import java.io.File;
 /**
  * Created by loucass003 on 06/12/16.
  */
+@ToString
 public class Main extends Plugin
 {
 	private static Main instance;
@@ -57,7 +59,7 @@ public class Main extends Plugin
 	@Override
 	public void onEnable()
 	{
-		File dataFolder = Main.getInstance().getDataFolder();
+		File dataFolder = getInstance().getDataFolder();
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
 
@@ -133,21 +135,5 @@ public class Main extends Plugin
 	public LogManager getLogManager()
 	{
 		return logManager;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "Main{" +
-				"jedisPool=" + jedisPool +
-				", mongoClient=" + mongoClient +
-				", messenger=" + messenger +
-				", dataManager=" + dataManager +
-				", deployer=" + deployer +
-				", playerEvents=" + playerEvents +
-				", keepAliveManager=" + keepAliveManager +
-				", panelManager=" + panelManager +
-				", logManager=" + logManager +
-				'}';
 	}
 }

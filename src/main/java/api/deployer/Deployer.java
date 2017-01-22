@@ -8,6 +8,7 @@ import api.data.Server;
 import api.events.ServerDeployedEvent;
 import api.utils.SimpleManager;
 import api.utils.Utils;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 
 import java.io.File;
@@ -17,19 +18,15 @@ import java.util.logging.Level;
 /**
  * Created by loucass003 on 14/12/16.
  */
+@ToString
 public class Deployer implements SimpleManager
 {
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;
 	private static final int MAX_SERVERS = MAX_PORT - MIN_PORT;
 	private DeployerConfig config;
-	private boolean init = false;
-	private volatile boolean end = false;
-
-	public Deployer()
-	{
-		this.config = new DeployerConfig();
-	}
+	private boolean init;
+	private volatile boolean end;
 
 	@Override
 	public void init()
@@ -44,14 +41,14 @@ public class Deployer implements SimpleManager
 			if (!config.getDeployerDir().exists() && !config.getDeployerDir().mkdirs())
 			{
 				Main.getInstance().getLogger().log(Level.SEVERE, "Unable to mkdirs (Deployer: " +
-						this + ")");
+						this + ')');
 				return;
 			}
 		}
 		catch (IOException e)
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while initializing the Deployer (Deployer: " +
-					this + ")");
+					this + ')', e);
 		}
 
 		for (Template.LobbyTemplate l : config.getLobbies())
@@ -105,21 +102,5 @@ public class Deployer implements SimpleManager
 		);*/
 
 		Main.getInstance().getLogger().info(this + " stopped.");
-	}
-
-	@Deprecated
-	public int countLobby(Lobby.LobbyType t)
-	{
-		return -1;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "Deployer{" +
-				"config=" + config +
-				", init=" + init +
-				", end=" + end +
-				'}';
 	}
 }
