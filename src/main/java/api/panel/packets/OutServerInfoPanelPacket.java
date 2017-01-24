@@ -28,8 +28,10 @@ public class OutServerInfoPanelPacket extends OutPacket implements OutPanelPacke
 	private final String serverType;
 	private final String category;
 	private final long lastKeepAlive;
+	private final long minMemory;
 	private final long freeMemory;
 	private final long totalMemory;
+	private final long maxMemory;
 	private final float processCpuLoad;
 	private final byte[] lastTPS;
 	private final String console;
@@ -46,6 +48,13 @@ public class OutServerInfoPanelPacket extends OutPacket implements OutPanelPacke
 		out.writeByte(state.ordinal());
 		out.writeUTF(serverType);
 		out.writeUTF(category);
+		out.writeLong(lastKeepAlive);
+		out.writeLong(minMemory);
+		out.writeLong(freeMemory);
+		out.writeLong(totalMemory);
+		out.writeLong(maxMemory);
+		out.writeFloat(processCpuLoad);
+		out.write(lastTPS);
 		out.writeUTF(console);
 	}
 
@@ -62,11 +71,13 @@ public class OutServerInfoPanelPacket extends OutPacket implements OutPanelPacke
 				server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
 						"Game",
 				server.getLastKeepAlive(),
+				server.getMinMemory(),
 				server.getFreeMemory(),
 				server.getTotalMemory(),
+				server.getMaxMemory(),
 				server.getProcessCpuLoad(),
 				server.getLastTPS(),
-				server.getDeployer().getConsole()
+				console ? server.getDeployer().getConsole() : ""
 		);
 	}
 }

@@ -9,10 +9,7 @@ import api.events.ServerUndeployedEvent;
 import api.utils.ListBuilder;
 import api.utils.UnzipUtilities;
 import api.utils.Utils;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -37,7 +34,7 @@ public class DeployerServer implements Runnable
 	@Getter
 	protected final UUID uuid = Main.getInstance().getDataManager().newUUID();
 	@Getter
-	protected final String base64UUID = Utils.formatToUUID(uuid);
+	protected final String base64UUID = Utils.uuidToBase64(uuid);
 	@Getter
 	protected String name = '#' + base64UUID;
 	@Getter
@@ -49,6 +46,7 @@ public class DeployerServer implements Runnable
 	protected final File spigot;
 	protected final File map;
 	protected final File properties;
+	@Getter
 	protected final Path log;
 	@Getter
 	protected final int port;
@@ -151,6 +149,8 @@ public class DeployerServer implements Runnable
 			remove();
 
 			Main.getInstance().getLogger().info(this + " stopped.");
+
+			Main.getInstance().getLogManager().saveLogs(server);
 		}
 		catch (IOException e)
 		{
@@ -169,10 +169,7 @@ public class DeployerServer implements Runnable
 			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to remove server on \"" + serverFolder
 					.getAbsolutePath() + '\"', e);
 		}
-
-		Server srv = Main.getInstance().getDataManager().getServer(base64UUID);
-		Main.getInstance().getDataManager().unregisterServer(srv);
-		ProxyServer.getInstance().getPluginManager().callEvent(new ServerUndeployedEvent(srv));
+		ProxyServer.getInstance().getPluginManager().callEvent(new ServerUndeployedEvent(server));
 	}
 
 	public void start()
@@ -205,17 +202,14 @@ public class DeployerServer implements Runnable
 		}
 	}
 
+	@Getter
+	@AllArgsConstructor
 	public enum ServerType
 	{
 		LOBBY("Lobby"),
 		GAME("Game");
 
 		private final String name;
-
-		ServerType(String name)
-		{
-			this.name = name;
-		}
 
 		@Override
 		public String toString()

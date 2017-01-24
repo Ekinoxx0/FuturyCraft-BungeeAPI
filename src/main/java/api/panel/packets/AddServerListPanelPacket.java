@@ -27,13 +27,7 @@ public class AddServerListPanelPacket extends OutPacket implements OutPanelPacke
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
-	private final long lastKeepAlive;
-	private final long freeMemory;
-	private final long totalMemory;
-	private final float processCpuLoad;
-	private final byte[] lastTPS;
 
-	@SuppressWarnings("Duplicates")
 	@Override
 	public void write(DataOutputStream out) throws IOException
 	{
@@ -46,11 +40,6 @@ public class AddServerListPanelPacket extends OutPacket implements OutPanelPacke
 		out.writeByte(state.ordinal());
 		out.writeUTF(serverType);
 		out.writeUTF(category);
-		out.writeLong(lastKeepAlive);
-		out.writeLong(freeMemory);
-		out.writeLong(totalMemory);
-		out.writeFloat(processCpuLoad);
-		out.write(lastTPS);
 	}
 
 	public static AddServerListPanelPacket from(Server server)
@@ -64,12 +53,7 @@ public class AddServerListPanelPacket extends OutPacket implements OutPanelPacke
 				server.getServerState(),
 				server.getDeployer().getType().toString(),
 				server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-						"Game",
-				server.getLastKeepAlive(),
-				server.getFreeMemory(),
-				server.getTotalMemory(),
-				server.getProcessCpuLoad(),
-				server.getLastTPS()
+						"Game"
 		);
 	}
 }

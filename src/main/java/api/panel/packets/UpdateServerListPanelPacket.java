@@ -27,11 +27,6 @@ public class UpdateServerListPanelPacket extends OutPacket implements OutPanelPa
 	private final ServerStatePacket.ServerState state;
 	private final String serverType;
 	private final String category;
-	private final long lastKeepAlive;
-	private final long freeMemory;
-	private final long totalMemory;
-	private final float processCpuLoad;
-	private final byte[] lastTPS;
 
 	public static UpdateServerListPanelPacket from(Server server)
 	{
@@ -43,12 +38,7 @@ public class UpdateServerListPanelPacket extends OutPacket implements OutPanelPa
 				(short) server.getOffset(), server.getServerState(),
 				server.getDeployer().getType().toString(),
 				server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-						"Game",
-				server.getLastKeepAlive(),
-				server.getFreeMemory(),
-				server.getTotalMemory(),
-				server.getProcessCpuLoad(),
-				server.getLastTPS()
+						"Game"
 		);
 	}
 
@@ -65,10 +55,5 @@ public class UpdateServerListPanelPacket extends OutPacket implements OutPanelPa
 		out.writeByte(state.ordinal());
 		out.writeUTF(serverType);
 		out.writeUTF(category);
-		out.writeLong(lastKeepAlive);
-		out.writeLong(freeMemory);
-		out.writeLong(totalMemory);
-		out.writeFloat(processCpuLoad);
-		out.write(lastTPS);
 	}
 }

@@ -53,6 +53,7 @@ public class PanelManager implements SimpleManager
 		public void onPanelPacket(PanelPacketReceivedEvent event)
 		{
 			IncPacket packet = event.getPacket();
+
 			if (packet instanceof InHeaderPanelPacket)
 			{
 				listenHeader = ((InHeaderPanelPacket) packet).isListen();
@@ -65,8 +66,14 @@ public class PanelManager implements SimpleManager
 			}
 			else if (packet instanceof InServerInfoPacket)
 			{
-				Server server = Main.getInstance().getDataManager().getServer(((InServerInfoPacket) packet).getUuid());
-				if (((InServerInfoPacket) packet).isListen())
+				InServerInfoPacket packet1 = (InServerInfoPacket) packet;
+				Server server = Main.getInstance().getDataManager().getServer(packet1.getUuid());
+				if (server == null)
+				{
+					messengerPanel.sendPacket(new IllegalServerInfoPacket(packet1.getUuid()));
+					return;
+				}
+				else if (packet1.isListen())
 				{
 					if (!listenServerInfo.contains(server)) {listenServerInfo.add(server);}
 				}

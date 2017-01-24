@@ -149,197 +149,168 @@ public class DataManager implements SimpleManager
 
 	public Server findServerByPort(int port)
 	{
-		serversLock.lock();
-		try
-		{
-			return servers.stream()
-					.filter(srv -> srv.getDeployer().getPort() == port)
-					.findAny().orElse(null);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(srv -> srv.getDeployer().getPort() == port)
+								.findAny().orElse(null),
+						serversLock
+				);
 	}
 
 	public UserData getData(ProxiedPlayer player)
 	{
-		usersLock.lock();
-		try
-		{
-			return users.stream()
-					.filter(userData -> userData.getPlayer().equals(player))
-					.findFirst().orElse(null);
-		}
-		finally
-		{
-			usersLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> users.stream()
+								.filter(userData -> userData.getPlayer().equals(player))
+								.findFirst().orElse(null),
+						serversLock
+				);
 	}
 
 	public UserData getOnline(OfflineUserData player)
 	{
-		usersLock.lock();
-		try
-		{
-			return users.stream()
-					.filter(userData -> userData.getUuid().equals(player.getUuid()))
-					.findFirst().orElse(null);
-		}
-		finally
-		{
-			usersLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> users.stream()
+								.filter(userData -> userData.getUuid().equals(player.getUuid()))
+								.findFirst().orElse(null),
+						serversLock
+				);
 	}
 
-	public void forEachServers(Consumer<Server> cons)
+	public void forEachServers(Consumer<? super Server> cons)
 	{
-		serversLock.lock();
-		try
-		{
-			servers.forEach(cons);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		Utils.doLocked
+				(
+						() -> servers.forEach(cons),
+						serversLock
+				);
 	}
 
 	public List<Server> getServersByType(DeployerServer.ServerType type)
 	{
-		serversLock.lock();
-		try
-		{
-			return servers.stream()
-					.filter(server -> server.getDeployer().getType() == type)
-					.collect(Collectors.toList());
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(server -> server.getDeployer().getType() == type)
+								.collect(Collectors.toList()),
+						serversLock
+				);
 	}
 
-	public void forEachUsers(Consumer<UserData> consumer)
+	public void forEachUsers(Consumer<? super UserData> consumer)
 	{
-		usersLock.lock();
-		try
-		{
-			users.forEach(consumer);
-		}
-		finally
-		{
-			usersLock.unlock();
-		}
+		Utils.doLocked
+				(
+						() -> users.forEach(consumer),
+						usersLock
+				);
 	}
 
 	public int getNextDeployerID(int maxServers)
 	{
-		serversLock.lock();
-		try
-		{
-			List<Integer> ports = servers.stream().map(server -> server.getDeployer().getOffset()).collect(Collectors
-					.toList());
-			return Stream.iterate(0, id -> id + 1).limit(maxServers)
-					.filter(i -> !ports.contains(i))
-					.findFirst().orElse(-1);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() ->
+						{
+							List<Integer> ports = servers.stream()
+									.map(server -> server.getDeployer().getOffset())
+									.collect(Collectors.toList());
+							return Stream.iterate(0, id -> id + 1)
+									.limit(maxServers)
+									.filter(i -> !ports.contains(i))
+									.findFirst().orElse(-1);
+						},
+						serversLock
+				);
 	}
 
 	public int getNextDeployerPort(int minPort, int maxPort)
 	{
-		serversLock.lock();
-		try
-		{
-			List<Integer> ports = servers.stream()
-					.map(server -> server.getDeployer().getPort())
-					.collect(Collectors.toList());
-
-			return Stream.iterate(minPort, port -> port + 1).limit(maxPort)
-					.filter(i -> !ports.contains(i))
-					.findFirst().orElse(-1);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() ->
+						{
+							List<Integer> ports = servers.stream()
+									.map(server -> server.getDeployer().getPort())
+									.collect(Collectors.toList());
+							return Stream.iterate(minPort, port -> port + 1)
+									.limit(maxPort)
+									.filter(i -> !ports.contains(i))
+									.findFirst().orElse(-1);
+						},
+						serversLock
+				);
 	}
 
 	public Server constructServer(DeployerServer deployer, ServerInfo info)
 	{
 		severCount.getAndIncrement();
 
-		serversLock.lock();
-		try
-		{
-			Server server = new Server(deployer, info);
-			servers.add(server);
-			uuids.add(deployer.getUuid());
-			return server;
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() ->
+						{
+							Server server = new Server(deployer, info);
+							servers.add(server);
+							uuids.add(deployer.getUuid());
+							return server;
+						},
+						serversLock
+				);
 	}
 
 	public Server getServer(ServerInfo info)
 	{
-		serversLock.lock();
-		try
-		{
-			return servers.stream().filter(server -> server.getInfo().equals(info))
-					.findFirst().orElse(null);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		severCount.getAndIncrement();
+
+		return Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(server -> server.getInfo().equals(info))
+								.findFirst()
+								.orElse(null),
+						serversLock
+				);
 	}
 
 	public Server getServer(UUID uuid)
 	{
-		serversLock.lock();
-		try
-		{
-			return servers.stream().filter(server -> server.getUuid().equals(uuid))
-					.findFirst().orElse(null);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(server -> server.getUuid().equals(uuid))
+								.findFirst()
+								.orElse(null),
+						serversLock
+				);
 	}
 
 	public Server getServer(String base64UUID)
 	{
-		serversLock.lock();
-		try
-		{
-			return servers.stream().filter(server -> server.getBase64UUID().equalsIgnoreCase(base64UUID))
-					.findFirst().orElse(null);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		return Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(server -> server.getBase64UUID().equalsIgnoreCase(base64UUID))
+								.findFirst()
+								.orElse(null),
+						serversLock
+				);
 	}
 
 	public void unregisterServer(Server server)
 	{
-		serversLock.lock();
-		try
-		{
-			servers.remove(server);
-		}
-		finally
-		{
-			serversLock.unlock();
-		}
+		Utils.doLocked
+				(
+						() ->
+						{
+							servers.remove(server);
+						},
+						serversLock
+				);
+		uuids.remove(server.getUuid());
 	}
 
 	public int getServerCount()
@@ -350,7 +321,7 @@ public class DataManager implements SimpleManager
 	public UUID newUUID()
 	{
 		UUID uuid = UUID.randomUUID();
-		return uuids.contains(uuid) ? uuid : newUUID();
+		return uuids.contains(uuid) || Main.getInstance().getLogManager().checkUsedUUID(uuid) ? newUUID() : uuid;
 	}
 
 	public void updateMessenger(Server srv, MessengerClient client)
@@ -407,15 +378,11 @@ public class DataManager implements SimpleManager
 									ite.remove();
 									data.setPlayer(player);
 
-									usersLock.lock();
-									try
-									{
-										users.add(data);
-									}
-									finally
-									{
-										usersLock.unlock();
-									}
+									Utils.doLocked
+											(
+													() -> users.add(data),
+													usersLock
+											);
 
 									return;
 								}
@@ -423,7 +390,7 @@ public class DataManager implements SimpleManager
 
 							//Else, create data, read in MongoDB then send to Redis
 
-							String base64 = Utils.formatToUUID(player.getUniqueId());
+							String base64 = Utils.uuidToBase64(player.getUniqueId());
 							UserData data = new UserData(player, base64);
 
 							MongoCollection<Document> col = usersDB.getCollection(base64);
@@ -457,15 +424,11 @@ public class DataManager implements SimpleManager
 			if (data == null)
 				return;
 
-			usersLock.lock();
-			try
-			{
-				users.remove(data);
-			}
-			finally
-			{
-				usersLock.unlock();
-			}
+			Utils.doLocked
+					(
+							() -> users.remove(data),
+							usersLock
+					);
 
 			UserData.Delay delay = data.getDelayer();
 			delay.deadLine = saveDelay + System.currentTimeMillis();

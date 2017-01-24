@@ -28,8 +28,10 @@ public class Server
 	private ServerStatePacket.ServerState serverState = ServerStatePacket.ServerState.STARTING; //Defaults to STARTING
 
 	private long lastKeepAlive = -1;
+	private final long minMemory = deployer.getVariant().getMaxRam() << 20;
 	private long freeMemory;
 	private long totalMemory;
+	private final long maxMemory = deployer.getVariant().getMinRam() << 20;
 	private float processCpuLoad;
 	private byte[] lastTPS = new byte[3];
 

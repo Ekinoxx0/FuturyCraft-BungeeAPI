@@ -7,6 +7,7 @@ import api.packets.IncPacket;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
+import api.utils.Utils;
 import com.mongodb.client.MongoDatabase;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
@@ -77,7 +78,6 @@ public class KeepAliveManager implements SimpleManager
 			{
 				try
 				{
-
 					cacheLock.lock();
 					try
 					{
@@ -201,16 +201,15 @@ public class KeepAliveManager implements SimpleManager
 			if (packet instanceof KeepAlivePacket)
 			{
 
-				cacheLock.lock();
-				try
-				{
-					cache.put(event.getFrom(), (KeepAlivePacket) packet);
-					cacheNotEmpty.signal();
-				}
-				finally
-				{
-					cacheLock.unlock();
-				}
+				Utils.doLocked
+						(
+								() ->
+								{
+									cache.put(event.getFrom(), (KeepAlivePacket) packet);
+									cacheNotEmpty.signal();
+								},
+								cacheLock
+						);
 
 				event.getFrom().updateData((KeepAlivePacket) packet);
 			}

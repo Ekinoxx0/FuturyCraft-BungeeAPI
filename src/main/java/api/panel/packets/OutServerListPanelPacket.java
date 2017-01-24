@@ -37,11 +37,6 @@ public class OutServerListPanelPacket extends OutPacket implements OutPanelPacke
 			out.writeByte(data.state.ordinal());
 			out.writeUTF(data.serverType);
 			out.writeUTF(data.category);
-			out.writeLong(data.lastKeepAlive);
-			out.writeLong(data.freeMemory);
-			out.writeLong(data.totalMemory);
-			out.writeFloat(data.processCpuLoad);
-			out.write(data.lastTPS);
 		}
 	}
 
@@ -56,11 +51,6 @@ public class OutServerListPanelPacket extends OutPacket implements OutPanelPacke
 		private final ServerStatePacket.ServerState state;
 		private final String serverType;
 		private final String category;
-		private final long lastKeepAlive;
-		private final long freeMemory;
-		private final long totalMemory;
-		private final float processCpuLoad;
-		private final byte[] lastTPS;
 
 		public static ServerData from(Server server)
 		{
@@ -73,12 +63,7 @@ public class OutServerListPanelPacket extends OutPacket implements OutPanelPacke
 					server.getServerState(),
 					server.getDeployer().getType().toString(),
 					server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
-							"Game",
-					server.getLastKeepAlive(),
-					server.getFreeMemory(),
-					server.getTotalMemory(),
-					server.getProcessCpuLoad(),
-					server.getLastTPS()
+							"Game"
 			);
 		}
 	}

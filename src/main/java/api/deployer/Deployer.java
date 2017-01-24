@@ -8,6 +8,7 @@ import api.data.Server;
 import api.events.ServerDeployedEvent;
 import api.utils.SimpleManager;
 import api.utils.Utils;
+import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -24,6 +25,7 @@ public class Deployer implements SimpleManager
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;
 	private static final int MAX_SERVERS = MAX_PORT - MIN_PORT;
+	@Getter
 	private DeployerConfig config;
 	private boolean init;
 	private volatile boolean end;
@@ -82,11 +84,6 @@ public class Deployer implements SimpleManager
 	public int getNextPort()
 	{
 		return Main.getInstance().getDataManager().getNextDeployerPort(MIN_PORT, MAX_PORT);
-	}
-
-	public DeployerConfig getConfig()
-	{
-		return config;
 	}
 
 	@Override
