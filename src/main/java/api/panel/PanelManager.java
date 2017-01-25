@@ -12,6 +12,7 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,9 +45,8 @@ public class PanelManager implements SimpleManager
 		this.messengerPanel = messengerPanel;
 	}
 
-	class Listen implements Listener
+	public class Listen implements Listener
 	{
-
 		private Listen() {}
 
 		@EventHandler
@@ -64,9 +64,9 @@ public class PanelManager implements SimpleManager
 				listenServerList = ((InServerListPanelPacket) packet).isListen();
 				sendServerList();
 			}
-			else if (packet instanceof InServerInfoPacket)
+			else if (packet instanceof InServerInfoPanelPacket)
 			{
-				InServerInfoPacket packet1 = (InServerInfoPacket) packet;
+				InServerInfoPanelPacket packet1 = (InServerInfoPanelPacket) packet;
 				Server server = Main.getInstance().getDataManager().getServer(packet1.getUuid());
 				if (server == null)
 				{
@@ -83,6 +83,31 @@ public class PanelManager implements SimpleManager
 				}
 
 				sendServerInfo(server, true);
+			}
+			else if (packet instanceof ConsoleInputServerInfoPanelPacket)
+			{
+				ConsoleInputServerInfoPanelPacket packet1 = (ConsoleInputServerInfoPanelPacket) packet;
+				Server server = Main.getInstance().getDataManager().getServer(packet1.getServerUUID());
+				if (server == null)
+				{
+
+				}
+				else
+				{
+					try
+					{
+						OutputStream out = server.getDeployer().getProcess().getOutputStream();
+						BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+						writer.write(packet1.getIn() + "\n");
+						writer.flush();
+						out.flush();
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+
+				}
 			}
 		}
 

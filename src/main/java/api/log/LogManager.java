@@ -27,19 +27,20 @@ public class LogManager implements SimpleManager
 	private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 	private boolean init;
 	private volatile boolean end;
-	private final Path tmpDir;
+	private Path tmpDir;
 
 	public LogManager()
 	{
-		File file = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs");
-		if (file.mkdirs())
-			throw new IllegalStateException("Cannot mkdirs file " + file + '.');
-		tmpDir = file.toPath();
+
 	}
 
 	@Override
 	public void init()
 	{
+		File file = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs");
+		if (!file.exists() && file.mkdirs())
+			throw new IllegalStateException("Cannot mkdirs file " + file + '.');
+		tmpDir = file.toPath();
 		if (init)
 			throw new IllegalStateException("Already initialized!");
 
@@ -101,8 +102,7 @@ public class LogManager implements SimpleManager
 	{
 		try
 		{
-			return Files.walk(tmpDir)
-					.anyMatch(path -> path.startsWith(Utils.uuidToBase64(uuid)));
+			return Files.walk(tmpDir).anyMatch(path -> path.startsWith(Utils.uuidToBase64(uuid)));
 		}
 		catch (IOException e)
 		{

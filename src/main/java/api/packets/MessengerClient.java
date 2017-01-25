@@ -47,7 +47,7 @@ public class MessengerClient
 	{
 		listener = new Thread(() ->
 		{
-			while (!socket.isClosed())
+			while (!socket.isClosed() && !end)
 			{
 				try
 				{
@@ -62,9 +62,8 @@ public class MessengerClient
 				catch (IOException e)
 				{
 					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
-										this + ')',
-								e);
+						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " + this + ")", e);
+					disconnect();
 				}
 				catch (Exception e)
 				{
@@ -73,10 +72,16 @@ public class MessengerClient
 							e);
 				}
 			}
+			disconnect();
 		}
 		);
 
 		listener.start();
+	}
+
+	protected void handleDisconnection()
+	{
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -163,13 +168,21 @@ public class MessengerClient
 
 	public void disconnect()
 	{
-		Main.getInstance().getMessenger().unregister(this);
+		unregister();
 		end = true;
 		try
 		{
 			socket.close();
 		}
-		catch (IOException ignored) {}
+		catch (IOException ignored)
+		{
+		}
+
+	}
+
+	protected void unregister()
+	{
+		Main.getInstance().getMessenger().unregister(this);
 	}
 
 	@ToString

@@ -66,13 +66,14 @@ public class Main extends Plugin
 		messenger.init();
 		dataManager.init();
 		deployer.init();
+		logManager.init();
+		deployer.initServers();
 		playerEvents.init();
 		keepAliveManager.init();
 		panelManager.init();
-		logManager.init();
+
 
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
-
 		getLogger().info("FcApiBungee enabled!");
 	}
 

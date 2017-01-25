@@ -118,9 +118,12 @@ public class MessengerServer implements SimpleManager
 
 				int port = in.readInt(); //Identify
 
-				if (port == -1 && Main.getInstance().getPanelManager().getMessengerPanel() != null)
+				if (port == -1 && Main.getInstance().getPanelManager().getMessengerPanel() == null)
 				{ //Panel
 					MessengerClient client = new MessengerPanel(socket, in, out); //Will auto-register itself
+					out.writeBoolean(true);
+					out.flush();
+					return;
 				}
 
 				Server server = Main.getInstance().getDataManager().findServerByPort(port);

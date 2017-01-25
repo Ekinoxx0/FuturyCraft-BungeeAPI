@@ -53,6 +53,14 @@ public class Deployer implements SimpleManager
 					this + ')', e);
 		}
 
+		init = true;
+	}
+
+	public void initServers()
+	{
+		if(!init)
+			throw new IllegalStateException("Deployer not initialised!");
+
 		for (Template.LobbyTemplate l : config.getLobbies())
 			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
@@ -63,7 +71,6 @@ public class Deployer implements SimpleManager
 			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
 					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
-
 	}
 
 

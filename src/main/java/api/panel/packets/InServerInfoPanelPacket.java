@@ -14,12 +14,12 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class InServerInfoPacket extends IncPacket implements IncPanelPacket
+public class InServerInfoPanelPacket extends IncPacket implements IncPanelPacket
 {
 	private final UUID uuid;
 	private final boolean listen;
 
-	public InServerInfoPacket(DataInputStream data) throws IOException
+	public InServerInfoPanelPacket(DataInputStream data) throws IOException
 	{
 		super(data);
 		uuid = new UUID(data.readLong(), data.readLong());

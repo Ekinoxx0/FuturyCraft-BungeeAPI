@@ -302,14 +302,7 @@ public class DataManager implements SimpleManager
 
 	public void unregisterServer(Server server)
 	{
-		Utils.doLocked
-				(
-						() ->
-						{
-							servers.remove(server);
-						},
-						serversLock
-				);
+		Utils.doLocked(() -> servers.remove(server), serversLock);
 		uuids.remove(server.getUuid());
 	}
 
@@ -321,7 +314,7 @@ public class DataManager implements SimpleManager
 	public UUID newUUID()
 	{
 		UUID uuid = UUID.randomUUID();
-		return uuids.contains(uuid) || Main.getInstance().getLogManager().checkUsedUUID(uuid) ? newUUID() : uuid;
+		return (uuids.contains(uuid) || Main.getInstance().getLogManager().checkUsedUUID(uuid)) ? newUUID() : uuid;
 	}
 
 	public void updateMessenger(Server srv, MessengerClient client)
