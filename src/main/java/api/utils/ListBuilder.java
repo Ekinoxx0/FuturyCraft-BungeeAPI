@@ -32,6 +32,11 @@ public class ListBuilder<E>
 		list = new ArrayList<>();
 	}
 
+	public ListBuilder(int size)
+	{
+		list = new ArrayList<>(size);
+	}
+
 	public ListBuilder(ListBuilder<E> clone)
 	{
 		list = new ArrayList<>(clone.list);
@@ -67,6 +72,11 @@ public class ListBuilder<E>
 	public static <E> ListBuilder<E> of(E... elements)
 	{
 		return Stream.of(elements).collect(collector());
+	}
+
+	public static <E> ListBuilder<E> size(int size)
+	{
+		return new ListBuilder<>(size);
 	}
 
 	public ListBuilder<E> append(E element)

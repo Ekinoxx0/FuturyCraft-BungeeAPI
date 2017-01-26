@@ -12,7 +12,6 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,24 +89,11 @@ public class PanelManager implements SimpleManager
 				Server server = Main.getInstance().getDataManager().getServer(packet1.getServerUUID());
 				if (server == null)
 				{
-
+					Main.getInstance().getLogger().severe("Panel sent command to unknown server.");
+					return;
 				}
-				else
-				{
-					try
-					{
-						OutputStream out = server.getDeployer().getProcess().getOutputStream();
-						BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
-						writer.write(packet1.getIn() + "\n");
-						writer.flush();
-						out.flush();
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
-					}
 
-				}
+				server.getDeployer().sendCommand(packet1.getIn());
 			}
 		}
 
@@ -123,7 +109,7 @@ public class PanelManager implements SimpleManager
 		{
 			if (!listenHeader || messengerPanel == null) return;
 			messengerPanel.sendPacket(new OutHeaderPanelPacket((short) ProxyServer.getInstance().getOnlineCount(),
-					(short) 1,
+					(short) Main.getInstance().getDeployer().getMaxPlayers(),
 					(short) Main.getInstance().getDataManager().getServerCount()));
 		}
 

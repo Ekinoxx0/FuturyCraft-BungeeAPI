@@ -29,6 +29,8 @@ public class Deployer implements SimpleManager
 	private DeployerConfig config;
 	private boolean init;
 	private volatile boolean end;
+	@Getter
+	private int maxPlayers;
 
 	@Override
 	public void init()
@@ -76,6 +78,7 @@ public class Deployer implements SimpleManager
 
 	public void addServer(DeployerServer deployerServer)
 	{
+		maxPlayers += deployerServer.getVariant().getSlots();
 		Server server = Main.getInstance().getDataManager().constructServer(deployerServer, deployerServer.deploy());
 		ProxyServer.getInstance().getPluginManager().callEvent(
 				new ServerDeployedEvent(server)

@@ -13,10 +13,7 @@ import lombok.*;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,6 +52,7 @@ public class DeployerServer implements Runnable
 	protected Process process;
 	@Setter(AccessLevel.PACKAGE)
 	protected Server server;
+	protected BufferedWriter in;
 
 	public DeployerServer(int offset, ServerType type, Variant variant, int port)
 	{
@@ -114,7 +112,8 @@ public class DeployerServer implements Runnable
 		try
 		{
 			List<String> args = ListBuilder
-					.of
+					.<String>size(10 + variant.getJvmArgs().size() + variant.getSpigotArgs().size())
+					.appendAll
 							(
 									"java",
 									"-Xmx" + variant.getMaxRam() + 'M',
@@ -137,10 +136,12 @@ public class DeployerServer implements Runnable
 			ProcessBuilder pb = new ProcessBuilder(args);
 			pb.directory(serverFolder);
 			process = pb.start();
-			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+			in = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
 			String line;
-			while ((line = in.readLine()) != null && process.isAlive())
+			while ((line = out.readLine()) != null && process.isAlive())
 			{
 				Main.getInstance().getLogger().info(offset + ": " + line);
 				ProxyServer.getInstance().getPluginManager().callEvent(new NewConsoleLineEvent(server, line));
@@ -199,6 +200,18 @@ public class DeployerServer implements Runnable
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to get console from server " + server, e);
 			return "Internal Error :(";
+		}
+	}
+
+	public void sendCommand(String command)
+	{
+		try
+		{
+			in.write(command + '\n');
+		}
+		catch (IOException e)
+		{
+			throw new IllegalStateException(e);
 		}
 	}
 
