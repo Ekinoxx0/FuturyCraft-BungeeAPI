@@ -1,7 +1,6 @@
 package api.commands;
 
 import api.data.Server;
-import api.packets.server.DispatchCommandPacket;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -39,7 +38,8 @@ public class DispatchCommand extends Command
 			return;
 		}
 
-		server.getMessenger().sendPacket(new DispatchCommandPacket(backToString(1, args)));
+		server.getDeployer().sendCommand(backToString(1, args));
+		//server.getMessenger().sendPacket(new DispatchCommandPacket(backToString(1, args)));
 	}
 
 	private static String backToString(int start, String[] args)
