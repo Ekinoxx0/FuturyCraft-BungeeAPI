@@ -4,6 +4,8 @@ import api.Main;
 import api.data.Server;
 import api.panel.MessengerPanel;
 import api.utils.SimpleManager;
+import api.utils.concurrent.ThreadLoop;
+import api.utils.concurrent.ThreadLoops;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -22,21 +24,15 @@ import java.util.stream.Stream;
  * Created by SkyBeast on 17/12/2016.
  */
 @ToString
-public class MessengerServer implements SimpleManager
+public final class MessengerServer implements SimpleManager
 {
-	private final int port;
-	private final String[] whiteList;
+	private static final int PORT = 5555;
+	private static final String[] WHITELIST = {"localhost", "127.0.0.1"};
 	private final List<Socket> nonRegistered = new ArrayList<>();
 	private ServerSocket server;
-	private Thread connectionListener;
+	private final ThreadLoop connectionListener = setupConnectionListener();
 	private volatile boolean end;
 	private boolean init;
-
-	public MessengerServer(int port, String... whiteList)
-	{
-		this.port = port;
-		this.whiteList = whiteList;
-	}
 
 	@Override
 	public void init()
@@ -46,8 +42,8 @@ public class MessengerServer implements SimpleManager
 
 		try
 		{
-			server = new ServerSocket(port);
-			setupConnectionListener();
+			server = new ServerSocket(PORT);
+			connectionListener.start();
 		}
 		catch (Exception e)
 		{
@@ -58,53 +54,57 @@ public class MessengerServer implements SimpleManager
 		}
 	}
 
-	private void setupConnectionListener()
+	private ThreadLoop setupConnectionListener()
 	{
-		connectionListener = new Thread(() ->
-		{
-			while (!server.isClosed())
-			{
-				try
-				{
-					Socket socket = server.accept();
-					Main.getInstance().getLogger().info("Socket accepted: " +
-							socket);
+		return ThreadLoops.newConditionThreadLoop
+				(
+						() -> !server.isClosed(),
+						() ->
+						{
+							try
+							{
+								Socket socket = server.accept();
+								Main.getInstance().getLogger().info("Socket accepted: " +
+										socket);
 
-					if (Stream.of(whiteList)
-							.noneMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
-									socket.getInetAddress().getHostAddress().equals(entry)))
-					{
-						Main.getInstance().getLogger().log(Level.WARNING, "Socket did not pass the white-list: " +
-								socket);
-						socket.getOutputStream().write(0); //Write false
-						socket.close();
-						continue;
-					}
+								if (Stream.of(WHITELIST)
+										.noneMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
+												socket.getInetAddress().getHostAddress().equals(entry)))
+								{
+									Main.getInstance().getLogger().log(Level.WARNING, "Socket did not pass the " +
+											"white-list: " +
+											socket);
+									socket.getOutputStream().write(0); //Write false
+									socket.close();
+								}
+								else
+								{
 
-					synchronized (nonRegistered)
-					{
-						nonRegistered.add(socket);
-					}
+									synchronized (nonRegistered)
+									{
+										nonRegistered.add(socket);
+									}
 
-					identify(socket);
-				}
-				catch (IOException e)
-				{
-					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-										"connection (Server: " + this + ')',
-								e);
-				}
-				catch (Exception e)
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
-									"connection (Server: " + this + ')',
-							e);
-				}
-			}
-		}
-		);
-		connectionListener.start();
+									identify(socket);
+								}
+							}
+							catch (IOException e)
+							{
+								if (!end)
+									Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new " +
+													"sockets " +
+													"connection (Server: " + this + ')',
+											e);
+							}
+							catch (Exception e)
+							{
+								Main.getInstance().getLogger().log(Level.SEVERE, "Error while accepting new sockets " +
+												"connection (Server: " + this + ')',
+										e);
+							}
+						}
+
+				);
 	}
 
 	private void identify(Socket socket)
@@ -155,7 +155,7 @@ public class MessengerServer implements SimpleManager
 			catch (Exception e)
 			{
 				Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the identifier (Socket: " +
-								socket + ')', e);
+						socket + ')', e);
 			}
 		}
 		);
@@ -177,6 +177,8 @@ public class MessengerServer implements SimpleManager
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
+
+		connectionListener.stop();
 
 		synchronized (nonRegistered)
 		{

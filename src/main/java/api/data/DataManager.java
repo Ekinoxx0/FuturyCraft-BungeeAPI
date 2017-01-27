@@ -7,6 +7,8 @@ import api.packets.MessengerClient;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
 import api.utils.Utils;
+import api.utils.concurrent.ThreadLoop;
+import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import lombok.ToString;
@@ -33,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,10 +42,10 @@ import java.util.stream.Stream;
  * Created by SkyBeast on 19/12/2016.
  */
 @ToString
-public class DataManager implements SimpleManager
+public final class DataManager implements SimpleManager
 {
 	private static final Document EMPTY_DOCUMENT = new Document();
-	private final long saveDelay;
+	private static final long SAVE_DELAY = 3 * 60 * 1000;
 	private final Listen listener = new Listen();
 	private final MongoDatabase usersDB;
 	private final ExecutorService exec = Executors.newCachedThreadPool();
@@ -57,11 +58,10 @@ public class DataManager implements SimpleManager
 	private final AtomicInteger severCount = new AtomicInteger();
 	private boolean init;
 	private volatile boolean end;
-	private Thread saverThread;
+	private final ThreadLoop saverThread = setupSaverThread();
 
-	public DataManager(long saveDelay)
+	public DataManager()
 	{
-		this.saveDelay = saveDelay;
 		usersDB = Main.getInstance().getMongoClient().getDatabase("users");
 	}
 
@@ -71,7 +71,7 @@ public class DataManager implements SimpleManager
 		if (init)
 			throw new IllegalStateException("Already initialised!");
 
-		setupSaverThread();
+		saverThread.start();
 
 		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 
@@ -84,67 +84,56 @@ public class DataManager implements SimpleManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
-		saverThread.interrupt();
+		saverThread.stop();
 
 		end = true;
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
-	private void setupSaverThread()
+	private ThreadLoop setupSaverThread()
 	{
-		saverThread = new Thread(() ->
-		{
-			while (!end)
-			{
-				try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-				{
-					UserData.Delay delay = disconnectQueue.take();
-					UserData user = delay.parent();
+		return ThreadLoops.newInfiniteThreadLoop
+				(
+						() ->
+						{
+							System.out.println("PreTake");
+							UserData.Delay delay = disconnectQueue.take();
+							try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
+							{
+								System.out.println("PostTake");
+								UserData user = delay.parent();
 
-					String prefix = user.getRedisPrefix();
+								String prefix = user.getRedisPrefix();
 
-					//Get from Redis
+								//Get from Redis
 
-					Transaction transaction = jedis.multi();
-					Response<String> rFC = transaction.get(prefix + "fc");
-					Response<String> rTC = transaction.get(prefix + "tc");
-					Response<String> rState = transaction.get(prefix + "state");
-					transaction.exec();
+								Transaction transaction = jedis.multi();
+								Response<String> rFC = transaction.get(prefix + "fc");
+								Response<String> rTC = transaction.get(prefix + "tc");
+								Response<String> rState = transaction.get(prefix + "state");
+								transaction.exec();
 
-					int fc = Utils.stringToInt(rFC.get());
-					int tc = Utils.stringToInt(rTC.get());
-					int state = Utils.stringToInt(rState.get());
+								int fc = Utils.stringToInt(rFC.get());
+								int tc = Utils.stringToInt(rTC.get());
+								int state = Utils.stringToInt(rState.get());
 
-					//Save to MongoDB
+								//Save to MongoDB
 
-					MongoCollection<Document> col = usersDB.getCollection(user.getBase64UUID());
-					Document doc = col.find().first();
-					doc.put("fc", fc);
-					doc.put("tc", tc);
-					doc.put("state", state);
-					col.replaceOne(EMPTY_DOCUMENT, doc);
+								MongoCollection<Document> col = usersDB.getCollection(user.getBase64UUID());
+								Document doc = col.find().first();
+								doc.put("fc", fc);
+								doc.put("tc", tc);
+								doc.put("state", state);
+								col.replaceOne(EMPTY_DOCUMENT, doc);
 
-					//Remove from Redis
+								//Remove from Redis
 
-					jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix + "friends",
-							prefix + "state", prefix + "warn");
-				}
-				catch (InterruptedException e)
-				{
-					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving to MongoDB " +
-								"(DataManager: " + this + ')', e);
-				}
-				catch (Exception e)
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving to MongoDB " +
-							"(DataManager: " + this + ')', e);
-				}
-			}
-		}
-		);
-
-		saverThread.start();
+								jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix +
+												"friends",
+										prefix + "state", prefix + "warn");
+							}
+						}
+				);
 	}
 
 	public Server findServerByPort(int port)
@@ -424,7 +413,7 @@ public class DataManager implements SimpleManager
 					);
 
 			UserData.Delay delay = data.getDelayer();
-			delay.deadLine = saveDelay + System.currentTimeMillis();
+			delay.deadLine = SAVE_DELAY + System.currentTimeMillis();
 			disconnectQueue.add(delay);
 		}
 	}

@@ -16,13 +16,12 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Created by loucass003 on 21/12/16.
  */
 @ToString(exclude = {"deployer"})
-public class PlayerEvents implements Listener, SimpleManager
+public final class PlayerEvents implements Listener, SimpleManager
 {
 	private final Deployer deployer = Main.getInstance().getDeployer();
 	private boolean init;

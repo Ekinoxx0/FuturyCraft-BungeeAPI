@@ -8,6 +8,8 @@ import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
 import api.utils.Utils;
+import api.utils.concurrent.ThreadLoop;
+import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoDatabase;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
@@ -18,6 +20,7 @@ import org.bson.Document;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -26,7 +29,7 @@ import java.util.logging.Level;
  * Created by SkyBeast on 22/12/2016.
  */
 @ToString
-public class KeepAliveManager implements SimpleManager
+public final class KeepAliveManager implements SimpleManager
 {
 	private final Map<Server, KeepAlivePacket> cache = new HashMap<>();
 	private final ReentrantLock cacheLock = new ReentrantLock();
@@ -35,8 +38,8 @@ public class KeepAliveManager implements SimpleManager
 	private final MongoDatabase mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive");
 	private final DateFormat dateFormat;
 	private final DateFormat timeFormat;
-	private Thread senderThread;
-	private Thread watcherThread;
+	private final ThreadLoop senderThread = setupSenderThread();
+	private final ThreadLoop watcherThread = setupWatcherThread();
 	private boolean init;
 	private volatile boolean end;
 
@@ -55,135 +58,98 @@ public class KeepAliveManager implements SimpleManager
 
 		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 
-		setupSenderThread();
-		setupWatcherThread();
+		senderThread.start();
+		watcherThread.start();
 		init = true;
 	}
 
-	private void setupSenderThread()
+	private ThreadLoop setupSenderThread()
 	{
-		senderThread = new Thread(() ->
-		{
-			try
-			{
-				Thread.sleep(1000 * 30);
-			}
-			catch (InterruptedException e)
-			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-						+ this + ')', e);
-			}
-
-			while (!end)
-			{
-				try
-				{
-					cacheLock.lock();
-					try
-					{
-						if (cache.isEmpty())
+		return ThreadLoops.newScheduledThreadLoop
+				(
+						() ->
 						{
-							cacheNotEmpty.await();
-							continue;
-						}
-
-						Main.getInstance().getLogger().info("Sending keep-alives...");
-
-						Date now = new Date();
-
-						Document doc = new Document("ts", System.currentTimeMillis())
-								.append("time", timeFormat.format(now));
-
-						cache.keySet().forEach(server ->
-								{
-									KeepAlivePacket packet = cache.get(server);
-									byte[] tps = packet.getLastTPS();
-									doc.put(server.getBase64UUID(),
-											new Document("freeMem", packet.getFreeMemory())
-													.append("name", server.getName())
-													.append("offset", server.getOffset())
-													.append("totMem", packet.getTotalMemory())
-													.append("cpu", packet.getProcessCpuLoad())
-													.append("tps", Arrays.asList(tps[0], tps[1], tps[2])));
-								}
-						);
-
-						mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
-
-
-						cache.clear();
-					}
-					finally
-					{
-						cacheLock.unlock();
-					}
-
-					Thread.sleep(1000 * 60 * 5);
-
-				}
-				catch (InterruptedException e)
-				{
-					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-								+ this + ')', e);
-				}
-				catch (Exception e)
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-							+ this + ')', e);
-				}
-			}
-		}
-		);
-		senderThread.start();
-	}
-
-	private void setupWatcherThread()
-	{
-		watcherThread = new Thread(() ->
-		{
-			while (!end)
-			{
-				try
-				{
-					Thread.sleep(1000 * 90);
-
-					Main.getInstance().getDataManager().forEachServers(server ->
+							cacheLock.lock();
+							try
 							{
-								if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
+								if (cache.isEmpty())
 								{
-									/*ProxyServer.getInstance().getPlayers().stream().filter(player -> player.getServer
-											().getInfo().equals(server)).forEach(player -> player.connect(null));*/
-									// connect to lobby
+									cacheNotEmpty.await();
+								}
+								else
+								{
 
-									//TODO finish him
-									Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server + " did not " +
-											"send keep-alive");
+									Main.getInstance().getLogger().info("Sending keep-alives...");
+
+									Date now = new Date();
+
+									Document doc = new Document("ts", System.currentTimeMillis())
+											.append("time", timeFormat.format(now));
+
+									cache.keySet().forEach(server ->
+											{
+												KeepAlivePacket packet = cache.get(server);
+												byte[] tps = packet.getLastTPS();
+												doc.put(server.getBase64UUID(),
+														new Document("freeMem", packet.getFreeMemory())
+																.append("name", server.getName())
+																.append("offset", server.getOffset())
+																.append("totMem", packet.getTotalMemory())
+																.append("cpu", packet.getProcessCpuLoad())
+																.append("tps", Arrays.asList(tps[0], tps[1],
+																		tps[2])));
+											}
+									);
+
+									mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
+
+
+									cache.clear();
 								}
 							}
-					);
-				}
-				catch (InterruptedException e)
-				{
-					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-								+ this + ')', e);
-				}
-				catch (Exception e)
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "Error while pushing keep-alives (Manager: "
-							+ this + ')', e);
-				}
-			}
-		}
-		);
-		watcherThread.start();
+							finally
+							{
+								cacheLock.unlock();
+							}
+						},
+						1000 * 30,
+						1000 * 60 * 5,
+						TimeUnit.MILLISECONDS
+				);
+	}
+
+	private ThreadLoop setupWatcherThread()
+	{
+		return ThreadLoops.newScheduledThreadLoop
+				(
+						() ->
+								Main.getInstance().getDataManager().forEachServers(server ->
+										{
+											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
+											{
+												/*ProxyServer.getInstance().getPlayers().stream().filter(player -> player
+												.getServer
+												().getInfo().equals(server)).forEach(player -> player.connect(null));*/
+												// connect to lobby
+
+												//TODO finish him
+												Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server +
+														" did not send keep-alive");
+											}
+										}
+								),
+						100 * 90,
+						TimeUnit.MILLISECONDS
+				);
 	}
 
 	public void stop()
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
+
+		senderThread.stop();
+		watcherThread.stop();
 
 		end = true;
 

@@ -1,26 +1,22 @@
 package api.utils;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * Created by SkyBeast on 18/12/2016.
  */
-@Data
-@NoArgsConstructor
-public class Wrapper<T>
+public interface Wrapper<T>
 {
-	private T instance;
+	T get();
 
-	public T set(T newInstance)
+	T set(T value);
+
+	default void setIfNull(T value)
 	{
-		T old = instance;
-		instance = newInstance;
-		return old;
+		if (get() == null)
+			set(value);
 	}
 
-	public T get()
+	default void reset()
 	{
-		return instance;
+		set(null);
 	}
 }

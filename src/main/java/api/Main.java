@@ -20,7 +20,7 @@ import java.io.File;
  * Created by loucass003 on 06/12/16.
  */
 @ToString
-public class Main extends Plugin
+public final class Main extends Plugin
 {
 	private static Main instance;
 
@@ -42,8 +42,8 @@ public class Main extends Plugin
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
 
-		messenger = new MessengerServer(5555, "localhost", "127.0.0.1");
-		dataManager = new DataManager(3 * 60 * 1000); //3min in ms
+		messenger = new MessengerServer();
+		dataManager = new DataManager();
 		deployer = new Deployer();
 		playerEvents = new PlayerEvents();
 		keepAliveManager = new KeepAliveManager();

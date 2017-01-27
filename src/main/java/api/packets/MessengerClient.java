@@ -14,6 +14,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 /**
@@ -26,9 +28,10 @@ public class MessengerClient
 	private final DataInputStream in;
 	private final DataOutputStream out;
 	private final List<PacketListener<?>> listeners = new ArrayList<>();
+	private final ExecutorService sendPacketPool = Executors.newSingleThreadExecutor();
 	@Getter(AccessLevel.PACKAGE)
 	protected Server server;
-	private short lastTransactionID;
+	private volatile short lastTransactionID;
 	private Thread listener;
 	private volatile boolean end;
 
@@ -62,7 +65,8 @@ public class MessengerClient
 				catch (IOException e)
 				{
 					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " + this + ")", e);
+						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
+								this + ')', e);
 					disconnect();
 				}
 				catch (Exception e)
@@ -131,11 +135,16 @@ public class MessengerClient
 	public short sendPacket(OutPacket packet)
 	{
 		short transactionID = lastTransactionID++;
-		sendPacket(packet, transactionID);
+		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
 		return transactionID;
 	}
 
 	public void sendPacket(OutPacket packet, short transactionID)
+	{
+		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
+	}
+
+	protected void internalSendPacket(OutPacket packet, short transactionID)
 	{
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(array);

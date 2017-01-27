@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by SkyBeast on 04/01/2017.
  */
-public class PanelManager implements SimpleManager
+public final class PanelManager implements SimpleManager
 {
 	private final Listen listener = new Listen();
 	private MessengerPanel messengerPanel;

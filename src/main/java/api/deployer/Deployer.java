@@ -20,7 +20,7 @@ import java.util.logging.Level;
  * Created by loucass003 on 14/12/16.
  */
 @ToString
-public class Deployer implements SimpleManager
+public final class Deployer implements SimpleManager
 {
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;

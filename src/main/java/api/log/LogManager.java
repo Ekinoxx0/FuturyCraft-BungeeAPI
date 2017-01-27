@@ -4,6 +4,8 @@ import api.Main;
 import api.data.Server;
 import api.utils.SimpleManager;
 import api.utils.Utils;
+import api.utils.concurrent.ThreadLoop;
+import api.utils.concurrent.ThreadLoops;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,28 +13,21 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
  * Created by SkyBeast on 07/01/2017.
  */
-public class LogManager implements SimpleManager
+public final class LogManager implements SimpleManager
 {
 	private static final int SENDER_DELAY = 1000 * 60 * 60;
-	private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+	private final ThreadLoop senderLoop = setupSenderExecutor();
 	private boolean init;
 	private volatile boolean end;
 	private Path tmpDir;
-
-	public LogManager()
-	{
-
-	}
 
 	@Override
 	public void init()
@@ -43,7 +38,6 @@ public class LogManager implements SimpleManager
 		tmpDir = file.toPath();
 		if (init)
 			throw new IllegalStateException("Already initialized!");
-
 
 		//setupSenderExecutor();
 
@@ -61,27 +55,31 @@ public class LogManager implements SimpleManager
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
-	private void setupSenderExecutor()
+	private ThreadLoop setupSenderExecutor()
 	{
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime h1 = now.withSecond(0).withMinute(0).plusHours(1);
+		return ThreadLoops.newScheduledThreadLoop
+				(
+						() ->
+						{
+						},
+						getInitialDelay(),
+						SENDER_DELAY,
+						TimeUnit.MILLISECONDS
+				);
+	}
 
-		Duration duration = Duration.between(now, h1);
-		exec.scheduleWithFixedDelay(
-				() ->
-				{
-
-				},
-				duration.toMillis(),
-				SENDER_DELAY,
-				TimeUnit.MILLISECONDS
-		);
+	private long getInitialDelay()
+	{
+		LocalTime now = LocalTime.now();
+		LocalTime h1 = now.withSecond(0).withMinute(0).plusHours(1);
+		return Duration.between(now, h1).toMillis();
 	}
 
 	public void saveLogs(Server server)
 	{
 		Path path = server.getDeployer().getLog();
-		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tmpDir.resolve(server.getBase64UUID() + ".info"))))
+		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tmpDir.resolve(server.getBase64UUID() +
+				".info"))))
 		{
 			Files.copy(path, tmpDir.resolve(server.getBase64UUID() + ".log"));
 			writer.println(server.getName());
