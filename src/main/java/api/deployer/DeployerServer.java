@@ -208,6 +208,7 @@ public class DeployerServer implements Runnable
 		try
 		{
 			in.write(command + '\n');
+			in.flush();
 		}
 		catch (IOException e)
 		{

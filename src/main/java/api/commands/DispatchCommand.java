@@ -12,10 +12,8 @@ import net.md_5.bungee.api.plugin.Command;
  */
 public class DispatchCommand extends Command
 {
-	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /dispatch {id} {command...}").color
-			(ChatColor.RED).create();
-	private static final BaseComponent[] NOT_FOUND = new ComponentBuilder("Server ID not found").color(ChatColor.RED)
-			.create();
+	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /dispatch {id} {command...}").color(ChatColor.RED).create();
+	private static final BaseComponent[] NOT_FOUND = new ComponentBuilder("Server ID not found").color(ChatColor.RED).create();
 
 	public DispatchCommand()
 	{
