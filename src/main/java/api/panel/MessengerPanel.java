@@ -29,16 +29,13 @@ public class MessengerPanel extends MessengerClient
 	@Override
 	protected void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
 	{
-		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
-		// from the byte array, so it can be redistributed
-
+		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn));
 		try
 		{
 			IncPanelPacket packet = PanelPackets.constructIncomingPacket(id, data);
 
 			if (packet == null)
-				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
-						+ ", in=" + Arrays.toString(arrayIn) + ')');
+				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID + ", in=" + Arrays.toString(arrayIn) + ')');
 
 			System.out.println(server + " " + packet + " " + transactionID);
 			ProxyServer.getInstance().getPluginManager().callEvent(new PanelPacketReceivedEvent(server, packet,
@@ -48,7 +45,6 @@ public class MessengerPanel extends MessengerClient
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while constructing packet id " + id + " with " +
 					"data " + Arrays.toString(arrayIn) + " (Client: " + this + ')', e);
-
 		}
 	}
 
@@ -62,5 +58,6 @@ public class MessengerPanel extends MessengerClient
 	protected void unregister()
 	{
 		Main.getInstance().getPanelManager().setMessengerPanel(null);
+		Main.getInstance().getPanelManager().getListener().resetListening();
 	}
 }

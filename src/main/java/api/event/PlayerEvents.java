@@ -10,6 +10,7 @@ import api.deployer.Lobby;
 import api.utils.SimpleManager;
 import lombok.ToString;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -52,7 +53,9 @@ public class PlayerEvents implements Listener, SimpleManager
 			}
 		);
 
-		e.setTarget(lobbies.get(0).getInfo());
+		ServerInfo i = lobbies.get(0).getInfo();
+		if(!e.getTarget().equals(e.getPlayer().getServer()))
+			e.setTarget(i);
 
 		int players = Main.getInstance().getProxy().getOnlineCount();
 		int totalSlots = 0;

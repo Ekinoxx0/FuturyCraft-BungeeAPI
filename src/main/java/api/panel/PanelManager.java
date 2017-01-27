@@ -44,6 +44,11 @@ public class PanelManager implements SimpleManager
 		this.messengerPanel = messengerPanel;
 	}
 
+	public Listen getListener()
+	{
+		return listener;
+	}
+
 	public class Listen implements Listener
 	{
 		private Listen() {}
@@ -172,5 +177,11 @@ public class PanelManager implements SimpleManager
 			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUuid(), line));
 		}
 
+		public void resetListening()
+		{
+			listenHeader = false;
+			listenServerList = false;
+			listenServerInfo.clear();
+		}
 	}
 }
