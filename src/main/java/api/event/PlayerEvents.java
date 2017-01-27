@@ -9,8 +9,12 @@ import api.deployer.DeployerServer;
 import api.deployer.Lobby;
 import api.utils.SimpleManager;
 import lombok.ToString;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.PostLoginEvent;
+import net.md_5.bungee.api.event.PreLoginEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
+import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
@@ -35,7 +39,7 @@ public class PlayerEvents implements Listener, SimpleManager
 	}
 
 	@EventHandler
-	public void onPostLogin(PostLoginEvent e)
+	public void onPostLogin(ServerConnectEvent e)
 	{
 		List<Server> lobbies = Main.getInstance().getDataManager().getServersByType(DeployerServer.ServerType.LOBBY);
 		if (lobbies.isEmpty())
@@ -45,19 +49,14 @@ public class PlayerEvents implements Listener, SimpleManager
 		}
 
 		lobbies.sort((o1, o2) ->
-				{
-					int i0 = o1.getInfo().getPlayers().size();
-					int i1 = o2.getInfo().getPlayers().size();
-					return i0 > i1 ? 1 : i0 < i1 ? -1 : 0;
-				}
+			{
+				int i0 = o1.getInfo().getPlayers().size();
+				int i1 = o2.getInfo().getPlayers().size();
+				return (i0 > i1) ? 1 : ((i0 < i1) ? -1 : 0);
+			}
 		);
 
-		e.getPlayer().connect(lobbies.get(0).getInfo(), (bool, ex) ->
-				{
-					if (ex != null)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while connecting player!", e);
-				}
-		);
+		e.setTarget(lobbies.get(0).getInfo());
 
 		int players = Main.getInstance().getProxy().getOnlineCount();
 		int totalSlots = 0;
@@ -72,7 +71,6 @@ public class PlayerEvents implements Listener, SimpleManager
 			int port = deployer.getNextPort();
 			Variant v = getNextLobbyVariant(Lobby.LobbyType.NORMAL);
 			DeployerServer server = new Lobby(id, Lobby.LobbyType.NORMAL, v, port);
-
 			deployer.addServer(server);
 		}
 	}

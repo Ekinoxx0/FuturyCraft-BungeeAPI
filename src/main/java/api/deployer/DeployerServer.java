@@ -44,7 +44,7 @@ public class DeployerServer implements Runnable
 	protected final File map;
 	protected final File properties;
 	@Getter
-	protected final Path log;
+	protected Path log;
 	@Getter
 	protected final int port;
 	protected File serverFolder;
@@ -143,7 +143,7 @@ public class DeployerServer implements Runnable
 			String line;
 			while ((line = out.readLine()) != null && process.isAlive())
 			{
-				Main.getInstance().getLogger().info(offset + ": " + line);
+				//Main.getInstance().getLogger().info(offset + ": " + line);
 				ProxyServer.getInstance().getPluginManager().callEvent(new NewConsoleLineEvent(server, line));
 			}
 

@@ -81,8 +81,7 @@ public class LogManager implements SimpleManager
 	public void saveLogs(Server server)
 	{
 		Path path = server.getDeployer().getLog();
-		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tmpDir.resolve(server.getBase64UUID() +
-				".info"))))
+		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tmpDir.resolve(server.getBase64UUID() + ".info"))))
 		{
 			Files.copy(path, tmpDir.resolve(server.getBase64UUID() + ".log"));
 			writer.println(server.getName());

@@ -72,7 +72,6 @@ public class Main extends Plugin
 		keepAliveManager.init();
 		panelManager.init();
 
-
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
 		getLogger().info("FcApiBungee enabled!");
 	}
