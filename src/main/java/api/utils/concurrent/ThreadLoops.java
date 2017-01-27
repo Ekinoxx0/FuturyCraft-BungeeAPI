@@ -120,6 +120,9 @@ public enum ThreadLoops
 		@Override
 		public void start()
 		{
+			if (!executorService.isShutdown())
+				throw new IllegalStateException("Looper thread already started");
+
 			executorService.scheduleWithFixedDelay
 					(
 							() -> runLoop(loop),
