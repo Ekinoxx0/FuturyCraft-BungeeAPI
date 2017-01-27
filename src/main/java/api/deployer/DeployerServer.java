@@ -147,11 +147,10 @@ public class DeployerServer implements Runnable
 				ProxyServer.getInstance().getPluginManager().callEvent(new NewConsoleLineEvent(server, line));
 			}
 
+			Main.getInstance().getLogManager().saveLogs(server);
 			remove();
-
 			Main.getInstance().getLogger().info(this + " stopped.");
 
-			Main.getInstance().getLogManager().saveLogs(server);
 		}
 		catch (IOException e)
 		{
