@@ -2,6 +2,8 @@ package api.deployer;
 
 import api.Main;
 import api.config.Variant;
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
@@ -12,6 +14,9 @@ import java.io.File;
 public class Lobby extends DeployerServer
 {
 	private final LobbyType type;
+	@Getter
+	@Setter
+	private int acceptedPlayers;
 
 	public Lobby(int id, LobbyType type, Variant variant, int port)
 	{
@@ -23,8 +28,8 @@ public class Lobby extends DeployerServer
 	@Override
 	public ServerInfo deploy()
 	{
-		File typeFolder = new File(Main.getInstance().getDeployer().getConfig().getDeployerDir(), getType().toString
-				());
+		File typeFolder = new File(Main.getInstance().getDeployer().getConfig().getDeployerDir(),
+				getType().toString());
 		File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
 		serverFolder = new File(lobbyTypeFolder, Integer.toString(getOffset()));
 		return super.deploy();

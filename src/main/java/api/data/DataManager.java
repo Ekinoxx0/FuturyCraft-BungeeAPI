@@ -253,7 +253,7 @@ public final class DataManager implements SimpleManager
 
 	public Server getServer(ServerInfo info)
 	{
-		severCount.getAndIncrement();
+		if (info == null) return null;
 
 		return Utils.doLocked
 				(
@@ -267,6 +267,8 @@ public final class DataManager implements SimpleManager
 
 	public Server getServer(UUID uuid)
 	{
+		if (uuid == null) return null;
+
 		return Utils.doLocked
 				(
 						() -> servers.stream()
@@ -279,6 +281,8 @@ public final class DataManager implements SimpleManager
 
 	public Server getServer(String base64UUID)
 	{
+		if (base64UUID == null) return null;
+
 		return Utils.doLocked
 				(
 						() -> servers.stream()

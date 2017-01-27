@@ -51,6 +51,7 @@ public final class KeepAliveManager implements SimpleManager
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT+1"));
 	}
 
+	@Override
 	public void init()
 	{
 		if (init)
@@ -143,6 +144,7 @@ public final class KeepAliveManager implements SimpleManager
 				);
 	}
 
+	@Override
 	public void stop()
 	{
 		if (end)

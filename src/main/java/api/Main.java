@@ -9,6 +9,7 @@ import api.log.LogManager;
 import api.packets.MessengerServer;
 import api.panel.PanelManager;
 import com.mongodb.MongoClient;
+import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.plugin.Plugin;
 import redis.clients.jedis.JedisPool;
@@ -20,6 +21,7 @@ import java.io.File;
  * Created by loucass003 on 06/12/16.
  */
 @ToString
+@Getter
 public final class Main extends Plugin
 {
 	private static Main instance;
@@ -90,50 +92,5 @@ public final class Main extends Plugin
 		jedisPool.close();
 		jedisPool.destroy();
 		mongoClient.close();
-	}
-
-	public JedisPool getJedisPool()
-	{
-		return jedisPool;
-	}
-
-	public MongoClient getMongoClient()
-	{
-		return mongoClient;
-	}
-
-	public MessengerServer getMessenger()
-	{
-		return messenger;
-	}
-
-	public DataManager getDataManager()
-	{
-		return dataManager;
-	}
-
-	public Deployer getDeployer()
-	{
-		return deployer;
-	}
-
-	public PlayerEvents getPlayerEvents()
-	{
-		return playerEvents;
-	}
-
-	public KeepAliveManager getKeepAliveManager()
-	{
-		return keepAliveManager;
-	}
-
-	public PanelManager getPanelManager()
-	{
-		return panelManager;
-	}
-
-	public LogManager getLogManager()
-	{
-		return logManager;
 	}
 }

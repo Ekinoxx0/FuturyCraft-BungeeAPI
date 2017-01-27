@@ -2,6 +2,7 @@ package api.events;
 
 import api.data.Server;
 import api.data.UserData;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.md_5.bungee.api.plugin.Event;
@@ -11,16 +12,17 @@ import net.md_5.bungee.api.plugin.Event;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
 public class PlayerConnectToServerEvent extends Event
 {
-	private final Server server;
+	private final Server from;
 	private final UserData user;
 	private final ConnectionCause cause;
-	private final Server switchTo;
+	private Server to;
 
 	public enum ConnectionCause
 	{
-		NETWORK_DISCONNECT,
+		NETWORK_CONNECT,
 		SERVER_SWITCH
 	}
 }
