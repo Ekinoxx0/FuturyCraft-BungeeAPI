@@ -8,9 +8,9 @@ import java.util.function.BooleanSupplier;
 /**
  * Created by SkyBeast on 27/01/17.
  */
-public enum ThreadLoops
+public final class ThreadLoops
 {
-	;
+	private ThreadLoops() {}
 
 	public static ThreadLoop newInfiniteThreadLoop(Loop loop)
 	{

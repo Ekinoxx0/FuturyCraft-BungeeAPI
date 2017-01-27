@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 /**
  * Created by loucass003 on 15/12/16.
  */
-public enum Utils
+public final class Utils
 {
-	;
+	private Utils() {}
 
 	public static final InetAddress LOCAL_HOST = getLocalHost();
 

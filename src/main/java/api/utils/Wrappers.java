@@ -3,9 +3,9 @@ package api.utils;
 /**
  * Created by SkyBeast on 27/01/17.
  */
-public enum Wrappers
+public final class Wrappers
 {
-	;
+	private Wrappers() {}
 
 	public static <T> Wrapper<T> newMutableWrapper()
 	{
