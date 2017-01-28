@@ -1,10 +1,6 @@
 package api.panel;
 
 import api.panel.packets.*;
-import api.panel.packets.bungee.ConsoleInputBungeePanelPacket;
-import api.panel.packets.bungee.ConsoleOutputBungeePanelPacket;
-import api.panel.packets.bungee.InBungeeConsolePanelPacket;
-import api.panel.packets.bungee.OutBungeeConsolePanelPacket;
 import api.panel.packets.server.*;
 import api.panel.packets.servers.*;
 import lombok.AllArgsConstructor;
@@ -29,16 +25,12 @@ public enum PanelPackets
 	OUT_SERVER_INFO((byte) 0x05, false, OutServerInfoPanelPacket.class),
 	ILLEGAL_SERVER_INFO((byte) 0x06, false, IllegalServerInfoPacket.class),
 	CONSOLE_OUTPUT((byte) 0x07, false, ConsoleOutputServerInfoPanelPacket.class),
-	OUT_BUNGEE_CONSOLE((byte) 0x08, false, OutBungeeConsolePanelPacket.class),
-	BUNGEE_CONSOLE_OUTPUT((byte) 0x09, false, ConsoleOutputBungeePanelPacket.class),
 
 	// INCOMING - Bungee-bound
 	IN_HEADER((byte) 0x00, true, InHeaderPanelPacket.class),
 	IN_SERVER_LIST((byte) 0x01, true, InServerListPanelPacket.class),
 	IN_SERVER_INFO((byte) 0x05, true, InServerInfoPanelPacket.class),
-	CONSOLE_INPUT((byte) 0x07, true, ConsoleInputServerInfoPanelPacket.class),
-	IN_BUNGEE_CONSOLE((byte) 0x08, true, InBungeeConsolePanelPacket.class),
-	BUNGEE_CONSOLE_INPUT((byte) 0x09, true, ConsoleInputBungeePanelPacket.class);
+	CONSOLE_INPUT((byte) 0x07, true, ConsoleInputServerInfoPanelPacket.class);
 
 	private final byte id;
 	private final boolean in;

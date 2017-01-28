@@ -130,28 +130,23 @@ public class MessengerClient
 	public short sendPacket(OutPacket packet)
 	{
 		short transactionID = lastTransactionID++;
-		System.out.println("entering sendPacket0 = " + packet + ' ' + transactionID);
 		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
 		return transactionID;
 	}
 
 	public void sendPacket(OutPacket packet, short transactionID)
 	{
-		System.out.println("entering sendPacket1 = " + packet + ' ' + transactionID);
 		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
 	}
 
 	protected void internalSendPacket(OutPacket packet, short transactionID)
 	{
-		System.out.println("entering internalSendPacket = " + packet + ' ' + transactionID);
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(array);
 
 		try
 		{
 			packet.write(data);
-
-			Main.getInstance().getLogger().info("Sending " + packet + " in client " + this + '.');
 			out.writeByte(getPacketID(packet));
 			out.writeShort(transactionID);
 			out.writeShort(array.size());

@@ -5,10 +5,6 @@ import api.data.Server;
 import api.events.*;
 import api.packets.IncPacket;
 import api.panel.packets.*;
-import api.panel.packets.bungee.ConsoleInputBungeePanelPacket;
-import api.panel.packets.bungee.ConsoleOutputBungeePanelPacket;
-import api.panel.packets.bungee.InBungeeConsolePanelPacket;
-import api.panel.packets.bungee.OutBungeeConsolePanelPacket;
 import api.panel.packets.server.*;
 import api.panel.packets.servers.*;
 import api.utils.SimpleManager;
@@ -107,26 +103,6 @@ public final class PanelManager implements SimpleManager
 
 				server.getDeployer().sendCommand(packet1.getIn());
 			}
-			else if (packet instanceof InBungeeConsolePanelPacket)
-			{
-				listenBungee = ((InBungeeConsolePanelPacket) packet).isListen();
-				System.out.println("bungee --> " + listenBungee);
-				sendBungeeConsole();
-			}
-			else if (packet instanceof ConsoleInputBungeePanelPacket)
-			{
-				try
-				{
-					ConsoleInputBungeePanelPacket packet1 = (ConsoleInputBungeePanelPacket) packet;
-					BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
-					log.append(packet1.getIn() + "\n");
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-
-			}
 		}
 
 		//@formatter:off
@@ -204,26 +180,9 @@ public final class PanelManager implements SimpleManager
 			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUuid(), line));
 		}
 
-		boolean listenBungee;
-		@EventHandler public void pServerInfo(NewBungeeConsoleLineEvent       e) {newLineBungee(e.getLine());}
-
-		void sendBungeeConsole()
-		{
-			if (!listenBungee || messengerPanel == null) return;
-			//System.out.println(Main.getInstance().getBungeeGobbler().getConsole());
-			//messengerPanel.sendPacket(new OutBungeeConsolePanelPacket(Main.getInstance().getBungeeGobbler().getConsole()));
-		}
-
-		void newLineBungee(String line)
-		{
-			if (!listenBungee || messengerPanel == null) return;
-			messengerPanel.sendPacket(new ConsoleOutputBungeePanelPacket(line));
-		}
-
-
 		public void resetListening()
 		{
-			listenHeader = listenServerList = listenBungee = false;
+			listenHeader = listenServerList = false;
 			listenServerInfo.clear();
 		}
 	}

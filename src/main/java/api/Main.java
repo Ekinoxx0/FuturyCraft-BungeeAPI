@@ -4,7 +4,6 @@ import api.commands.DispatchCommand;
 import api.data.DataManager;
 import api.deployer.Deployer;
 import api.event.PlayerEvents;
-import api.log.BungeeGobbler;
 import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.MessengerServer;
@@ -38,7 +37,6 @@ public final class Main extends Plugin
 	private final KeepAliveManager keepAliveManager;
 	private final PanelManager panelManager;
 	private final LogManager logManager;
-	//private final BungeeGobbler bungeeGobbler;
 	private final UtilsListener utilsListener;
 
 	public Main()
@@ -47,7 +45,6 @@ public final class Main extends Plugin
 
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
-		//bungeeGobbler = new BungeeGobbler();
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
 		deployer = new Deployer();
@@ -69,7 +66,6 @@ public final class Main extends Plugin
 		File dataFolder = getInstance().getDataFolder();
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
-		//bungeeGobbler.init();
 		messenger.init();
 		dataManager.init();
 		deployer.init();
