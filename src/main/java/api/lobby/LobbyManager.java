@@ -32,7 +32,7 @@ public final class LobbyManager implements SimpleManager
 {
 	private static final int ACCEPT_PLAYERS = 50;
 	private static final int WARNING_TIME = 1000 * 60 * 13; //13min
-	private static final int SERVER_STOP_TIME = 1000 * 60 * 15; //15min
+	private static final int SERVER_STOP_TIME = 1000 * 60 * 2; //2min
 	private static final BaseComponent[] WARNING = new ComponentBuilder("Vous avez été déconnecté car le serveur " +
 			"va redémarrer.").color(ChatColor.GREEN).create();
 	private static final BaseComponent[] SERVER_STOP = new ComponentBuilder("Le serveur va redémarrer dans 2 " +
@@ -71,8 +71,6 @@ public final class LobbyManager implements SimpleManager
 
 	private void changeAcceptLobby()
 	{
-		((Lobby) acceptLobby.getDeployer()).setStopAcceptPlayerTimestamp(System.currentTimeMillis());
-
 		acceptLobby = waitingLobby;
 		waitingLobby = deployLobby();
 	}

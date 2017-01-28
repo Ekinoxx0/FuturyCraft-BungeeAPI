@@ -16,9 +16,6 @@ public class Lobby extends DeployerServer
 	private final LobbyType type;
 	@Getter
 	private int acceptedPlayers;
-	@Getter
-	@Setter
-	private long stopAcceptPlayerTimestamp;
 
 	public Lobby(int id, LobbyType type, Variant variant, int port)
 	{
