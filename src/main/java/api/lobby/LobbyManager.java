@@ -1,10 +1,15 @@
 package api.lobby;
 
 import api.Main;
+import api.config.Template;
+import api.config.Variant;
 import api.data.Server;
+import api.deployer.Deployer;
+import api.deployer.DeployerServer;
 import api.deployer.Lobby;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
+import api.packets.server.StopPacket;
 import api.utils.SimpleManager;
 import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
@@ -14,6 +19,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -118,13 +124,33 @@ public final class LobbyManager implements SimpleManager
 
 	private Server deployLobby()
 	{
-		//Deploy lobby
-		return null;
+		Deployer deployer = Main.getInstance().getDeployer();
+		int id = deployer.getNextId();
+		int port = deployer.getNextPort();
+		Variant v = getNextLobbyVariant(Lobby.LobbyType.NORMAL);
+		DeployerServer server = new Lobby(id, Lobby.LobbyType.NORMAL, v, port);
+		return new Server(server, server.deploy());
+	}
+
+	private Variant getNextLobbyVariant(Lobby.LobbyType type)
+	{
+		List<Template.LobbyTemplate> lobbies = Main.getInstance().getDeployer().getConfig().getLobbiesByType(type);
+		if (lobbies.isEmpty())
+			return null;
+		Template.LobbyTemplate t = lobbies.stream().findFirst().orElse(null);
+		if (t == null)
+			return null;
+		if (lobbies.size() == 1)
+			return t.getVariants().get(0);
+		t.setOffset(t.getOffset() + 1);
+		if (t.getOffset() >= t.getVariants().size())
+			t.setOffset(0);
+		return t.getVariants().get(t.getOffset());
 	}
 
 	private void undeployLobby(Server server)
 	{
-		//Undeploy lobby
+		server.getDeployer().kill();
 	}
 
 	public class Listen implements Listener
@@ -136,7 +162,9 @@ public final class LobbyManager implements SimpleManager
 		{
 			System.out.println("connectToServerEvent = " + event);
 
-			if (!event.getTo().isLobby() && event.getTo() != acceptLobby)
+			if (event.getCause() == PlayerConnectToServerEvent.ConnectionCause.NETWORK_CONNECT)
+				event.setTo(acceptLobby);
+			else if (!event.getTo().isLobby() && event.getTo() != acceptLobby)
 				return;
 
 			Lobby lobby = (Lobby) event.getTo().getDeployer();

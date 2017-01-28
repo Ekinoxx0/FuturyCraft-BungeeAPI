@@ -166,7 +166,6 @@ public class DeployerServer implements Runnable
 			remove();
 			started = false;
 			Main.getInstance().getLogger().info(this + " stopped.");
-
 		}
 		catch (IOException e)
 		{
@@ -201,8 +200,6 @@ public class DeployerServer implements Runnable
 	{
 		if (process != null)
 			process.destroy();
-		if (currentThread != null)
-			currentThread.interrupt();
 	}
 
 	public String getConsole()

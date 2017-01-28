@@ -3,7 +3,6 @@ package api;
 import api.commands.DispatchCommand;
 import api.data.DataManager;
 import api.deployer.Deployer;
-import api.event.PlayerEvents;
 import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.MessengerServer;
@@ -33,7 +32,6 @@ public final class Main extends Plugin
 	private final MessengerServer messenger;
 	private final DataManager dataManager;
 	private final Deployer deployer;
-	private final PlayerEvents playerEvents;
 	private final KeepAliveManager keepAliveManager;
 	private final PanelManager panelManager;
 	private final LogManager logManager;
@@ -48,7 +46,6 @@ public final class Main extends Plugin
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
 		deployer = new Deployer();
-		playerEvents = new PlayerEvents();
 		keepAliveManager = new KeepAliveManager();
 		panelManager = new PanelManager();
 		logManager = new LogManager();
@@ -71,7 +68,6 @@ public final class Main extends Plugin
 		deployer.init();
 		logManager.init();
 		deployer.initServers();
-		playerEvents.init();
 		keepAliveManager.init();
 		panelManager.init();
 		utilsListener.init();
@@ -86,7 +82,6 @@ public final class Main extends Plugin
 		messenger.stop();
 		dataManager.stop();
 		deployer.stop();
-		playerEvents.stop();
 		keepAliveManager.stop();
 		panelManager.stop();
 		logManager.stop();

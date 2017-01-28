@@ -4,6 +4,7 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.Template;
 import api.config.Variant;
+import api.data.DataManager;
 import api.data.Server;
 import api.events.ServerDeployedEvent;
 import api.utils.SimpleManager;
@@ -51,8 +52,7 @@ public final class Deployer implements SimpleManager
 		}
 		catch (IOException e)
 		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while initializing the Deployer (Deployer: " +
-					this + ')', e);
+			Main.getInstance().getLogger().log(Level.SEVERE, "Error while initializing the Deployer (Deployer: " + this + ')', e);
 		}
 
 		init = true;
@@ -63,18 +63,12 @@ public final class Deployer implements SimpleManager
 		if(!init)
 			throw new IllegalStateException("Deployer not initialised!");
 
-		for (Template.LobbyTemplate l : config.getLobbies())
-			for (Variant v : l.getVariants())
-				for (int i = 0; i < v.getMinServers(); i++)
-					addServer(new Lobby(getNextId(), l.getType(), v, getNextPort()));
-
-
 		for (Template l : config.getGames())
 			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
 					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(server -> server.getDeployer().kill())));
 	}
-
 
 	public void addServer(DeployerServer deployerServer)
 	{
@@ -102,12 +96,12 @@ public final class Deployer implements SimpleManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
-		/*Main.getInstance().getDataManager().forEachServers(server ->
-				{
-					//Undeploy ?
-				}
-		);*/
+		Main.getInstance().getDataManager().forEachServers(server -> {
+			//Undeploy ?
+		});
 
 		Main.getInstance().getLogger().info(this + " stopped.");
+
+
 	}
 }

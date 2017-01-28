@@ -9,6 +9,4 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class StopPacket extends OutPacket
-{
-}
+public class StopPacket extends OutPacket {}
