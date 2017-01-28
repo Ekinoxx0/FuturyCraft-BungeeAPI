@@ -7,7 +7,6 @@ import api.data.Server;
 import api.events.NewConsoleLineEvent;
 import api.events.ServerUndeployedEvent;
 import api.utils.ListBuilder;
-import api.utils.UnzipUtilities;
 import api.utils.Utils;
 import lombok.*;
 import net.md_5.bungee.api.ProxyServer;
@@ -86,13 +85,12 @@ public class DeployerServer implements Runnable
 			return null;
 		}
 
-		UnzipUtilities unZipper = new UnzipUtilities();
 		ServerInfo info = null; //no needs to catch cause already cached into #server
 		try
 		{
 			Files.copy(spigot.toPath(), new File(serverFolder, spigot.getName()).toPath());
-			unZipper.unzip(properties, serverFolder);
-			unZipper.unzip(map, serverFolder);
+			Utils.unzip(properties, serverFolder);
+			Utils.unzip(map, serverFolder);
 			ProxyServer proxy = Main.getInstance().getProxy();
 			info = proxy.constructServerInfo(name, new InetSocketAddress(Utils.LOCAL_HOST, port), "", false);
 			proxy.getServers().put(name, info);
