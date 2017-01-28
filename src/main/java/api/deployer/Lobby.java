@@ -34,6 +34,7 @@ public class Lobby extends DeployerServer
 				getType().toString());
 		File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
 		serverFolder = new File(lobbyTypeFolder, Integer.toString(getOffset()));
+		log = new File(serverFolder, "logs/latest.log").toPath();
 		return super.deploy();
 	}
 

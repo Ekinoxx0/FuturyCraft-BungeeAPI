@@ -38,7 +38,7 @@ public final class Main extends Plugin
 	private final KeepAliveManager keepAliveManager;
 	private final PanelManager panelManager;
 	private final LogManager logManager;
-	private final BungeeGobbler bungeeGobbler;
+	//private final BungeeGobbler bungeeGobbler;
 	private final UtilsListener utilsListener;
 
 	public Main()
@@ -47,7 +47,7 @@ public final class Main extends Plugin
 
 		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
-		bungeeGobbler = new BungeeGobbler();
+		//bungeeGobbler = new BungeeGobbler();
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
 		deployer = new Deployer();
@@ -69,7 +69,7 @@ public final class Main extends Plugin
 		File dataFolder = getInstance().getDataFolder();
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
-		bungeeGobbler.init();
+		//bungeeGobbler.init();
 		messenger.init();
 		dataManager.init();
 		deployer.init();

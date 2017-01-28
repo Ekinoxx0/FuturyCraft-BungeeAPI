@@ -22,5 +22,4 @@ public class InBungeeConsolePanelPacket extends IncPacket implements IncPanelPac
 		super(data);
 		listen = data.readBoolean();
 	}
-
 }

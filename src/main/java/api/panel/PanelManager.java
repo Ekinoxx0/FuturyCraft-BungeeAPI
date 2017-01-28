@@ -110,6 +110,7 @@ public final class PanelManager implements SimpleManager
 			else if (packet instanceof InBungeeConsolePanelPacket)
 			{
 				listenBungee = ((InBungeeConsolePanelPacket) packet).isListen();
+				System.out.println("bungee --> " + listenBungee);
 				sendBungeeConsole();
 			}
 			else if (packet instanceof ConsoleInputBungeePanelPacket)
@@ -209,7 +210,8 @@ public final class PanelManager implements SimpleManager
 		void sendBungeeConsole()
 		{
 			if (!listenBungee || messengerPanel == null) return;
-			messengerPanel.sendPacket(new OutBungeeConsolePanelPacket(Main.getInstance().getBungeeGobbler().getConsole()));
+			//System.out.println(Main.getInstance().getBungeeGobbler().getConsole());
+			//messengerPanel.sendPacket(new OutBungeeConsolePanelPacket(Main.getInstance().getBungeeGobbler().getConsole()));
 		}
 
 		void newLineBungee(String line)

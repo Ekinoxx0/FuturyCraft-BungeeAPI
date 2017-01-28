@@ -155,6 +155,15 @@ public class DeployerServer implements Runnable
 				ProxyServer.getInstance().getPluginManager().callEvent(new NewConsoleLineEvent(server, line));
 			}
 
+			try
+			{
+				int exitCode = process.waitFor();
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+
 			Main.getInstance().getLogManager().saveLogs(server);
 			remove();
 			started = false;

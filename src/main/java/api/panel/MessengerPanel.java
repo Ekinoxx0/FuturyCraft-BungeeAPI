@@ -37,7 +37,7 @@ public class MessengerPanel extends MessengerClient
 			if (packet == null)
 				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID + ", in=" + Arrays.toString(arrayIn) + ')');
 
-			System.out.println(server + " " + packet + " " + transactionID);
+			System.out.println(packet + " " + transactionID);
 			ProxyServer.getInstance().getPluginManager().callEvent(new PanelPacketReceivedEvent(server, packet,
 					transactionID));
 		}

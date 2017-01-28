@@ -119,6 +119,7 @@ public final class LobbyManager implements SimpleManager
 	private Server deployLobby()
 	{
 		//Deploy lobby
+		return null;
 	}
 
 	private void undeployLobby(Server server)

@@ -133,7 +133,7 @@ public final class KeepAliveManager implements SimpleManager
 												().getInfo().equals(server)).forEach(player -> player.connect(null));*/
 												// connect to lobby
 
-												//TODO finish him
+												//TODO finish him! fatality!
 												Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server +
 														" did not send keep-alive");
 											}
