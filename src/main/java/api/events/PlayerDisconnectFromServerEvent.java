@@ -13,10 +13,10 @@ import net.md_5.bungee.api.plugin.Event;
 @EqualsAndHashCode(callSuper = false)
 public class PlayerDisconnectFromServerEvent extends Event
 {
-	private final Server server;
+	private final Server from;
 	private final UserData user;
 	private final ConnectionCause cause;
-	private final Server switchTo;
+	private final Server to;
 
 	public enum ConnectionCause
 	{

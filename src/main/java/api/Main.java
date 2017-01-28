@@ -8,6 +8,7 @@ import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.MessengerServer;
 import api.panel.PanelManager;
+import api.utils.UtilsListener;
 import com.mongodb.MongoClient;
 import lombok.Getter;
 import lombok.ToString;
@@ -36,6 +37,7 @@ public final class Main extends Plugin
 	private final KeepAliveManager keepAliveManager;
 	private final PanelManager panelManager;
 	private final LogManager logManager;
+	private final UtilsListener utilsListener;
 
 	public Main()
 	{
@@ -51,6 +53,7 @@ public final class Main extends Plugin
 		keepAliveManager = new KeepAliveManager();
 		panelManager = new PanelManager();
 		logManager = new LogManager();
+		utilsListener = new UtilsListener();
 	}
 
 	public static Main getInstance()
@@ -73,6 +76,7 @@ public final class Main extends Plugin
 		playerEvents.init();
 		keepAliveManager.init();
 		panelManager.init();
+		utilsListener.init();
 
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
 		getLogger().info("FcApiBungee enabled!");
@@ -88,6 +92,7 @@ public final class Main extends Plugin
 		keepAliveManager.stop();
 		panelManager.stop();
 		logManager.stop();
+		utilsListener.stop();
 
 		jedisPool.close();
 		jedisPool.destroy();

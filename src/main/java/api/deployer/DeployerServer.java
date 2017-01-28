@@ -53,6 +53,10 @@ public class DeployerServer implements Runnable
 	@Setter(AccessLevel.PACKAGE)
 	protected Server server;
 	protected BufferedWriter in;
+	@Getter
+	protected long startedTimestamp;
+	@Getter
+	protected boolean started;
 
 	public DeployerServer(int offset, ServerType type, Variant variant, int port)
 	{
@@ -135,6 +139,10 @@ public class DeployerServer implements Runnable
 
 			ProcessBuilder pb = new ProcessBuilder(args);
 			pb.directory(serverFolder);
+
+			startedTimestamp = System.currentTimeMillis();
+			started = true;
+
 			process = pb.start();
 			BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
@@ -149,6 +157,7 @@ public class DeployerServer implements Runnable
 
 			Main.getInstance().getLogManager().saveLogs(server);
 			remove();
+			started = false;
 			Main.getInstance().getLogger().info(this + " stopped.");
 
 		}

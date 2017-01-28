@@ -2,6 +2,7 @@ package api.data;
 
 import api.Main;
 import api.deployer.DeployerServer;
+import api.deployer.Lobby;
 import api.packets.MessengerClient;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
@@ -77,5 +78,15 @@ public class Server
 		totalMemory = keepAlivePacket.getTotalMemory();
 		processCpuLoad = keepAlivePacket.getProcessCpuLoad();
 		lastTPS = keepAlivePacket.getLastTPS();
+	}
+
+	public boolean isLobby()
+	{
+		return deployer instanceof Lobby;
+	}
+
+	public boolean isStarted()
+	{
+		return deployer.isStarted();
 	}
 }

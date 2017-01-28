@@ -15,8 +15,10 @@ public class Lobby extends DeployerServer
 {
 	private final LobbyType type;
 	@Getter
-	@Setter
 	private int acceptedPlayers;
+	@Getter
+	@Setter
+	private long stopAcceptPlayerTimestamp;
 
 	public Lobby(int id, LobbyType type, Variant variant, int port)
 	{
@@ -33,6 +35,11 @@ public class Lobby extends DeployerServer
 		File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
 		serverFolder = new File(lobbyTypeFolder, Integer.toString(getOffset()));
 		return super.deploy();
+	}
+
+	public void incrementAcceptedPlayers()
+	{
+		acceptedPlayers++;
 	}
 
 	public LobbyType getLobbyType()
