@@ -1,4 +1,4 @@
-package api.panel.packets;
+package api.panel.packets.bungee;
 
 import api.packets.IncPacket;
 import api.panel.IncPanelPacket;
@@ -9,17 +9,18 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
- * Created by SkyBeast on 05/01/2017.
+ * Created by loucass003 on 1/28/17.
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class InServerListPanelPacket extends IncPacket implements IncPanelPacket
+public class InBungeeConsolePanelPacket extends IncPacket implements IncPanelPacket
 {
 	private final boolean listen;
 
-	public InServerListPanelPacket(DataInputStream data) throws IOException
+	public InBungeeConsolePanelPacket(DataInputStream data) throws IOException
 	{
 		super(data);
 		listen = data.readBoolean();
 	}
+
 }

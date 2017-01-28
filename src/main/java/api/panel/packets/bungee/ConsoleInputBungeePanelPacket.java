@@ -1,4 +1,4 @@
-package api.panel.packets;
+package api.panel.packets.bungee;
 
 import api.packets.IncPacket;
 import api.panel.IncPanelPacket;
@@ -14,15 +14,13 @@ import java.util.UUID;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ConsoleInputServerInfoPanelPacket extends IncPacket implements IncPanelPacket
+public class ConsoleInputBungeePanelPacket extends IncPacket implements IncPanelPacket
 {
-	private final UUID serverUUID;
 	private final String in;
 
-	public ConsoleInputServerInfoPanelPacket(DataInputStream data) throws IOException
+	public ConsoleInputBungeePanelPacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		serverUUID = new UUID(data.readLong(), data.readLong());
 		in = data.readUTF();
 	}
 }

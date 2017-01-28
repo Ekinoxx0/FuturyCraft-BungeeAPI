@@ -5,6 +5,12 @@ import api.data.Server;
 import api.events.*;
 import api.packets.IncPacket;
 import api.panel.packets.*;
+import api.panel.packets.bungee.ConsoleInputBungeePanelPacket;
+import api.panel.packets.bungee.ConsoleOutputBungeePanelPacket;
+import api.panel.packets.bungee.InBungeeConsolePanelPacket;
+import api.panel.packets.bungee.OutBungeeConsolePanelPacket;
+import api.panel.packets.server.*;
+import api.panel.packets.servers.*;
 import api.utils.SimpleManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.LoginEvent;
@@ -12,6 +18,7 @@ import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,6 +107,25 @@ public final class PanelManager implements SimpleManager
 
 				server.getDeployer().sendCommand(packet1.getIn());
 			}
+			else if (packet instanceof InBungeeConsolePanelPacket)
+			{
+				listenBungee = ((InBungeeConsolePanelPacket) packet).isListen();
+				sendBungeeConsole();
+			}
+			else if (packet instanceof ConsoleInputBungeePanelPacket)
+			{
+				try
+				{
+					ConsoleInputBungeePanelPacket packet1 = (ConsoleInputBungeePanelPacket) packet;
+					BufferedWriter log = new BufferedWriter(new OutputStreamWriter(System.out));
+					log.append(packet1.getIn() + "\n");
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+
+			}
 		}
 
 		//@formatter:off
@@ -122,8 +148,8 @@ public final class PanelManager implements SimpleManager
 		boolean listenServerList;
 		@EventHandler public void pServerList(ServerDeployedEvent             e) {addServerList(e.getServer());}
 		@EventHandler public void pServerList(ServerUndeployedEvent           e) {removeServerList(e.getServer());}
-		@EventHandler public void pServerList(PlayerConnectToServerEvent      e) {updateServerList(e.getServer());}
-		@EventHandler public void pServerList(PlayerDisconnectFromServerEvent e) {updateServerList(e.getServer());}
+		@EventHandler public void pServerList(PlayerConnectToServerEvent      e) {updateServerList(e.getFrom());}
+		@EventHandler public void pServerList(PlayerDisconnectFromServerEvent e) {updateServerList(e.getFrom());}
 		@EventHandler public void pServerList(ServerChangeStateEvent          e) {updateServerList(e.getServer());}
 		//@formatter:on
 
@@ -159,8 +185,8 @@ public final class PanelManager implements SimpleManager
 		List<Server> listenServerInfo = new ArrayList<>();
 		@EventHandler public void pServerInfo(ServerDeployedEvent             e) {sendServerInfo(e.getServer(), false);}
 		@EventHandler public void pServerInfo(ServerUndeployedEvent           e) {sendServerInfo(e.getServer(), false);}
-		@EventHandler public void pServerInfo(PlayerConnectToServerEvent      e) {sendServerInfo(e.getServer(), false);}
-		@EventHandler public void pServerInfo(PlayerDisconnectFromServerEvent e) {sendServerInfo(e.getServer(), false);}
+		@EventHandler public void pServerInfo(PlayerConnectToServerEvent      e) {sendServerInfo(e.getFrom(), false);}
+		@EventHandler public void pServerInfo(PlayerDisconnectFromServerEvent e) {sendServerInfo(e.getFrom(), false);}
 		@EventHandler public void pServerInfo(ServerChangeStateEvent          e) {sendServerInfo(e.getServer(), false);}
 		@EventHandler public void pServerInfo(NewConsoleLineEvent             e) {newLineServerInfo(e.getServer(), e.getLine());}
 		//@formatter:on
@@ -177,10 +203,25 @@ public final class PanelManager implements SimpleManager
 			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUuid(), line));
 		}
 
+		boolean listenBungee;
+		@EventHandler public void pServerInfo(NewBungeeConsoleLineEvent       e) {newLineBungee(e.getLine());}
+
+		void sendBungeeConsole()
+		{
+			if (!listenBungee || messengerPanel == null) return;
+			messengerPanel.sendPacket(new OutBungeeConsolePanelPacket(Main.getInstance().getBungeeGobbler().getConsole()));
+		}
+
+		void newLineBungee(String line)
+		{
+			if (!listenBungee || messengerPanel == null) return;
+			messengerPanel.sendPacket(new ConsoleOutputBungeePanelPacket(line));
+		}
+
+
 		public void resetListening()
 		{
-			listenHeader = false;
-			listenServerList = false;
+			listenHeader = listenServerList = listenBungee = false;
 			listenServerInfo.clear();
 		}
 	}

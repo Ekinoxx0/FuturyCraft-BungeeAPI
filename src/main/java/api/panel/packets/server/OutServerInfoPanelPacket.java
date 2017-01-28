@@ -1,4 +1,4 @@
-package api.panel.packets;
+package api.panel.packets.server;
 
 import api.data.Server;
 import api.deployer.Lobby;

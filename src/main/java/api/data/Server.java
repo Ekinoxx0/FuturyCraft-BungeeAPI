@@ -18,7 +18,6 @@ import java.util.UUID;
  * Created by SkyBeast on 19/12/2016.
  */
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class Server
 {
 	private final DeployerServer deployer;
@@ -29,12 +28,21 @@ public class Server
 	private ServerStatePacket.ServerState serverState = ServerStatePacket.ServerState.STARTING; //Defaults to STARTING
 
 	private long lastKeepAlive = -1;
-	private final long minMemory = deployer.getVariant().getMaxRam() << 20;
+	private final long minMemory;
 	private long freeMemory;
 	private long totalMemory;
-	private final long maxMemory = deployer.getVariant().getMinRam() << 20;
+	private final long maxMemory;
 	private float processCpuLoad;
 	private byte[] lastTPS = new byte[3];
+
+	public Server(DeployerServer deployer, ServerInfo info)
+	{
+		this.deployer = deployer;
+		this.info = info;
+		minMemory = deployer.getVariant().getMaxRam() << 20;
+		maxMemory = deployer.getVariant().getMinRam() << 20;
+	}
+
 
 	public static Server get(ServerInfo info)
 	{

@@ -3,6 +3,8 @@ package api.config;
 import api.deployer.Lobby;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -21,5 +23,11 @@ public class Template
 	public static class LobbyTemplate extends Template
 	{
 		private final Lobby.LobbyType type;
+
+		public LobbyTemplate(List<Variant> variants, String displayName, Lobby.LobbyType type)
+		{
+			super(variants, displayName);
+			this.type = type;
+		}
 	}
 }

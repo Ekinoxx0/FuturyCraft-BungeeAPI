@@ -1,4 +1,4 @@
-package api.panel.packets;
+package api.panel.packets.server;
 
 import api.packets.OutPacket;
 import api.panel.OutPanelPacket;
