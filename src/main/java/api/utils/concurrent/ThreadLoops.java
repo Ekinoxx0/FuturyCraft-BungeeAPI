@@ -126,6 +126,7 @@ public final class ThreadLoops
 		long initialDelay;
 		long period;
 		TimeUnit unit;
+		boolean started;
 
 		ScheduledThreadLoop(Loop loop, long initialDelay, long period, TimeUnit unit)
 		{
@@ -138,8 +139,9 @@ public final class ThreadLoops
 		@Override
 		public void start()
 		{
-			if (!executorService.isShutdown())
+			if (started)
 				throw new IllegalStateException("Looper thread already started");
+			started = true;
 
 			executorService.scheduleWithFixedDelay
 					(
@@ -166,6 +168,7 @@ public final class ThreadLoops
 		@Override
 		public void stop()
 		{
+			started = false;
 			executorService.shutdown();
 		}
 
@@ -202,6 +205,10 @@ public final class ThreadLoops
 		@Override
 		public void start()
 		{
+			if (started)
+				throw new IllegalStateException("Looper thread already started");
+			started = true;
+
 			executorService.scheduleWithFixedDelay
 					(
 							() ->
