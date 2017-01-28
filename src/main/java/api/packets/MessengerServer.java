@@ -72,8 +72,7 @@ public final class MessengerServer implements SimpleManager
 												socket.getInetAddress().getHostAddress().equals(entry)))
 								{
 									Main.getInstance().getLogger().log(Level.WARNING, "Socket did not pass the " +
-											"white-list: " +
-											socket);
+											"white-list: " + socket);
 									socket.getOutputStream().write(0); //Write false
 									socket.close();
 								}
@@ -178,6 +177,7 @@ public final class MessengerServer implements SimpleManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
+		end = true;
 		connectionListener.stop();
 
 		synchronized (nonRegistered)
@@ -190,7 +190,6 @@ public final class MessengerServer implements SimpleManager
 			nonRegistered.clear();
 		}
 
-		end = true;
 		try
 		{
 			server.close();

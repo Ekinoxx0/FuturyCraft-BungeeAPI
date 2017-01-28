@@ -35,9 +35,27 @@ public final class ThreadLoops
 							() ->
 							{
 								while (!end)
-									runLoop(loop, end);
+									runLoop();
 							}
 					);
+		}
+
+		void runLoop()
+		{
+			try
+			{
+				loop.run();
+			}
+			catch (InterruptedException e)
+			{
+				if (end)
+					return;
+				throw new ThreadLoopException(e);
+			}
+			catch (Exception e)
+			{
+				throw new ThreadLoopException(e);
+			}
 		}
 
 		@Override
@@ -85,7 +103,7 @@ public final class ThreadLoops
 							() ->
 							{
 								while (!end && condition.getAsBoolean())
-									runLoop(loop, end);
+									runLoop();
 							}
 					);
 		}
@@ -125,11 +143,24 @@ public final class ThreadLoops
 
 			executorService.scheduleWithFixedDelay
 					(
-							() -> runLoop(loop),
+							this::runLoop,
 							initialDelay,
 							period,
 							unit
 					);
+		}
+
+		void runLoop()
+		{
+			try
+			{
+				loop.run();
+			}
+			catch (Exception e)
+			{
+				throw new ThreadLoopException(e);
+			}
+
 		}
 
 		@Override
@@ -176,42 +207,12 @@ public final class ThreadLoops
 							() ->
 							{
 								if (condition.getAsBoolean())
-									runLoop(loop);
+									runLoop();
 							},
 							initialDelay,
 							period,
 							unit
 					);
-		}
-	}
-
-	private static void runLoop(Loop loop, boolean end)
-	{
-		try
-		{
-			loop.run();
-		}
-		catch (InterruptedException e)
-		{
-			if (end)
-				return;
-			throw new ThreadLoopException(e);
-		}
-		catch (Exception e)
-		{
-			throw new ThreadLoopException(e);
-		}
-	}
-
-	private static void runLoop(Loop loop)
-	{
-		try
-		{
-			loop.run();
-		}
-		catch (Exception e)
-		{
-			throw new ThreadLoopException(e);
 		}
 	}
 }

@@ -3,6 +3,8 @@ package api.packets;
 import api.Main;
 import api.data.Server;
 import api.events.PacketReceivedEvent;
+import api.utils.concurrent.ThreadLoop;
+import api.utils.concurrent.ThreadLoops;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,55 +34,48 @@ public class MessengerClient
 	@Getter(AccessLevel.PACKAGE)
 	protected Server server;
 	private volatile short lastTransactionID;
-	private Thread listener;
+	private final ThreadLoop listener = setupSocketListener();
 	private volatile boolean end;
 
 	public MessengerClient(Socket socket, DataInputStream in, DataOutputStream out, Server server) throws IOException
-	//Called in DeployerServer
-	// identifier thread
+	//Called in MessengerClient identifier thread
 	{
 		this.socket = socket;
 		this.in = in;
 		this.out = out;
 		this.server = server;
-		setupSocketListener();
+		listener.start();
 	}
 
-	private void setupSocketListener() //Called in DeployerServer connection listener
+	private ThreadLoop setupSocketListener() //Called in MessengerClient connection listener
 	{
-		listener = new Thread(() ->
-		{
-			while (!socket.isClosed() && !end)
-			{
-				try
-				{
-					byte id = in.readByte();
-					short transactionID = in.readShort();
-					int size = in.readUnsignedShort();
-					byte[] data = new byte[size];
-					in.readFully(data); //Read all data and store it to the array
+		return ThreadLoops.newConditionThreadLoop
+				(
+						() -> !socket.isClosed() && !end,
+						() ->
+						{
+							try
+							{
+								byte id = in.readByte();
+								short transactionID = in.readShort();
+								int size = in.readUnsignedShort();
+								byte[] data = new byte[size];
+								in.readFully(data); //Read all data and store it to the array
 
-					handleData(id, transactionID, data);
-				}
-				catch (IOException e)
-				{
-					if (!end)
-						Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command (Client: " +
-								this + ')', e);
-					disconnect();
-				}
-				catch (Exception e)
-				{
-					Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading the socket (Client: " +
-									this + ')',
-							e);
-				}
-			}
-			disconnect();
-		}
-		);
+								handleData(id, transactionID, data);
+							}
+							catch (IOException e)
+							{
+								if (!end)
+									Main.getInstance().getLogger().log(Level.SEVERE, "Error while reading a command " +
+											"(Client: " + this + ')', e);
+								disconnect();
+							}
 
-		listener.start();
+							if (socket.isClosed())
+								disconnect();
+						}
+				);
 	}
 
 	protected void handleDisconnection()
@@ -153,15 +148,13 @@ public class MessengerClient
 		{
 			packet.write(data);
 
-			synchronized (out)
-			{
-				Main.getInstance().getLogger().info("Sending " + packet + " in client " + this + '.');
-				out.writeByte(getPacketID(packet));
-				out.writeShort(transactionID);
-				out.writeShort(array.size());
-				out.write(array.toByteArray());
-				out.flush();
-			}
+			Main.getInstance().getLogger().info("Sending " + packet + " in client " + this + '.');
+			out.writeByte(getPacketID(packet));
+			out.writeShort(transactionID);
+			out.writeShort(array.size());
+			out.write(array.toByteArray());
+			out.flush();
+
 		}
 		catch (IOException e)
 		{
@@ -179,6 +172,7 @@ public class MessengerClient
 	{
 		unregister();
 		end = true;
+		listener.stop();
 		try
 		{
 			socket.close();
