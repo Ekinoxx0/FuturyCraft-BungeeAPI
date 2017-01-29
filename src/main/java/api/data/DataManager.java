@@ -111,9 +111,9 @@ public final class DataManager implements SimpleManager
 								//Get from Redis
 
 								Transaction transaction = jedis.multi();
-								Response<String> rFC = transaction.get(prefix + "fc");
-								Response<String> rTC = transaction.get(prefix + "tc");
-								Response<String> rState = transaction.get(prefix + "state");
+								Response<String> rFC = transaction.get(prefix + ":fc");
+								Response<String> rTC = transaction.get(prefix + ":tc");
+								Response<String> rState = transaction.get(prefix + ":state");
 								transaction.exec();
 
 								int fc = Utils.stringToInt(rFC.get());
@@ -123,9 +123,7 @@ public final class DataManager implements SimpleManager
 								//Save to MongoDB
 
 								MongoCollection<Document> col = usersDB.getCollection(delay.base64UUID);
-								Document doc = col.find().first();
-								if (doc == null)
-									doc = new Document();
+								Document doc = new Document();
 
 								doc.put("fc", fc);
 								doc.put("tc", tc);
