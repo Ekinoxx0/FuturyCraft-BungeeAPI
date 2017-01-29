@@ -375,10 +375,10 @@ public final class DataManager implements SimpleManager
 							int state = doc.getInteger("state", 0);
 
 							Transaction transaction = jedis.multi();
-							transaction.set("fc", Utils.intToString(fc));
-							transaction.set("tc", Utils.intToString(tc));
-							transaction.set("rank", Utils.intToString(rank));
-							transaction.set("state", Utils.intToString(state));
+							transaction.set(data.getRedisPrefix() + ":fc", Utils.intToString(fc));
+							transaction.set(data.getRedisPrefix() + ":tc", Utils.intToString(tc));
+							transaction.set(data.getRedisPrefix() + ":rank", Utils.intToString(rank));
+							transaction.set(data.getRedisPrefix() + ":state", Utils.intToString(state));
 							transaction.exec();
 
 							Utils.doLocked
