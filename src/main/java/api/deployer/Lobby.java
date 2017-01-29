@@ -3,7 +3,6 @@ package api.deployer;
 import api.Main;
 import api.config.Variant;
 import lombok.Getter;
-import lombok.Setter;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;

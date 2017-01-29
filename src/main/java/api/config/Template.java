@@ -3,8 +3,6 @@ package api.config;
 import api.deployer.Lobby;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 

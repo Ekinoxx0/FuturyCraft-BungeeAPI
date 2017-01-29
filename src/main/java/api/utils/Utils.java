@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -128,36 +129,31 @@ public final class Utils
 
 	public static void unzip(File zip, File extractTo) throws IOException
 	{
-		ZipFile archive = new ZipFile(zip);
-
-		for (Enumeration e = archive.entries(); e.hasMoreElements(); )
-		{
-			ZipEntry entry = (ZipEntry) e.nextElement();
-			File file = new File(extractTo, entry.getName());
-
-			if (entry.isDirectory() && !file.exists() && !file.mkdirs())
-				throw new IOException("Cannot mkdirs directory");
-
-			else
-			{
-				if (!file.getParentFile().exists() && !file.getParentFile().mkdirs())
-					throw new IOException("Cannot mkdirs directory");
-
-				InputStream in = archive.getInputStream(entry);
-				BufferedOutputStream out = new BufferedOutputStream(
-						new FileOutputStream(file));
-
-				byte[] buffer = new byte[8192];
-				int read;
-
-				while (-1 != (read = in.read(buffer)))
-				{
-					out.write(buffer, 0, read);
-				}
-				in.close();
-				out.close();
-			}
+		if (!extractTo.exists()) {
+			extractTo.mkdir();
 		}
+		ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zip));
+		ZipEntry entry = zipIn.getNextEntry();
+		// iterates over entries in the zip file
+		while (entry != null) {
+			String filePath = extractTo + File.separator + entry.getName();
+			if (!entry.isDirectory()) {
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+				byte[] bytesIn = new byte[4096];
+				int read = 0;
+				while ((read = zipIn.read(bytesIn)) != -1) {
+					bos.write(bytesIn, 0, read);
+				}
+				bos.close();
+			} else {
+				// if the entry is a directory, make the directory
+				File dir = new File(filePath);
+				dir.mkdir();
+			}
+			zipIn.closeEntry();
+			entry = zipIn.getNextEntry();
+		}
+		zipIn.close();
 	}
 
 	public static Integer isNumeric(String str)

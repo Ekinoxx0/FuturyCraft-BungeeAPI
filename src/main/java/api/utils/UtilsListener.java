@@ -45,31 +45,33 @@ public class UtilsListener implements SimpleManager, Listener
 				);
 		callEvent(newEvent);
 
-		event.setTarget(newEvent.getTo().getInfo());
+		Server to = newEvent.getTo();
+		if (to != null)
+			event.setTarget(to.getInfo());
 
 		if (from != null)
 		{
-			callEvent
-					(
-							new PlayerDisconnectFromServerEvent
-									(
-											Server.get(from.getInfo()),
-											UserData.get(event.getPlayer()),
-											PlayerDisconnectFromServerEvent.ConnectionCause.SERVER_SWITCH,
-											newEvent.getTo()
-									)
-					);
+			callEvent(
+					new PlayerDisconnectFromServerEvent
+							(
+									Server.get(from.getInfo()),
+									UserData.get(event.getPlayer()),
+									PlayerDisconnectFromServerEvent.ConnectionCause.SERVER_SWITCH,
+									newEvent.getTo()
+							)
+			);
 		}
 	}
 
 	@EventHandler
 	public void onDisconnect(PlayerDisconnectEvent event)
 	{
+		net.md_5.bungee.api.connection.Server server = event.getPlayer().getServer();
 		callEvent
 				(
 						new PlayerDisconnectFromServerEvent
 								(
-										Server.get(event.getPlayer().getServer().getInfo()),
+										server == null ? null : Server.get(server.getInfo()),
 										UserData.get(event.getPlayer()),
 										PlayerDisconnectFromServerEvent.ConnectionCause.NETWORK_DISCONNECT,
 										null

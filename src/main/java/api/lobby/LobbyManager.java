@@ -9,7 +9,7 @@ import api.deployer.DeployerServer;
 import api.deployer.Lobby;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
-import api.packets.server.StopPacket;
+import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
 import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
@@ -36,7 +36,8 @@ public final class LobbyManager implements SimpleManager
 	private static final BaseComponent[] WARNING = new ComponentBuilder("Vous avez été déconnecté car le serveur " +
 			"va redémarrer.").color(ChatColor.GREEN).create();
 	private static final BaseComponent[] SERVER_STOP = new ComponentBuilder("Le serveur va redémarrer dans 2 " +
-			"minutes.").color(ChatColor.GREEN).create();
+			"minutes.").color(ChatColor.RED).create();
+	private static final BaseComponent[] SERVER_STARTING = new ComponentBuilder("Le serveur démarre ").color(ChatColor.RED).create();
 	private final Listen listener = new Listen();
 	private boolean init;
 	private volatile boolean end;
@@ -127,7 +128,7 @@ public final class LobbyManager implements SimpleManager
 		int port = deployer.getNextPort();
 		Variant v = getNextLobbyVariant(Lobby.LobbyType.NORMAL);
 		DeployerServer server = new Lobby(id, Lobby.LobbyType.NORMAL, v, port);
-		return new Server(server, server.deploy());
+		return deployer.addServer(server);
 	}
 
 	private Variant getNextLobbyVariant(Lobby.LobbyType type)
@@ -165,6 +166,13 @@ public final class LobbyManager implements SimpleManager
 			else if (!event.getTo().isLobby() && event.getTo() != acceptLobby)
 				return;
 
+			if (event.getTo().getServerState() != ServerStatePacket.ServerState.STARTED)
+			{
+				if (event.getUser() != null)
+					event.getUser().getPlayer().disconnect(SERVER_STARTING);
+				return;
+			}
+
 			Lobby lobby = (Lobby) event.getTo().getDeployer();
 			lobby.incrementAcceptedPlayers();
 
@@ -177,23 +185,21 @@ public final class LobbyManager implements SimpleManager
 		{
 			System.out.println("disconnectToServerEvent = " + event);
 
-			if (!event.getTo().isLobby())
+			Server from = event.getFrom();
+
+			if (from == null || !from.isLobby() || from == acceptLobby || from == waitingLobby)
 				return;
 
-			Server to = event.getTo();
-			Lobby lobby = (Lobby) to.getDeployer();
-
-			if (to == acceptLobby || to == waitingLobby)
-				return;
+			Lobby lobby = (Lobby) from.getDeployer();
 
 			if (lobby.getAcceptedPlayers() == 0)
 			{
-				undeployLobby(event.getFrom());
+				undeployLobby(from);
 				return;
 			}
 
 			if (lobby.getAcceptedPlayers() / lobby.getVariant().getSlots() >= 0.75)
-				scheduleWarn(to);
+				scheduleWarn(from);
 		}
 	}
 }

@@ -4,7 +4,6 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.Template;
 import api.config.Variant;
-import api.data.DataManager;
 import api.data.Server;
 import api.events.ServerDeployedEvent;
 import api.utils.SimpleManager;
@@ -67,10 +66,11 @@ public final class Deployer implements SimpleManager
 			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
 					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
+
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(server -> server.getDeployer().kill())));
 	}
 
-	public void addServer(DeployerServer deployerServer)
+	public Server addServer(DeployerServer deployerServer)
 	{
 		maxPlayers += deployerServer.getVariant().getSlots();
 		Server server = Main.getInstance().getDataManager().constructServer(deployerServer, deployerServer.deploy());
@@ -78,6 +78,7 @@ public final class Deployer implements SimpleManager
 				new ServerDeployedEvent(server)
 		);
 		deployerServer.setServer(server);
+		return server;
 	}
 
 	public int getNextId()

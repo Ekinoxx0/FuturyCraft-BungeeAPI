@@ -144,6 +144,7 @@ public class MessengerClient
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(array);
 
+		System.out.println("Send packet -> " + packet + " | " + transactionID);
 		try
 		{
 			packet.write(data);

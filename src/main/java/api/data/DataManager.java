@@ -11,6 +11,7 @@ import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.operation.UserExistsOperation;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -20,6 +21,7 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 import org.bson.Document;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
@@ -325,26 +327,8 @@ public final class DataManager implements SimpleManager
 	{
 		private Listen() {}
 
-		@EventHandler
-		public void onServerSwitch(ServerConnectEvent event)
-		{
-			exec.submit(() ->
-					{
-						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-						{
-							UserData data = getData(event.getPlayer());
-
-							Transaction tr1 = jedis.multi();
-							Response<String> rank = tr1.get(data.getRedisPrefix() + ":rank");
-							tr1.set(data.getRedisPrefix() + ":srv", event.getTarget().getName());
-							tr1.exec();
-						}
-					}
-			);
-		}
-
-		@EventHandler
-		public void onJoin(PostLoginEvent event)
+		@EventHandler(priority = EventPriority.HIGHEST)
+		public void onJoin(ServerConnectEvent event)
 		{
 			exec.submit(() ->
 					{
@@ -398,6 +382,12 @@ public final class DataManager implements SimpleManager
 							transaction.set("rank", Utils.intToString(rank));
 							transaction.set("state", Utils.intToString(state));
 							transaction.exec();
+
+							Utils.doLocked
+									(
+											() -> users.add(data),
+											usersLock
+									);
 						}
 					}
 			);

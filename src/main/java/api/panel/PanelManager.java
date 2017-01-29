@@ -153,7 +153,7 @@ public final class PanelManager implements SimpleManager
 
 		void updateServerList(Server server)
 		{
-			if (!listenServerList || messengerPanel == null) return;
+			if (server == null || !listenServerList || messengerPanel == null) return;
 			messengerPanel.sendPacket(UpdateServerListPanelPacket.from(server));
 		}
 
@@ -169,7 +169,7 @@ public final class PanelManager implements SimpleManager
 
 		void sendServerInfo(Server server, boolean sendConsole)
 		{
-			if (!listenServerInfo.contains(server) || messengerPanel == null) return;
+			if (server == null || !listenServerInfo.contains(server) || messengerPanel == null) return;
 			messengerPanel.sendPacket(OutServerInfoPanelPacket.from(server, sendConsole));
 		}
 

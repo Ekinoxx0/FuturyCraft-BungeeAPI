@@ -3,6 +3,7 @@ package api;
 import api.commands.DispatchCommand;
 import api.data.DataManager;
 import api.deployer.Deployer;
+import api.lobby.LobbyManager;
 import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.MessengerServer;
@@ -36,6 +37,7 @@ public final class Main extends Plugin
 	private final PanelManager panelManager;
 	private final LogManager logManager;
 	private final UtilsListener utilsListener;
+	private final LobbyManager lobbyManager;
 
 	public Main()
 	{
@@ -46,6 +48,7 @@ public final class Main extends Plugin
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
 		deployer = new Deployer();
+		lobbyManager = new LobbyManager();
 		keepAliveManager = new KeepAliveManager();
 		panelManager = new PanelManager();
 		logManager = new LogManager();
@@ -63,10 +66,12 @@ public final class Main extends Plugin
 		File dataFolder = getInstance().getDataFolder();
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
+
 		messenger.init();
 		dataManager.init();
 		deployer.init();
 		logManager.init();
+		lobbyManager.init();
 		deployer.initServers();
 		keepAliveManager.init();
 		panelManager.init();
@@ -82,6 +87,7 @@ public final class Main extends Plugin
 		messenger.stop();
 		dataManager.stop();
 		deployer.stop();
+		lobbyManager.stop();
 		keepAliveManager.stop();
 		panelManager.stop();
 		logManager.stop();
