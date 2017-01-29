@@ -11,12 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -129,23 +127,29 @@ public final class Utils
 
 	public static void unzip(File zip, File extractTo) throws IOException
 	{
-		if (!extractTo.exists()) {
+		if (!extractTo.exists())
+		{
 			extractTo.mkdir();
 		}
 		ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zip));
 		ZipEntry entry = zipIn.getNextEntry();
 		// iterates over entries in the zip file
-		while (entry != null) {
+		while (entry != null)
+		{
 			String filePath = extractTo + File.separator + entry.getName();
-			if (!entry.isDirectory()) {
+			if (!entry.isDirectory())
+			{
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
 				byte[] bytesIn = new byte[4096];
 				int read = 0;
-				while ((read = zipIn.read(bytesIn)) != -1) {
+				while ((read = zipIn.read(bytesIn)) != -1)
+				{
 					bos.write(bytesIn, 0, read);
 				}
 				bos.close();
-			} else {
+			}
+			else
+			{
 				// if the entry is a directory, make the directory
 				File dir = new File(filePath);
 				dir.mkdir();
@@ -194,6 +198,8 @@ public final class Utils
 
 	public static int stringToInt(String str)
 	{
+		if (str == null) return 0;
+
 		ByteBuffer buf = ByteBuffer.wrap(str.getBytes());
 		return buf.getInt();
 	}
