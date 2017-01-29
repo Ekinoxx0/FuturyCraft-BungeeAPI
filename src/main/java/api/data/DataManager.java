@@ -124,6 +124,9 @@ public final class DataManager implements SimpleManager
 
 								MongoCollection<Document> col = usersDB.getCollection(delay.base64UUID);
 								Document doc = col.find().first();
+								if (doc == null)
+									doc = new Document();
+
 								doc.put("fc", fc);
 								doc.put("tc", tc);
 								doc.put("state", state);
