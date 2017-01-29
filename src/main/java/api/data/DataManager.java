@@ -11,13 +11,11 @@ import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.operation.UserExistsOperation;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
-import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -338,9 +336,9 @@ public final class DataManager implements SimpleManager
 
 							//Get data if cached
 
-							Iterator<UserData.Delay> ite = disconnectQueue.iterator();
-							for (UserData.Delay delay = ite.next(); ite.hasNext(); )
+							for (Iterator<UserData.Delay> ite = disconnectQueue.iterator(); ite.hasNext(); )
 							{
+								UserData.Delay delay = ite.next();
 								UserData data = delay.parent();
 								if (data.getPlayer().getUniqueId().equals(player.getUniqueId())) // Player
 								// already cached in Redis
@@ -411,4 +409,5 @@ public final class DataManager implements SimpleManager
 			disconnectQueue.add(delay);
 		}
 	}
+
 }

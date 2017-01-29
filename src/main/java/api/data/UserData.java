@@ -20,7 +20,8 @@ public final class UserData extends OfflineUserData
 	private final String base64UUID;
 	@Getter(AccessLevel.PACKAGE)
 	private final Delay delayer = new Delay();
-	@Getter @Setter(AccessLevel.PACKAGE)
+	@Getter
+	@Setter(AccessLevel.PACKAGE)
 	private ProxiedPlayer player;
 
 	UserData(ProxiedPlayer player, String base64UUID)
@@ -74,7 +75,7 @@ public final class UserData extends OfflineUserData
 		@Override
 		public int compareTo(Delayed o)
 		{
-			return (deadLine == ((Delay) o).deadLine ? 0 : (deadLine < ((Delay) o).deadLine ? -1 : 1));
+			return (deadLine == ((Delay) o).deadLine ? 0 : (deadLine > ((Delay) o).deadLine ? -1 : 1));
 		}
 
 		@Override
