@@ -1,6 +1,7 @@
 package api.data;
 
 import api.Main;
+import api.utils.Utils;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,5 +52,50 @@ public final class UserData extends OfflineUserData
 	public UUID getUuid()
 	{
 		return player.getUniqueId();
+	}
+
+	@Override
+	public int getFuturyCoins()
+	{
+		return Utils.stringToInt
+				(
+						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
+				);
+	}
+
+	@Override
+	public int getTurfuryCoins()
+	{
+		return Utils.stringToInt
+				(
+						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
+				);
+	}
+
+	@Override
+	public int getState()
+	{
+		return Utils.stringToInt
+				(
+						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
+				);
+	}
+
+	@Override
+	public void setFuturyCoins(int futuryCoins)
+	{
+		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":fc", Utils.intToString(futuryCoins)));
+	}
+
+	@Override
+	public void setTurfuryCoins(int turfuryCoins)
+	{
+		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":tc", Utils.intToString(turfuryCoins)));
+	}
+
+	@Override
+	public void setState(int state)
+	{
+		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":state", Utils.intToString(state)));
 	}
 }

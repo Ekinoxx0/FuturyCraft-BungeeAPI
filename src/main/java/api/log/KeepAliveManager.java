@@ -169,7 +169,7 @@ public final class KeepAliveManager implements SimpleManager
 			if (packet instanceof KeepAlivePacket)
 			{
 
-				Utils.doLocked
+				Utils.returnLocked
 						(
 								() ->
 								{

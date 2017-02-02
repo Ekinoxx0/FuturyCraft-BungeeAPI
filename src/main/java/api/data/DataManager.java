@@ -149,7 +149,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public Server findServerByPort(int port)
 	{
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> servers.stream()
 								.filter(srv -> srv.getDeployer().getPort() == port)
@@ -166,7 +166,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public UserData getData(ProxiedPlayer player)
 	{
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> users.stream()
 								.filter(userData -> userData.getPlayer().equals(player))
@@ -183,7 +183,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public UserData getOnline(OfflineUserData player)
 	{
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> users.stream()
 								.filter(userData -> userData.getUuid().equals(player.getUuid()))
@@ -199,7 +199,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public void forEachServers(Consumer<? super Server> consumer)
 	{
-		Utils.doLocked
+		Utils.returnLocked
 				(
 						() -> servers.forEach(consumer),
 						serversLock
@@ -213,7 +213,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public void forEachUsers(Consumer<? super UserData> consumer)
 	{
-		Utils.doLocked
+		Utils.returnLocked
 				(
 						() -> users.forEach(consumer),
 						usersLock
@@ -228,7 +228,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public int getNextDeployerID(int maxServers)
 	{
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() ->
 						{
@@ -253,7 +253,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public int getNextDeployerPort(int minPort, int maxPort)
 	{
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() ->
 						{
@@ -280,7 +280,7 @@ public final class DataManager implements SimpleManager
 	{
 		serverCount.getAndIncrement();
 
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() ->
 						{
@@ -303,7 +303,7 @@ public final class DataManager implements SimpleManager
 	{
 		if (info == null) return null;
 
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> servers.stream()
 								.filter(server -> server.getInfo().equals(info))
@@ -323,7 +323,7 @@ public final class DataManager implements SimpleManager
 	{
 		if (uuid == null) return null;
 
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> servers.stream()
 								.filter(server -> server.getUuid().equals(uuid))
@@ -343,7 +343,7 @@ public final class DataManager implements SimpleManager
 	{
 		if (base64UUID == null) return null;
 
-		return Utils.doLocked
+		return Utils.returnLocked
 				(
 						() -> servers.stream()
 								.filter(server -> server.getBase64UUID().equalsIgnoreCase(base64UUID))
@@ -361,7 +361,7 @@ public final class DataManager implements SimpleManager
 	public void unregisterServer(Server server)
 	{
 		serverCount.getAndIncrement();
-		Utils.doLocked(() -> servers.remove(server), serversLock);
+		Utils.returnLocked(() -> servers.remove(server), serversLock);
 		uuids.remove(server.getUuid());
 	}
 
@@ -514,7 +514,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void addPlayer(UserData data)
 		{
-			Utils.doLocked
+			Utils.returnLocked
 					(
 							() -> users.add(data),
 							usersLock
@@ -541,7 +541,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void removeData(UserData data)
 		{
-			Utils.doLocked
+			Utils.returnLocked
 					(
 							() -> users.remove(data),
 							usersLock

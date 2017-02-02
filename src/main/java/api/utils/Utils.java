@@ -1,6 +1,8 @@
 package api.utils;
 
+import api.Main;
 import org.apache.commons.net.util.Base64;
+import redis.clients.jedis.Jedis;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -51,7 +53,19 @@ public final class Utils
 		R perform();
 	}
 
-	public static void doLocked(Action action, Lock lock)
+	@FunctionalInterface
+	public interface ArgAction<A>
+	{
+		void perform(A arg);
+	}
+
+	@FunctionalInterface
+	public interface ReturnArgAction<R, A>
+	{
+		R perform(A arg);
+	}
+
+	public static void returnLocked(Action action, Lock lock)
 	{
 		lock.lock();
 		try
@@ -64,7 +78,7 @@ public final class Utils
 		}
 	}
 
-	public static <R> R doLocked(ReturnAction<R> action, Lock lock)
+	public static <R> R returnLocked(ReturnAction<R> action, Lock lock)
 	{
 		lock.lock();
 		try
@@ -74,6 +88,22 @@ public final class Utils
 		finally
 		{
 			lock.unlock();
+		}
+	}
+
+	public static <R> R returnRedis(ReturnArgAction<R, Jedis> action)
+	{
+		try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
+		{
+			return action.perform(jedis);
+		}
+	}
+
+	public static void doRedis(ArgAction<Jedis> action)
+	{
+		try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
+		{
+			action.perform(jedis);
 		}
 	}
 
