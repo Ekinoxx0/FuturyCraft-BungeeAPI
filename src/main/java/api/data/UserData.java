@@ -57,28 +57,19 @@ public final class UserData extends OfflineUserData
 	@Override
 	public int getFuturyCoins()
 	{
-		return Utils.stringToInt
-				(
-						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
-				);
+		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc")));
 	}
 
 	@Override
 	public int getTurfuryCoins()
 	{
-		return Utils.stringToInt
-				(
-						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":tc"))
-				);
+		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":tc")));
 	}
 
 	@Override
 	public int getState()
 	{
-		return Utils.stringToInt
-				(
-						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":state"))
-				);
+		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":state")));
 	}
 
 	@Override

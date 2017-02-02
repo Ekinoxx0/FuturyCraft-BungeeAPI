@@ -65,7 +65,7 @@ public final class Utils
 		R perform(A arg);
 	}
 
-	public static void returnLocked(Action action, Lock lock)
+	public static void doLocked(Action action, Lock lock)
 	{
 		lock.lock();
 		try

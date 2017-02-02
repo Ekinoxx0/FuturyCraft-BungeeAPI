@@ -199,7 +199,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public void forEachServers(Consumer<? super Server> consumer)
 	{
-		Utils.returnLocked
+		Utils.doLocked
 				(
 						() -> servers.forEach(consumer),
 						serversLock
@@ -213,7 +213,7 @@ public final class DataManager implements SimpleManager
 	 */
 	public void forEachUsers(Consumer<? super UserData> consumer)
 	{
-		Utils.returnLocked
+		Utils.doLocked
 				(
 						() -> users.forEach(consumer),
 						usersLock
@@ -361,7 +361,7 @@ public final class DataManager implements SimpleManager
 	public void unregisterServer(Server server)
 	{
 		serverCount.getAndIncrement();
-		Utils.returnLocked(() -> servers.remove(server), serversLock);
+		Utils.doLocked(() -> servers.remove(server), serversLock);
 		uuids.remove(server.getUuid());
 	}
 
@@ -514,7 +514,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void addPlayer(UserData data)
 		{
-			Utils.returnLocked
+			Utils.doLocked
 					(
 							() -> users.add(data),
 							usersLock
@@ -541,7 +541,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void removeData(UserData data)
 		{
-			Utils.returnLocked
+			Utils.doLocked
 					(
 							() -> users.remove(data),
 							usersLock

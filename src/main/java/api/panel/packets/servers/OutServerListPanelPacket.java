@@ -26,18 +26,8 @@ public class OutServerListPanelPacket extends OutPacket implements OutPanelPacke
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeShort(servers.size());
-		for (ServerData data : servers)
-		{
-			out.writeLong(data.uuid.getMostSignificantBits());
-			out.writeLong(data.uuid.getLeastSignificantBits());
-			out.writeUTF(data.name);
-			out.writeShort(data.online);
-			out.writeShort(data.maxOnline);
-			out.writeShort(data.offset);
-			out.writeByte(data.state.ordinal());
-			out.writeUTF(data.serverType);
-			out.writeUTF(data.category);
-		}
+		for(ServerData data : servers)
+			data.write(out);
 	}
 
 	@Data
@@ -65,6 +55,20 @@ public class OutServerListPanelPacket extends OutPacket implements OutPanelPacke
 					server.getDeployer() instanceof Lobby ? ((Lobby) server.getDeployer()).getLobbyType().toString() :
 							"Game"
 			);
+		}
+
+		@SuppressWarnings("Duplicates")
+		public void write(DataOutputStream out) throws IOException
+		{
+			out.writeLong(uuid.getMostSignificantBits());
+			out.writeLong(uuid.getLeastSignificantBits());
+			out.writeUTF(name);
+			out.writeShort(online);
+			out.writeShort(maxOnline);
+			out.writeShort(offset);
+			out.writeByte(state.ordinal());
+			out.writeUTF(serverType);
+			out.writeUTF(category);
 		}
 	}
 }

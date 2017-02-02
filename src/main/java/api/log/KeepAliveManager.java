@@ -31,13 +31,14 @@ import java.util.logging.Level;
 @ToString
 public final class KeepAliveManager implements SimpleManager
 {
-	private final Map<Server, KeepAlivePacket> cache = new HashMap<>();
-	private final ReentrantLock cacheLock = new ReentrantLock();
+	private final List<Server> cache = new ArrayList<>();
+	private final ReentrantLock cacheLock = new ReentrantLock(); //Thread safe
 	private final Condition cacheNotEmpty = cacheLock.newCondition();
 	private final Listen listener = new Listen();
-	private final MongoDatabase mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive");
-	private final DateFormat dateFormat;
-	private final DateFormat timeFormat;
+	private final MongoDatabase mongoDatabase = Main.getInstance().getMongoClient().getDatabase("keep-alive"); //Will
+	// not open connection
+	private final DateFormat dateFormat; //dd-MMM-yyyy
+	private final DateFormat timeFormat; //HH:mm:ss
 	private final ThreadLoop senderThread = setupSenderThread();
 	private final ThreadLoop watcherThread = setupWatcherThread();
 	private boolean init;
@@ -64,6 +65,9 @@ public final class KeepAliveManager implements SimpleManager
 		init = true;
 	}
 
+	/*
+	 * Send all keep-alives to MongoDB
+	 */
 	private ThreadLoop setupSenderThread()
 	{
 		return ThreadLoops.newScheduledThreadLoop
@@ -74,39 +78,9 @@ public final class KeepAliveManager implements SimpleManager
 							try
 							{
 								if (cache.isEmpty())
-								{
-									cacheNotEmpty.await();
-								}
+									cacheNotEmpty.await(); //Await until the cache is not empty
 								else
-								{
-
-									Main.getInstance().getLogger().info("Sending keep-alives...");
-
-									Date now = new Date();
-
-									Document doc = new Document("ts", System.currentTimeMillis())
-											.append("time", timeFormat.format(now));
-
-									cache.keySet().forEach(server ->
-											{
-												KeepAlivePacket packet = cache.get(server);
-												byte[] tps = packet.getLastTPS();
-												doc.put(server.getBase64UUID(),
-														new Document("freeMem", packet.getFreeMemory())
-																.append("name", server.getName())
-																.append("offset", server.getOffset())
-																.append("totMem", packet.getTotalMemory())
-																.append("cpu", packet.getProcessCpuLoad())
-																.append("tps", Arrays.asList(tps[0], tps[1],
-																		tps[2])));
-											}
-									);
-
-									mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
-
-
-									cache.clear();
-								}
+									sendKeepAlives();
 							}
 							finally
 							{
@@ -119,29 +93,75 @@ public final class KeepAliveManager implements SimpleManager
 				);
 	}
 
+	/**
+	 * Send keep all cached keep alives
+	 */
+	private void sendKeepAlives()
+	{
+		Main.getInstance().getLogger().info("Sending keep-alives...");
+
+		Date now = new Date();
+		Document doc = new Document("ts", System.currentTimeMillis())
+				.append("time", timeFormat.format(now));
+		cache.forEach(server -> putKeepAlive(server, doc));
+
+		mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
+
+		cache.clear();
+	}
+
+	/**
+	 * Put a keep-alive in a document
+	 *
+	 * @param server the server
+	 * @param doc    the document where to put the keep-alives
+	 */
+	private void putKeepAlive(Server server, Document doc)
+	{
+		byte[] tps = server.getLastTPS();
+		doc.put(server.getBase64UUID(),
+				new Document("freeMem", server.getFreeMemory())
+						.append("name", server.getName())
+						.append("offset", server.getOffset())
+						.append("totMem", server.getTotalMemory())
+						.append("cpu", server.getProcessCpuLoad())
+						.append("tps", Arrays.asList(tps[0], tps[1],
+								tps[2])));
+	}
+
+	/*
+	 * Watcher thread which stop servers when no keep-alive were sent
+	 */
 	private ThreadLoop setupWatcherThread()
 	{
 		return ThreadLoops.newScheduledThreadLoop
 				(
-						() ->
-								Main.getInstance().getDataManager().forEachServers(server ->
+						() -> Main.getInstance().getDataManager().forEachServers
+								(
+										server ->
 										{
-											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
-											{
-												/*ProxyServer.getInstance().getPlayers().stream().filter(player -> player
-												.getServer
-												().getInfo().equals(server)).forEach(player -> player.connect(null));*/
-												// connect to lobby
-
-												//TODO finish him! fatality!
-												Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server +
-														" did not send keep-alive");
-											}
+											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000
+													* 90)
+												fatality(server);
 										}
 								),
 						100 * 90,
 						TimeUnit.MILLISECONDS
 				);
+	}
+
+	/**
+	 * TODO: Finish him!
+	 * (stop the server)
+	 */
+	private void fatality(Server server)
+	{
+		//Connect to lobby
+
+		//Stop server
+
+		Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server +
+				" did not send keep-alive");
 	}
 
 	@Override
@@ -162,19 +182,23 @@ public final class KeepAliveManager implements SimpleManager
 	{
 		private Listen() {}
 
+		/*
+		 * Catch keep-alives and save them.
+		 *
+		 * Update server state.
+		 */
 		@EventHandler
 		public void onPacket(PacketReceivedEvent event)
 		{
 			IncPacket packet = event.getPacket();
 			if (packet instanceof KeepAlivePacket)
 			{
-
-				Utils.returnLocked
+				Utils.doLocked
 						(
 								() ->
 								{
-									cache.put(event.getFrom(), (KeepAlivePacket) packet);
-									cacheNotEmpty.signal();
+									cache.add(event.getFrom());
+									cacheNotEmpty.signal(); //Wake up sender thread! You have work to do!
 								},
 								cacheLock
 						);

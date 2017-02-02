@@ -29,6 +29,7 @@ public class AddServerListPanelPacket extends OutPacket implements OutPanelPacke
 	private final String category;
 
 	@Override
+	@SuppressWarnings("Duplicates")
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeLong(uuid.getMostSignificantBits());

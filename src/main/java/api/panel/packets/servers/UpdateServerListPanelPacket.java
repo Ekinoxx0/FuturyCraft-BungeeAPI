@@ -42,8 +42,8 @@ public class UpdateServerListPanelPacket extends OutPacket implements OutPanelPa
 		);
 	}
 
-	@SuppressWarnings("Duplicates")
 	@Override
+	@SuppressWarnings("Duplicates")
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeLong(uuid.getMostSignificantBits());
