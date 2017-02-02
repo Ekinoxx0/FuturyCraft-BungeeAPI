@@ -62,6 +62,6 @@ public class MessengerPanel extends MessengerClient
 	protected void unregister()
 	{
 		Main.getInstance().getPanelManager().setMessengerPanel(null);
-		Main.getInstance().getPanelManager().getListener().resetListening();
+		Main.getInstance().getPanelManager().resetListening();
 	}
 }

@@ -34,8 +34,8 @@ public final class LogManager implements SimpleManager
 	private static final String FTP_USER = "sd-112484";
 	private static final String FTP_PASSWORD = "cR7Ay3eIJLx4";
 	private static final int SENDER_DELAY = 1000 * 60 * 60;
-	private final DateFormat dateFormat;
-	private final DateFormat timeFormat;
+	private final DateFormat dateFormat; //dd-MMM-yyyy
+	private final DateFormat timeFormat; //HH:mm:ss
 	private final ThreadLoop senderLoop = setupSenderExecutor();
 	private boolean init;
 	private volatile boolean end;
@@ -96,27 +96,20 @@ public final class LogManager implements SimpleManager
 				);
 	}
 
+	/**
+	 * Send all logs to the FTP.
+	 *
+	 * @throws IOException uses FTPClient
+	 */
 	private synchronized void sendLogs() throws IOException
 	{
-		File zip = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs.zip");
-		Utils.zipDirectory(logsDir.toFile(), zip);
-
+		File zip = zipLogs();
 		FTPClient ftp = new FTPClient();
 
 		try
 		{
-			ftp.connect(FTP_HOST);
-			ftp.login(FTP_USER, FTP_PASSWORD);
-
-			int reply = ftp.getReplyCode();
-
-			if (!FTPReply.isPositiveCompletion(reply))
-			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "FTP server did not accept me ;ç Reply code: " +
-						reply);
-				ftp.disconnect();
+			if (!authFTP(ftp))
 				return;
-			}
 
 			Date date = new Date();
 			String fDate = dateFormat.format(date);
@@ -124,18 +117,67 @@ public final class LogManager implements SimpleManager
 			ftp.appendFile("/logs/" + fDate + '/' + timeFormat.format(date), new FileInputStream(zip));
 
 			ftp.logout();
+			ftp.disconnect();
 		}
 		finally
 		{
-			if (ftp.isConnected())
-			{
-				try {ftp.disconnect();}
-				catch (IOException ignored) {}
-			}
+			disconnectFTP(ftp);
 		}
 
 	}
 
+	/**
+	 * Zip all the logs.
+	 *
+	 * @return the zip file
+	 * @throws IOException zip the file
+	 */
+	private File zipLogs() throws IOException
+	{
+		File zip = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs.zip");
+		Utils.zipDirectory(logsDir.toFile(), zip);
+		return zip;
+	}
+
+	/**
+	 * Auth the FTP client.
+	 *
+	 * @param ftp the client
+	 * @return whether or not the auth was accepted
+	 * @throws IOException uses FTPClient
+	 */
+	private boolean authFTP(FTPClient ftp) throws IOException
+	{
+		int reply = ftp.getReplyCode();
+
+		if (!FTPReply.isPositiveCompletion(reply))
+		{
+			Main.getInstance().getLogger().log(Level.SEVERE, "FTP server did not accept me ;ç Reply code: " +
+					reply);
+			ftp.disconnect();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Disconnect a FTP client.
+	 *
+	 * @param ftp the client
+	 */
+	private void disconnectFTP(FTPClient ftp)
+	{
+		if (ftp.isConnected())
+			try {ftp.disconnect();}
+			catch (IOException ignored) {}
+	}
+
+	/**
+	 * Get the duration between now and in the bext start of hour.
+	 *
+	 * @return a unix time
+	 */
 	private long getInitialDelay()
 	{
 		LocalTime now = LocalTime.now();
@@ -143,6 +185,11 @@ public final class LogManager implements SimpleManager
 		return Duration.between(now, h1).toMillis();
 	}
 
+	/**
+	 * Save all logs from a server.
+	 *
+	 * @param server the server
+	 */
 	public synchronized void saveLogs(Server server)
 	{
 		Path path = server.getDeployer().getLog();
@@ -163,6 +210,12 @@ public final class LogManager implements SimpleManager
 		}
 	}
 
+	/**
+	 * Check if a UUID was used in the last hour.
+	 *
+	 * @param uuid the uuid to check
+	 * @return whether or not the uuid was used
+	 */
 	public boolean checkUsedUUID(UUID uuid)
 	{
 		try

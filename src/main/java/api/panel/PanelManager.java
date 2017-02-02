@@ -8,6 +8,10 @@ import api.panel.packets.*;
 import api.panel.packets.server.*;
 import api.panel.packets.servers.*;
 import api.utils.SimpleManager;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -20,10 +24,13 @@ import java.util.List;
 /**
  * Created by SkyBeast on 04/01/2017.
  */
+@ToString
 public final class PanelManager implements SimpleManager
 {
 	private final Listen listener = new Listen();
-	private MessengerPanel messengerPanel;
+	@Getter
+	@Setter(AccessLevel.PACKAGE)
+	private MessengerPanel messengerPanel; //Only one instance
 	private boolean init;
 
 	@Override
@@ -36,25 +43,23 @@ public final class PanelManager implements SimpleManager
 		init = true;
 	}
 
-	public MessengerPanel getMessengerPanel()
+	/**
+	 * Reset the listening state.
+	 */
+	public void resetListening()
 	{
-		return messengerPanel;
-	}
-
-	void setMessengerPanel(MessengerPanel messengerPanel)
-	{
-		this.messengerPanel = messengerPanel;
-	}
-
-	public Listen getListener()
-	{
-		return listener;
+		listener.listenHeader = false;
+		listener.listenServerList = false;
+		listener.listenServerInfo.clear();
 	}
 
 	public class Listen implements Listener
 	{
 		private Listen() {}
 
+		/*
+		 * Handle all panel packets.
+		 */
 		@EventHandler
 		public void onPanelPacket(PanelPacketReceivedEvent event)
 		{
@@ -104,6 +109,10 @@ public final class PanelManager implements SimpleManager
 			}
 		}
 
+		/* -------------- *
+		 * --- HEADER --- *
+		 * -------------- */
+
 		//@formatter:off
 		boolean listenHeader;
 		@EventHandler public void pHeader(ServerDeployedEvent   e) {sendHeader();}
@@ -119,6 +128,10 @@ public final class PanelManager implements SimpleManager
 					(short) Main.getInstance().getDeployer().getMaxPlayers(),
 					(short) Main.getInstance().getDataManager().getServerCount()));
 		}
+
+		/* ------------------- *
+		 * --- SERVER LIST --- *
+		 * ------------------- */
 
 		//@formatter:off
 		boolean listenServerList;
@@ -157,6 +170,10 @@ public final class PanelManager implements SimpleManager
 			messengerPanel.sendPacket(UpdateServerListPanelPacket.from(server));
 		}
 
+		/* ------------------- *
+		 * --- SERVER INFO --- *
+		 * ------------------- */
+
 		//@formatter:off
 		List<Server> listenServerInfo = new ArrayList<>();
 		@EventHandler public void pServerInfo(ServerDeployedEvent             e) {sendServerInfo(e.getServer(), false);}
@@ -177,12 +194,6 @@ public final class PanelManager implements SimpleManager
 		{
 			if (!listenServerInfo.contains(server) || messengerPanel == null) return;
 			messengerPanel.sendPacket(new ConsoleOutputServerInfoPanelPacket(server.getUuid(), line));
-		}
-
-		public void resetListening()
-		{
-			listenHeader = listenServerList = false;
-			listenServerInfo.clear();
 		}
 	}
 }
