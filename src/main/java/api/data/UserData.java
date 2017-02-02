@@ -68,7 +68,7 @@ public final class UserData extends OfflineUserData
 	{
 		return Utils.stringToInt
 				(
-						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
+						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":tc"))
 				);
 	}
 
@@ -77,7 +77,7 @@ public final class UserData extends OfflineUserData
 	{
 		return Utils.stringToInt
 				(
-						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc"))
+						Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":state"))
 				);
 	}
 
