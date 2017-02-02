@@ -103,7 +103,7 @@ public class OfflineUserData
 			return;
 		}
 
-		collection.updateOne(EMPTY_DOCUMENT, new Document("fc", turfuryCoins));
+		collection.updateOne(EMPTY_DOCUMENT, new Document("tc", turfuryCoins));
 	}
 
 	public void setState(int state)
@@ -115,6 +115,6 @@ public class OfflineUserData
 			return;
 		}
 
-		collection.updateOne(EMPTY_DOCUMENT, new Document("fc", state));
+		collection.updateOne(EMPTY_DOCUMENT, new Document("state", state));
 	}
 }
