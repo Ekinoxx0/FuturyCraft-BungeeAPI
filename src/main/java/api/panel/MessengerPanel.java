@@ -2,7 +2,6 @@ package api.panel;
 
 import api.Main;
 import api.events.PanelPacketReceivedEvent;
-import api.packets.IncPacket;
 import api.packets.MessengerClient;
 import api.packets.Packet;
 import net.md_5.bungee.api.ProxyServer;
@@ -23,6 +22,10 @@ public class MessengerPanel extends MessengerClient
 	public MessengerPanel(Socket socket, DataInputStream in, DataOutputStream out) throws IOException
 	{
 		super(socket, in, out, null);
+	}
+
+	public void register()
+	{
 		Main.getInstance().getPanelManager().setMessengerPanel(this);
 	}
 
@@ -35,7 +38,8 @@ public class MessengerPanel extends MessengerClient
 			IncPanelPacket packet = PanelPackets.constructIncomingPacket(id, data);
 
 			if (packet == null)
-				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID + ", in=" + Arrays.toString(arrayIn) + ')');
+				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
+						+ ", in=" + Arrays.toString(arrayIn) + ')');
 
 			System.out.println(packet + " " + transactionID);
 			ProxyServer.getInstance().getPluginManager().callEvent(new PanelPacketReceivedEvent(server, packet,
