@@ -11,6 +11,7 @@ import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
 public final class DataManager implements SimpleManager
 {
 	private static final Document EMPTY_DOCUMENT = new Document();
+	private static final UpdateOptions UPDATE_OPTIONS_UPSERT = new UpdateOptions().upsert(true);
 	private static final long SAVE_DELAY = 3 * 60 * 1000; //The time before the data is put from Redis to Mongo
 	private final Listen listener = new Listen();
 	private final MongoDatabase usersDB = Main.getInstance().getMongoClient().getDatabase("users"); //Does not open
@@ -128,13 +130,12 @@ public final class DataManager implements SimpleManager
 								doc.put("fc", fc);
 								doc.put("tc", tc);
 								doc.put("state", state);
-								col.replaceOne(EMPTY_DOCUMENT, doc);
+								col.replaceOne(EMPTY_DOCUMENT, doc, UPDATE_OPTIONS_UPSERT);
 
 								//Remove from Redis
 
 								jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix +
-												"friends",
-										prefix + "state", prefix + "warn");
+										"friends", prefix + "state", prefix + "warn");
 							}
 						}
 				);
