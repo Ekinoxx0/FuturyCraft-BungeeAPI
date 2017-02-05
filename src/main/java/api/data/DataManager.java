@@ -118,12 +118,13 @@ public final class DataManager implements SimpleManager
 								Response<String> rFC = transaction.get(prefix + ":fc");
 								Response<String> rTC = transaction.get(prefix + ":tc");
 								Response<String> rState = transaction.get(prefix + ":state");
+								Response<String> rGroup = transaction.get(prefix + ":group");
 								transaction.exec();
 
 								int fc = Utils.stringToInt(rFC.get());
 								int tc = Utils.stringToInt(rTC.get());
 								int state = Utils.stringToInt(rState.get());
-
+								int group = Utils.stringToInt(rGroup.get());
 								//Save to MongoDB
 
 								MongoCollection<Document> col = usersDB.getCollection(delay.base64UUID);
@@ -132,12 +133,13 @@ public final class DataManager implements SimpleManager
 								doc.put("fc", fc);
 								doc.put("tc", tc);
 								doc.put("state", state);
+								doc.put("group", group);
 								col.replaceOne(EMPTY_DOCUMENT, doc, UPDATE_OPTIONS_UPSERT);
 
 								//Remove from Redis
 
-								jedis.del(prefix + "fc", prefix + "tc", prefix + "rank", prefix + "party", prefix +
-										"friends", prefix + "state", prefix + "warn");
+								jedis.del(prefix + ":fc", prefix + ":tc", prefix + ":rank", prefix + ":party", prefix +
+										":friends", prefix + ":state", prefix + ":group", prefix + ":warn");
 							}
 						}
 				);
@@ -475,9 +477,10 @@ public final class DataManager implements SimpleManager
 							int tc = doc.getInteger("tc", 0);
 							int rank = doc.getInteger("rank", 0);
 							int state = doc.getInteger("state", 0);
+							int group = doc.getInteger("group", 0);
 
 							//Then send to Redis
-							sendToRedis(jedis, redisPrefix, fc, tc, rank, state);
+							sendToRedis(jedis, redisPrefix, fc, tc, rank, state, group);
 
 							addPlayer(data); //Finally, add the player to connected players list
 						}
@@ -495,13 +498,14 @@ public final class DataManager implements SimpleManager
 		 * @param rank        the rank
 		 * @param state       the player's state
 		 */
-		private void sendToRedis(Jedis jedis, String redisPrefix, int fc, int tc, int rank, int state)
+		private void sendToRedis(Jedis jedis, String redisPrefix, int fc, int tc, int rank, int state, int group)
 		{
 			Transaction transaction = jedis.multi();
 			transaction.set(redisPrefix + ":fc", Utils.intToString(fc));
 			transaction.set(redisPrefix + ":tc", Utils.intToString(tc));
 			transaction.set(redisPrefix + ":rank", Utils.intToString(rank));
 			transaction.set(redisPrefix + ":state", Utils.intToString(state));
+			transaction.set(redisPrefix + ":group", Utils.intToString(group));
 			transaction.exec();
 		}
 

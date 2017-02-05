@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 public class Group
 {
+	private final int id;
 	private final String name;
 	private final String prefix;
 	private final String suffix;
@@ -26,6 +27,7 @@ public class Group
 	{
 		return doc != null ?
 				new Group(
+					doc.getInteger("id"),
 					doc.getString("name"),
 					doc.getString("prefix"),
 					doc.getString("suffix"),
@@ -38,7 +40,8 @@ public class Group
 
 	public Document toDoc()
 	{
-		return new Document("name", name)
+		return new Document("id", id)
+				.append("name", name)
 				.append("prefix", prefix)
 				.append("suffix", suffix)
 				.append("perms", perms)

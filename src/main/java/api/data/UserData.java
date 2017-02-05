@@ -24,6 +24,7 @@ public final class UserData extends OfflineUserData
 	@Getter
 	private final ProxiedPlayer player;
 
+
 	UserData(ProxiedPlayer player, String base64UUID, String redisPrefix)
 	{
 		this.player = player;
@@ -73,6 +74,12 @@ public final class UserData extends OfflineUserData
 	}
 
 	@Override
+	public int getGroup()
+	{
+		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":group")));
+	}
+
+	@Override
 	public void setFuturyCoins(int futuryCoins)
 	{
 		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":fc", Utils.intToString(futuryCoins)));
@@ -88,5 +95,11 @@ public final class UserData extends OfflineUserData
 	public void setState(int state)
 	{
 		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":state", Utils.intToString(state)));
+	}
+
+	@Override
+	public void setGroup(int id)
+	{
+		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":group", Utils.intToString(id)));
 	}
 }

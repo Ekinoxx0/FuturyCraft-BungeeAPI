@@ -33,7 +33,6 @@ public class PermissionsManager implements SimpleManager
 	private final ReentrantLock groupsLock = new ReentrantLock();
 	private static final List<Group> GROUPS = new ArrayList<>();
 	public static TIntObjectMap<String> perms;
-
 	private boolean init;
 
 	@Override
@@ -48,16 +47,23 @@ public class PermissionsManager implements SimpleManager
 
 	public void addGroup(Group g)
 	{
-		Utils.doLocked(() -> GROUPS.add(g), groupsLock);
+		Utils.doLocked(() -> {
+			GROUPS.add(g);
+			addGroupToDB(g);
+		}, groupsLock);
 	}
 
 	public void remGroup(Group g)
 	{
-		Utils.doLocked(() -> GROUPS.remove(g), groupsLock);
+		Utils.doLocked(() ->
+		{
+			GROUPS.remove(g);
+			remGroupFromDB(g);
+		}, groupsLock);
 		ProxyServer.getInstance().getPluginManager().callEvent(new GroupRemovedEvent(g));
 	}
 
-	public Group getGroup(String name)
+	public Group getGroupByName(String name)
 	{
 		return Utils.returnLocked(() ->
 					GROUPS.stream()
@@ -70,6 +76,31 @@ public class PermissionsManager implements SimpleManager
 							return group;
 						}),
 				groupsLock);
+	}
+
+	public Group getGroup(int id)
+	{
+		return Utils.returnLocked(() ->
+						GROUPS.stream()
+								.filter(g -> g.getId() == id)
+								.findFirst()
+								.orElseGet(() -> {
+									Document doc = groupsCollection.find(Filters.eq("id", id)).first();
+									Group group = Group.fromDoc(doc);
+									if(group != null) GROUPS.add(group);
+									return group;
+								}),
+				groupsLock);
+	}
+
+	private void addGroupToDB(Group g)
+	{
+		groupsCollection.insertOne(g.toDoc());
+	}
+
+	private void remGroupFromDB(Group g)
+	{
+		groupsCollection.deleteOne(Filters.eq("name", g.getId()));
 	}
 
 	private TIntObjectMap<String> getPerms()
