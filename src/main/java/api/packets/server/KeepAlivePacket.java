@@ -11,7 +11,6 @@ import java.io.IOException;
  * Created by SkyBeast on 22/12/2016.
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 public class KeepAlivePacket extends IncPacket
 {
 	private final long freeMemory;
@@ -25,8 +24,6 @@ public class KeepAlivePacket extends IncPacket
 		freeMemory = data.readLong();
 		totalMemory = data.readLong();
 		processCpuLoad = data.readFloat();
-		lastTPS[0] = data.readByte();
-		lastTPS[1] = data.readByte();
-		lastTPS[2] = data.readByte();
+		data.readFully(lastTPS);
 	}
 }

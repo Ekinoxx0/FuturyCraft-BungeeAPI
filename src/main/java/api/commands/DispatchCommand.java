@@ -45,7 +45,6 @@ public class DispatchCommand extends Command
 		StringBuilder builder = new StringBuilder();
 		for (int i = start; i < args.length; i++)
 			builder.append(args[i]);
-
 		return builder.toString();
 	}
 }

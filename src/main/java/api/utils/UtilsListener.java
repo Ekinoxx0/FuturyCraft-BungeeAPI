@@ -1,22 +1,41 @@
 package api.utils;
 
 import api.Main;
+import api.commands.BossBarMessageCommand;
+import api.data.DataManager;
 import api.data.Server;
 import api.data.UserData;
+import api.events.PacketReceivedEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
+import api.packets.server.BossBarMessagesPacket;
+import api.packets.server.InBossBarMessages;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoDatabase;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Event;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by SkyBeast on 27/01/17.
  */
 public class UtilsListener implements SimpleManager, Listener
 {
+
+	public static final List<BossBarMessagesPacket.MessageData> BOSS_BAR_MESSAGES = new ArrayList<>();
+
 	@Override
 	public void init()
 	{
@@ -77,6 +96,28 @@ public class UtilsListener implements SimpleManager, Listener
 										null
 								)
 				);
+	}
+
+	@EventHandler
+	public void onReceivePacket(PacketReceivedEvent e)
+	{
+		if(e.getPacket() instanceof InBossBarMessages)
+		{
+
+			if (BOSS_BAR_MESSAGES.isEmpty())
+			{
+				FindIterable<Document> fi = DataManager.DB_UTILS.getCollection(BossBarMessageCommand.COLLECTION).find();
+				for (Document doc : fi)
+					BOSS_BAR_MESSAGES.add(new BossBarMessagesPacket.MessageData(String.valueOf(doc.get("message")), (int) doc.get("time")));
+			}
+
+			sendBossBarMessagesPacket(e.getFrom());
+		}
+	}
+
+	public void sendBossBarMessagesPacket(Server s)
+	{
+		s.getMessenger().sendPacket(new BossBarMessagesPacket(BOSS_BAR_MESSAGES));
 	}
 
 	private <T extends Event> T callEvent(T event)

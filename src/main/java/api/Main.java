@@ -1,5 +1,6 @@
 package api;
 
+import api.commands.BossBarMessageCommand;
 import api.commands.DispatchCommand;
 import api.data.DataManager;
 import api.deployer.Deployer;
@@ -53,6 +54,7 @@ public final class Main extends Plugin
 		panelManager = new PanelManager();
 		logManager = new LogManager();
 		utilsListener = new UtilsListener();
+
 	}
 
 	public static Main getInstance()
@@ -78,6 +80,7 @@ public final class Main extends Plugin
 		utilsListener.init();
 
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
+		getProxy().getPluginManager().registerCommand(this, new BossBarMessageCommand());
 		getLogger().info("FcApiBungee enabled!");
 	}
 

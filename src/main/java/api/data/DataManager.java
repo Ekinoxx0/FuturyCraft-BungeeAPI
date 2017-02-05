@@ -46,9 +46,11 @@ import java.util.stream.Stream;
 @ToString
 public final class DataManager implements SimpleManager
 {
+	public static final MongoDatabase DB_UTILS = Main.getInstance().getMongoClient().getDatabase("utils");
+
 	private static final Document EMPTY_DOCUMENT = new Document();
 	private static final UpdateOptions UPDATE_OPTIONS_UPSERT = new UpdateOptions().upsert(true);
-	private static final long SAVE_DELAY = 3 * 60 * 1000; //The time before the data is put from Redis to Mongo
+	private static final long SAVE_DELAY = 1 * 10 * 1000; //The time before the data is put from Redis to Mongo
 	private final Listen listener = new Listen();
 	private final MongoDatabase usersDB = Main.getInstance().getMongoClient().getDatabase("users"); //Does not open
 	// any connection
@@ -202,6 +204,23 @@ public final class DataManager implements SimpleManager
 		Utils.doLocked
 				(
 						() -> servers.forEach(consumer),
+						serversLock
+				);
+	}
+
+	/**
+	 * Do whatever you want with the servers, but safely.
+	 *
+	 * @param consumer what to do
+	 * @param type type filter
+	 */
+	public void forEachServersByType(Consumer<? super Server> consumer, DeployerServer.ServerType type)
+	{
+		Utils.doLocked
+				(
+						() -> servers.stream()
+								.filter(server -> server.getDeployer().getType() == type)
+								.forEach(consumer),
 						serversLock
 				);
 	}
