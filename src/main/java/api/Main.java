@@ -9,6 +9,7 @@ import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.MessengerServer;
 import api.panel.PanelManager;
+import api.perms.PermissionsManager;
 import api.utils.UtilsListener;
 import com.mongodb.MongoClient;
 import lombok.Getter;
@@ -39,6 +40,7 @@ public final class Main extends Plugin
 	private final LogManager logManager;
 	private final UtilsListener utilsListener;
 	private final LobbyManager lobbyManager;
+	private final PermissionsManager permsManager;
 
 	public Main()
 	{
@@ -48,6 +50,7 @@ public final class Main extends Plugin
 		mongoClient = new MongoClient();
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
+		permsManager = new PermissionsManager();
 		deployer = new Deployer();
 		lobbyManager = new LobbyManager();
 		keepAliveManager = new KeepAliveManager();
@@ -71,6 +74,7 @@ public final class Main extends Plugin
 
 		messenger.init();
 		dataManager.init();
+		permsManager.init();
 		deployer.init();
 		logManager.init();
 		lobbyManager.init();
