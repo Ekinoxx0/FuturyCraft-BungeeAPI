@@ -74,9 +74,9 @@ public final class UserData extends OfflineUserData
 	}
 
 	@Override
-	public int getGroup()
+	public String getGroup()
 	{
-		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":group")));
+		return Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":group"));
 	}
 
 	@Override
@@ -98,8 +98,8 @@ public final class UserData extends OfflineUserData
 	}
 
 	@Override
-	public void setGroup(int id)
+	public void setGroup(String name)
 	{
-		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":group", Utils.intToString(id)));
+		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":group", name));
 	}
 }

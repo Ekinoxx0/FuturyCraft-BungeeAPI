@@ -1,7 +1,9 @@
 package api.perms;
 
 import api.Main;
+import api.data.DataManager;
 import api.perms.events.GroupRemovedEvent;
+import api.perms.events.GroupUpdatedEvent;
 import api.utils.SimpleManager;
 import api.utils.Utils;
 import com.mongodb.Block;
@@ -32,7 +34,7 @@ public class PermissionsManager implements SimpleManager
 
 	private final ReentrantLock groupsLock = new ReentrantLock();
 	private static final List<Group> GROUPS = new ArrayList<>();
-	public static TIntObjectMap<String> perms;
+	private TIntObjectMap<String> perms;
 	private boolean init;
 
 	@Override
@@ -63,11 +65,19 @@ public class PermissionsManager implements SimpleManager
 		ProxyServer.getInstance().getPluginManager().callEvent(new GroupRemovedEvent(g));
 	}
 
+	public void updateGroup(Group g)
+	{
+		updateGroupToDB(g);
+		ProxyServer.getInstance().getPluginManager().callEvent(new GroupUpdatedEvent(g));
+	}
+
 	public Group getGroupByName(String name)
 	{
+		if(name == null)
+			return null;
 		return Utils.returnLocked(() ->
 					GROUPS.stream()
-						.filter(g -> name.equals(g.getName()))
+						.filter(g -> g.getName().equals(name))
 						.findFirst()
 						.orElseGet(() -> {
 							Document doc = groupsCollection.find(Filters.eq("name", name)).first();
@@ -78,19 +88,17 @@ public class PermissionsManager implements SimpleManager
 				groupsLock);
 	}
 
-	public Group getGroup(int id)
+	public List<Group> getGroups()
 	{
 		return Utils.returnLocked(() ->
-						GROUPS.stream()
-								.filter(g -> g.getId() == id)
-								.findFirst()
-								.orElseGet(() -> {
-									Document doc = groupsCollection.find(Filters.eq("id", id)).first();
-									Group group = Group.fromDoc(doc);
-									if(group != null) GROUPS.add(group);
-									return group;
-								}),
-				groupsLock);
+		{
+			int count = (int) groupsCollection.count();
+			if(GROUPS.size() == count)
+				return GROUPS;
+			FindIterable<Document> docs = groupsCollection.find();
+			docs.forEach((Block<? super Document>) doc -> getGroupByName(Group.fromDoc(doc).getName()));
+			return GROUPS;
+		}, groupsLock);
 	}
 
 	private void addGroupToDB(Group g)
@@ -100,10 +108,15 @@ public class PermissionsManager implements SimpleManager
 
 	private void remGroupFromDB(Group g)
 	{
-		groupsCollection.deleteOne(Filters.eq("name", g.getId()));
+		groupsCollection.deleteOne(Filters.eq("name", g.getName()));
 	}
 
-	private TIntObjectMap<String> getPerms()
+	private void updateGroupToDB(Group g)
+	{
+		groupsCollection.updateOne(Filters.eq("name", g.getName()), g.toDoc());
+	}
+
+	private TIntObjectMap<String> setupPerms()
 	{
 		TIntObjectMap<String> perms = new TIntObjectHashMap<>();
 		FindIterable<Document> docs = permsCollection.find();
@@ -118,5 +131,10 @@ public class PermissionsManager implements SimpleManager
 		private Listen() {}
 
 
+	}
+
+	public TIntObjectMap<String> getPerms()
+	{
+		return perms;
 	}
 }

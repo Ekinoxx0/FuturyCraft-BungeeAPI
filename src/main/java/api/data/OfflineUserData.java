@@ -82,13 +82,13 @@ public class OfflineUserData
 		return collection.find().first().getInteger("state", 0);
 	}
 
-	public int getGroup()
+	public String getGroup()
 	{
 		UserData online = toOnline();
 		if (online != null)
 			return online.getGroup();
 
-		return collection.find().first().getInteger("group", 0);
+		return collection.find().first().getString("group");
 	}
 
 	public void setFuturyCoins(int futuryCoins)
@@ -127,7 +127,7 @@ public class OfflineUserData
 		collection.updateOne(EMPTY_DOCUMENT, new Document("state", state));
 	}
 
-	public void setGroup(int group)
+	public void setGroup(String group)
 	{
 		UserData online = toOnline();
 		if (online != null)

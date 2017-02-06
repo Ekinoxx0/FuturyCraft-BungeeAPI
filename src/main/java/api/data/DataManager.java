@@ -124,7 +124,7 @@ public final class DataManager implements SimpleManager
 								int fc = Utils.stringToInt(rFC.get());
 								int tc = Utils.stringToInt(rTC.get());
 								int state = Utils.stringToInt(rState.get());
-								int group = Utils.stringToInt(rGroup.get());
+								String group = rGroup.get();
 								//Save to MongoDB
 
 								MongoCollection<Document> col = usersDB.getCollection(delay.base64UUID);
@@ -477,7 +477,7 @@ public final class DataManager implements SimpleManager
 							int tc = doc.getInteger("tc", 0);
 							int rank = doc.getInteger("rank", 0);
 							int state = doc.getInteger("state", 0);
-							int group = doc.getInteger("group", 0);
+							String group = doc.getString("group");
 
 							//Then send to Redis
 							sendToRedis(jedis, redisPrefix, fc, tc, rank, state, group);
@@ -498,14 +498,14 @@ public final class DataManager implements SimpleManager
 		 * @param rank        the rank
 		 * @param state       the player's state
 		 */
-		private void sendToRedis(Jedis jedis, String redisPrefix, int fc, int tc, int rank, int state, int group)
+		private void sendToRedis(Jedis jedis, String redisPrefix, int fc, int tc, int rank, int state, String group)
 		{
 			Transaction transaction = jedis.multi();
 			transaction.set(redisPrefix + ":fc", Utils.intToString(fc));
 			transaction.set(redisPrefix + ":tc", Utils.intToString(tc));
 			transaction.set(redisPrefix + ":rank", Utils.intToString(rank));
 			transaction.set(redisPrefix + ":state", Utils.intToString(state));
-			transaction.set(redisPrefix + ":group", Utils.intToString(group));
+			transaction.set(redisPrefix + ":group", group);
 			transaction.exec();
 		}
 
