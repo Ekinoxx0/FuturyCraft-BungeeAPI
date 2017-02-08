@@ -117,7 +117,7 @@ public final class MessengerServer implements SimpleManager
 	private boolean passWhitelist(Socket socket)
 	{
 		return Stream.of(WHITELIST)
-				.noneMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
+				.anyMatch(entry -> socket.getInetAddress().getHostName().equals(entry) ||
 						socket.getInetAddress().getHostAddress().equals(entry));
 	}
 
