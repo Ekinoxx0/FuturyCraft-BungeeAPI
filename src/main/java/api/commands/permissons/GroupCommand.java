@@ -2,8 +2,6 @@ package api.commands.permissons;
 
 import api.Main;
 import api.perms.Group;
-import api.perms.PermissionsManager;
-import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -16,11 +14,13 @@ import net.md_5.bungee.api.plugin.Command;
  */
 public class GroupCommand extends Command
 {
-	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /group <add|set|rem|list>").color(ChatColor.RED).create();
+	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /group <add|set|rem|list|perm|member>").color(ChatColor.RED).create();
 	private static final BaseComponent[] HELP_ADD = new ComponentBuilder("Usage: /group add {name} {prefix} {suffix} {chatcolor} {color}").color(ChatColor.RED).create();
 	private static final BaseComponent[] HELP_LIST = new ComponentBuilder("Usage: /group list").color(ChatColor.RED).create();
 	private static final BaseComponent[] HELP_REM = new ComponentBuilder("Usage: /group rem {name}").color(ChatColor.RED).create();
 	private static final BaseComponent[] HELP_SET = new ComponentBuilder("Usage: /group set {name} <prefix|suffix|chatcolor|color> {value}").color(ChatColor.RED).create();
+	private static final BaseComponent[] HELP_PERM = new ComponentBuilder("Usage: /group perm {name} <add|rem|list> {perm}").color(ChatColor.RED).create();
+	private static final BaseComponent[] HELP_MEMBER = new ComponentBuilder("Usage: /group member {name} <add|rem|list> {player}").color(ChatColor.RED).create();
 
 	private static final BaseComponent[] GROUP_ALREADY_EXIST = new ComponentBuilder("This group already exist!").color(ChatColor.RED).create();
 	private static final BaseComponent[] GROUP_NOT_EXIST = new ComponentBuilder("This group does not exist!").color(ChatColor.RED).create();
@@ -47,6 +47,8 @@ public class GroupCommand extends Command
 			case "set": setGroup(sender, args); break;
 			case "rem": remGroup(sender, args); break;
 			case "list": listGroups(sender); break;
+			case "perm": permGroup(sender, args); break;
+			case "members": membersGroup(sender, args); break;
 			default: sender.sendMessage(HELP); break;
 		}
 	}
@@ -144,5 +146,27 @@ public class GroupCommand extends Command
 						.create()
 				)
 		);
+	}
+
+	private void permGroup(CommandSender sender, String[] args)
+	{
+		if(args.length != 4)
+		{
+			sender.sendMessage(HELP_PERM);
+			return;
+		}
+
+
+	}
+
+	private void membersGroup(CommandSender sender, String[] args)
+	{
+		if(args.length != 4)
+		{
+			sender.sendMessage(HELP_MEMBER);
+			return;
+		}
+
+
 	}
 }

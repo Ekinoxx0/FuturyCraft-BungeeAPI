@@ -11,13 +11,8 @@ import api.events.PlayerDisconnectFromServerEvent;
 import api.packets.server.BossBarMessagesPacket;
 import api.packets.server.InBossBarMessages;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoDatabase;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Event;
@@ -51,14 +46,14 @@ public class UtilsListener implements SimpleManager, Listener
 				? new PlayerConnectToServerEvent
 				(
 						null,
-						UserData.get(event.getPlayer()),
+						get(event.getPlayer()),
 						PlayerConnectToServerEvent.ConnectionCause.NETWORK_CONNECT,
 						Server.get(event.getTarget())
 				)
 				: new PlayerConnectToServerEvent
 				(
 						Server.get(from.getInfo()),
-						UserData.get(event.getPlayer()),
+						get(event.getPlayer()),
 						PlayerConnectToServerEvent.ConnectionCause.SERVER_SWITCH,
 						Server.get(event.getTarget())
 				);
@@ -74,7 +69,7 @@ public class UtilsListener implements SimpleManager, Listener
 					new PlayerDisconnectFromServerEvent
 							(
 									Server.get(from.getInfo()),
-									UserData.get(event.getPlayer()),
+									get(event.getPlayer()),
 									PlayerDisconnectFromServerEvent.ConnectionCause.SERVER_SWITCH,
 									newEvent.getTo()
 							)
@@ -91,12 +86,18 @@ public class UtilsListener implements SimpleManager, Listener
 						new PlayerDisconnectFromServerEvent
 								(
 										server == null ? null : Server.get(server.getInfo()),
-										UserData.get(event.getPlayer()),
+										get(event.getPlayer()),
 										PlayerDisconnectFromServerEvent.ConnectionCause.NETWORK_DISCONNECT,
 										null
 								)
 				);
 	}
+
+	public UserData get(ProxiedPlayer p)
+	{
+		return Main.getInstance().getDataManager().getData(p);
+	}
+
 
 	@EventHandler
 	public void onReceivePacket(PacketReceivedEvent e)

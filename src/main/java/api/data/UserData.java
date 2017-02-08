@@ -1,105 +1,109 @@
 package api.data;
 
 import api.Main;
+import api.perms.Group;
 import api.utils.Utils;
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
+import lombok.Data;
 import lombok.Getter;
-import lombok.ToString;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.UUID;
 
+
 /**
- * Created by SkyBeast on 19/12/2016.
+ * Created by loucass003 on 2/7/17.
  */
-@ToString
-@EqualsAndHashCode(callSuper = false)
-public final class UserData extends OfflineUserData
+@Data
+public class UserData
 {
-	@Getter(AccessLevel.PACKAGE)
-	private final String redisPrefix;
-	@Getter(AccessLevel.PACKAGE)
-	private final String base64UUID;
-	@Getter
-	private final ProxiedPlayer player;
+	private final MongoUser mongoImpl;
+	private final RedisUser redisImpl;
 
+	@Getter(AccessLevel.PACKAGE) private final String redisPrefix;
+	@Getter(AccessLevel.PACKAGE) private final String base64UUID;
+	@Getter private final ProxiedPlayer player;
 
-	UserData(ProxiedPlayer player, String base64UUID, String redisPrefix)
+	UserData(ProxiedPlayer player, String base64UUID)
 	{
 		this.player = player;
 		this.base64UUID = base64UUID;
-		this.redisPrefix = "u:" + base64UUID; // Utils.uuidToBase64(player.getUniqueId());
+		redisPrefix = "u:" + base64UUID;
+		mongoImpl = new MongoUser(base64UUID, redisPrefix);
+		redisImpl = new RedisUser(redisPrefix);
 	}
 
-	public static UserData get(ProxiedPlayer player)
+	private boolean cached()
 	{
-		return Main.getInstance().getDataManager().getData(player);
+		return Main.getInstance().getDataManager().userCached(this);
 	}
 
-	@Override
 	public boolean isOnline()
 	{
 		return player.isConnected();
 	}
 
-	@Override
-	public UserData toOnline()
-	{
-		return isOnline() ? this : null;
-	}
-
-	@Override
 	public UUID getUuid()
 	{
-		return player.getUniqueId();
+		return Utils.uuidFromBase64(base64UUID);
 	}
 
-	@Override
+	/*-----------------*
+	 *      IDATA      *
+	 *-----------------*/
+
 	public int getFuturyCoins()
 	{
-		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":fc")));
+		return cached() ? redisImpl.getFuturyCoins() : mongoImpl.getFuturyCoins();
 	}
 
-	@Override
+	public void setFuturyCoins(int fc, boolean forced)
+	{
+		if(forced)
+		{
+			redisImpl.setFuturyCoins(fc);
+			mongoImpl.setFuturyCoins(fc);
+		}
+		else if (cached())
+			redisImpl.setFuturyCoins(fc);
+		else
+			mongoImpl.setFuturyCoins(fc);
+	}
+
 	public int getTurfuryCoins()
 	{
-		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":tc")));
+		return cached() ? redisImpl.getTurfuryCoins() : mongoImpl.getTurfuryCoins();
 	}
 
-	@Override
-	public int getState()
+	public void setTurfuryCoins(int tc, boolean forced)
 	{
-		return Utils.stringToInt(Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":state")));
+		if(forced)
+		{
+			redisImpl.setTurfuryCoins(tc);
+			mongoImpl.setTurfuryCoins(tc);
+		}
+		else if (cached())
+			redisImpl.setTurfuryCoins(tc);
+		else
+			mongoImpl.setTurfuryCoins(tc);
 	}
 
-	@Override
-	public String getGroup()
+	public Group getGroup()
 	{
-		return Utils.returnRedis(jedis -> jedis.get(redisPrefix + ":group"));
+		return cached() ? redisImpl.getGroup() : redisImpl.getGroup();
 	}
 
-	@Override
-	public void setFuturyCoins(int futuryCoins)
+	public void setGroup(Group g, boolean forced)
 	{
-		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":fc", Utils.intToString(futuryCoins)));
+		if(forced)
+		{
+			redisImpl.setGroup(g);
+			mongoImpl.setGroup(g);
+		}
+		else if (cached())
+			redisImpl.setGroup(g);
+		else
+			mongoImpl.setGroup(g);
 	}
 
-	@Override
-	public void setTurfuryCoins(int turfuryCoins)
-	{
-		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":tc", Utils.intToString(turfuryCoins)));
-	}
-
-	@Override
-	public void setState(int state)
-	{
-		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":state", Utils.intToString(state)));
-	}
-
-	@Override
-	public void setGroup(String name)
-	{
-		Utils.doRedis(jedis -> jedis.set(redisPrefix + ":group", name));
-	}
 }

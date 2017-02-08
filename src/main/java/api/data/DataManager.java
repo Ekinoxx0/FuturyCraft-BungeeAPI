@@ -61,6 +61,7 @@ public final class DataManager implements SimpleManager
 	private final List<Server> servers = new ArrayList<>(); //All cached online servers -- acquire serversLock before
 	// editing
 	private final ReentrantLock serversLock = new ReentrantLock();
+
 	private final DelayQueue<Delay> disconnectQueue = new DelayQueue<>(); //The queue where data is cached before sent
 	// to Mongo
 	private final List<UUID> uuids = new ArrayList<>(); //All currently used server UUIDs
@@ -104,42 +105,14 @@ public final class DataManager implements SimpleManager
 				(
 						() ->
 						{
-							System.out.println("PreTake");
 							Delay delay = disconnectQueue.take();
 							try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
 							{
-								System.out.println("PostTake");
-
-								String prefix = delay.redisPrefix;
-
-								//Get from Redis
-
 								Transaction transaction = jedis.multi();
-								Response<String> rFC = transaction.get(prefix + ":fc");
-								Response<String> rTC = transaction.get(prefix + ":tc");
-								Response<String> rState = transaction.get(prefix + ":state");
-								Response<String> rGroup = transaction.get(prefix + ":group");
-								transaction.exec();
-
-								int fc = Utils.stringToInt(rFC.get());
-								int tc = Utils.stringToInt(rTC.get());
-								int state = Utils.stringToInt(rState.get());
-								String group = rGroup.get();
-								//Save to MongoDB
-
+								RedisUser user = new RedisUser(delay.redisPrefix);
 								MongoCollection<Document> col = usersDB.getCollection(delay.base64UUID);
-								Document doc = new Document();
-
-								doc.put("fc", fc);
-								doc.put("tc", tc);
-								doc.put("state", state);
-								doc.put("group", group);
-								col.replaceOne(EMPTY_DOCUMENT, doc, UPDATE_OPTIONS_UPSERT);
-
-								//Remove from Redis
-
-								jedis.del(prefix + ":fc", prefix + ":tc", prefix + ":rank", prefix + ":party", prefix +
-										":friends", prefix + ":state", prefix + ":group", prefix + ":warn");
+								col.replaceOne(EMPTY_DOCUMENT, user.toDocument(transaction), UPDATE_OPTIONS_UPSERT);
+								user.remove(jedis);
 							}
 						}
 				);
@@ -162,6 +135,8 @@ public final class DataManager implements SimpleManager
 				);
 	}
 
+
+
 	/**
 	 * Get a UserData.
 	 *
@@ -175,24 +150,23 @@ public final class DataManager implements SimpleManager
 						() -> users.stream()
 								.filter(userData -> userData.getPlayer().equals(player))
 								.findFirst().orElse(null),
-						serversLock
+						usersLock
 				);
 	}
-
 	/**
-	 * Get the online representation of a OfflineUserData.
+	 * Get a UserData.
 	 *
-	 * @param player the OfflineUserData
-	 * @return the online UserData or null if not online
+	 * @param player the UUID of the player
+	 * @return the player
 	 */
-	public UserData getOnline(OfflineUserData player)
+	public UserData getData(UUID player)
 	{
 		return Utils.returnLocked
 				(
 						() -> users.stream()
-								.filter(userData -> userData.getUuid().equals(player.getUuid()))
+								.filter(userData -> userData.getPlayer().getUniqueId().equals(player))
 								.findFirst().orElse(null),
-						serversLock
+						usersLock
 				);
 	}
 
@@ -430,6 +404,19 @@ public final class DataManager implements SimpleManager
 		srv.setServerState(state);
 	}
 
+	/**
+	 * Check is user is in cache
+	 *
+	 * @param user the player to find
+	 * @return the player if found
+	 */
+	public boolean userCached(UserData user)
+	{
+		return getData(user.getPlayer()) != null ||
+				disconnectQueue.stream()
+						.anyMatch(delay -> delay.base64UUID.equals(user.getBase64UUID()));
+	}
+
 	public class Listen implements Listener
 	{
 		private Listen() {}
@@ -447,66 +434,35 @@ public final class DataManager implements SimpleManager
 					{
 						try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
 						{
+
 							ProxiedPlayer player = event.getPlayer();
+							UserData data = reconnectPlayer(player);
 
-							//Get data if cached
-
-							UserData data = findPlayer(player);
 							if (data != null)
 							{
-								addPlayer(data); //Add the player to connected players list
-								return; //No need to find data in Mongo, so stop there
+								addPlayer(data);
+								return;
 							}
 
-							//Else, create data,
 							String base64 = Utils.uuidToBase64(player.getUniqueId());
-							String redisPrefix = "u:" + base64;
-							data = new UserData(player, base64, redisPrefix);
 
-							//Get from Mongo
+							data = new UserData(player, base64);
 							MongoCollection<Document> col = usersDB.getCollection(base64);
 							Document doc = col.find().first();
-							if (doc == null) //The user is a NEWBIE
+
+							if (doc == null)
 							{
 								doc = new Document();
-								doc.put("firstJoin", System.currentTimeMillis()); //Keep track of the first connection
+								doc.put("firstJoin", System.currentTimeMillis());
+								col.replaceOne(EMPTY_DOCUMENT, doc, UPDATE_OPTIONS_UPSERT);
 							}
 
-							//Get values or default
-							int fc = doc.getInteger("fc", 0);
-							int tc = doc.getInteger("tc", 0);
-							int rank = doc.getInteger("rank", 0);
-							int state = doc.getInteger("state", 0);
-							String group = doc.getString("group");
+							data.getMongoImpl().toTransaction(doc, jedis).exec();
 
-							//Then send to Redis
-							sendToRedis(jedis, redisPrefix, fc, tc, rank, state, group);
-
-							addPlayer(data); //Finally, add the player to connected players list
+							addPlayer(data);
 						}
 					}
 			);
-		}
-
-		/**
-		 * Save data to Redis.
-		 *
-		 * @param jedis       the Jedis instance
-		 * @param redisPrefix the Redis prefix of the player
-		 * @param fc          the FuturyCoins
-		 * @param tc          the TurfuryCoins
-		 * @param rank        the rank
-		 * @param state       the player's state
-		 */
-		private void sendToRedis(Jedis jedis, String redisPrefix, int fc, int tc, int rank, int state, String group)
-		{
-			Transaction transaction = jedis.multi();
-			transaction.set(redisPrefix + ":fc", Utils.intToString(fc));
-			transaction.set(redisPrefix + ":tc", Utils.intToString(tc));
-			transaction.set(redisPrefix + ":rank", Utils.intToString(rank));
-			transaction.set(redisPrefix + ":state", Utils.intToString(state));
-			transaction.set(redisPrefix + ":group", group);
-			transaction.exec();
 		}
 
 		/**
@@ -515,7 +471,7 @@ public final class DataManager implements SimpleManager
 		 * @param player the player to find
 		 * @return the player if found
 		 */
-		private UserData findPlayer(ProxiedPlayer player)
+		private UserData reconnectPlayer(ProxiedPlayer player)
 		{
 			for (Iterator<Delay> ite = disconnectQueue.iterator(); ite.hasNext(); )
 			{
@@ -524,11 +480,12 @@ public final class DataManager implements SimpleManager
 				{
 					ite.remove();
 
-					return new UserData(player, delay.base64UUID, delay.redisPrefix);
+					return new UserData(player, delay.base64UUID);
 				}
 			}
 			return null;
 		}
+
 
 		/**
 		 * Add a player to the cached online player list.
@@ -537,6 +494,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void addPlayer(UserData data)
 		{
+			System.out.println("add user -> " + data);
 			Utils.doLocked
 					(
 							() -> users.add(data),
@@ -551,9 +509,7 @@ public final class DataManager implements SimpleManager
 		public void onQuit(PlayerDisconnectEvent event)
 		{
 			UserData data = getData(event.getPlayer());
-
 			removeData(data);
-
 			addToDisconnectQueue(data);
 		}
 
@@ -578,6 +534,7 @@ public final class DataManager implements SimpleManager
 		 */
 		private void addToDisconnectQueue(UserData data)
 		{
+
 			disconnectQueue.add(new Delay
 					(
 							SAVE_DELAY + System.currentTimeMillis(),

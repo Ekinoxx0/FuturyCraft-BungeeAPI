@@ -2,6 +2,7 @@ package api.utils;
 
 import api.Main;
 import org.apache.commons.net.util.Base64;
+import org.bson.Document;
 import redis.clients.jedis.Jedis;
 
 import java.io.*;
@@ -232,6 +233,12 @@ public final class Utils
 
 		ByteBuffer buf = ByteBuffer.wrap(str.getBytes());
 		return buf.getInt();
+	}
+
+	public static String getString(Document doc, String key, String def)
+	{
+		String str = doc.getString(key);
+		return str == null ? def : str;
 	}
 
 	public static String uuidToBase64(UUID uuid)
