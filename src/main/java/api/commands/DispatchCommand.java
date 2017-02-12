@@ -28,7 +28,7 @@ public class DispatchCommand extends Command
 			sender.sendMessage(HELP);
 			return;
 		}
-
+/*
 		Server server = Server.get(args[0]);
 		if (server == null)
 		{
@@ -36,7 +36,7 @@ public class DispatchCommand extends Command
 			return;
 		}
 
-		server.getDeployer().sendCommand(backToString(1, args));
+		server.getDeployer().sendCommand(backToString(1, args));*/
 		//server.getMessenger().sendPacket(new DispatchCommandPacket(backToString(1, args)));
 	}
 

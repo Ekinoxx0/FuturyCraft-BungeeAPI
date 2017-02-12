@@ -16,9 +16,9 @@ public class Lobby extends DeployerServer
 	@Getter
 	private int acceptedPlayers;
 
-	public Lobby(int id, LobbyType type, Variant variant, int port)
+	public Lobby(LobbyType type, Variant variant, int port)
 	{
-		super(id, ServerType.LOBBY, variant, port);
+		super(ServerType.LOBBY, variant, port);
 		this.type = type;
 		name = "LOBBY-" + type + '#' + base64UUID;
 	}
@@ -26,11 +26,6 @@ public class Lobby extends DeployerServer
 	@Override
 	public ServerInfo deploy()
 	{
-		File typeFolder = new File(Main.getInstance().getDeployer().getConfig().getDeployerDir(),
-				getType().toString());
-		File lobbyTypeFolder = new File(typeFolder, getLobbyType().toString());
-		serverFolder = new File(lobbyTypeFolder, Integer.toString(getOffset()));
-		log = new File(serverFolder, "logs/latest.log").toPath();
 		return super.deploy();
 	}
 

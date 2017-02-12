@@ -16,9 +16,5 @@ public class Variant
 	private final int minRam;
 	private final int maxRam;
 
-	private final List<String> spigotArgs;
-	private final List<String> jvmArgs;
-	private final String spigotPath;
-	private final String propsPath;
-	private final String mapPath;
+	private List<ConfigVolume> volumes;
 }

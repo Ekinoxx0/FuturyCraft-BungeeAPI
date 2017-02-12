@@ -15,8 +15,6 @@ import com.mongodb.MongoClient;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.plugin.Plugin;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 
@@ -28,8 +26,6 @@ import java.io.File;
 public final class Main extends Plugin
 {
 	private static Main instance;
-
-	private final JedisPool jedisPool;
 	private final MongoClient mongoClient;
 
 	private final MessengerServer messenger;
@@ -45,8 +41,6 @@ public final class Main extends Plugin
 	public Main()
 	{
 		instance = this;
-
-		jedisPool = new JedisPool(new JedisPoolConfig(), "localhost");
 		mongoClient = new MongoClient();
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
@@ -99,9 +93,6 @@ public final class Main extends Plugin
 		panelManager.stop();
 		logManager.stop();
 		utilsListener.stop();
-
-		jedisPool.close();
-		jedisPool.destroy();
 		mongoClient.close();
 	}
 }

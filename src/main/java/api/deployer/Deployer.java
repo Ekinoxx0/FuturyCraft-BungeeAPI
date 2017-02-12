@@ -65,7 +65,7 @@ public final class Deployer implements SimpleManager
 		for (Template l : config.getGames())
 			for (Variant v : l.getVariants())
 				for (int i = 0; i < v.getMinServers(); i++)
-					addServer(new DeployerServer(getNextId(), DeployerServer.ServerType.GAME, v, getNextPort()));
+					addServer(new DeployerServer(DeployerServer.ServerType.GAME, v, getNextPort()));
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(server -> server.getDeployer().kill())));
 	}
@@ -74,16 +74,9 @@ public final class Deployer implements SimpleManager
 	{
 		maxPlayers += deployerServer.getVariant().getSlots();
 		Server server = Main.getInstance().getDataManager().constructServer(deployerServer, deployerServer.deploy());
-		ProxyServer.getInstance().getPluginManager().callEvent(
-				new ServerDeployedEvent(server)
-		);
+		ProxyServer.getInstance().getPluginManager().callEvent(new ServerDeployedEvent(server));
 		deployerServer.setServer(server);
 		return server;
-	}
-
-	public int getNextId()
-	{
-		return Main.getInstance().getDataManager().getNextDeployerID(MAX_SERVERS);
 	}
 
 	public int getNextPort()
@@ -96,13 +89,7 @@ public final class Deployer implements SimpleManager
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
-
-		Main.getInstance().getDataManager().forEachServers(server -> {
-			//Undeploy ?
-		});
-
+		Main.getInstance().getDataManager().forEachServers(server -> server.getDeployer().kill());
 		Main.getInstance().getLogger().info(this + " stopped.");
-
-
 	}
 }

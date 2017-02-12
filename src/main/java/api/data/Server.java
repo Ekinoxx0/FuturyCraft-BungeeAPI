@@ -43,25 +43,9 @@ public class Server
 		maxMemory = deployer.getVariant().getMinRam() << 20;
 	}
 
-
 	public static Server get(ServerInfo info)
 	{
 		return Main.getInstance().getDataManager().getServer(info);
-	}
-
-	public static Server get(UUID uuid)
-	{
-		return Main.getInstance().getDataManager().getServer(uuid);
-	}
-
-	public static Server get(String base64UUID)
-	{
-		return Main.getInstance().getDataManager().getServer(base64UUID);
-	}
-
-	public int getOffset()
-	{
-		return deployer.getOffset();
 	}
 
 	public UUID getUuid()
@@ -82,19 +66,11 @@ public class Server
 	public void updateData(KeepAlivePacket keepAlivePacket)
 	{
 		lastKeepAlive = System.currentTimeMillis();
-		freeMemory = keepAlivePacket.getFreeMemory();
-		totalMemory = keepAlivePacket.getTotalMemory();
-		processCpuLoad = keepAlivePacket.getProcessCpuLoad();
 		lastTPS = keepAlivePacket.getLastTPS();
 	}
 
 	public boolean isLobby()
 	{
 		return deployer instanceof Lobby;
-	}
-
-	public boolean isStarted()
-	{
-		return deployer.isStarted();
 	}
 }

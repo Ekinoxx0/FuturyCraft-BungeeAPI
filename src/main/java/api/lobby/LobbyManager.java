@@ -64,9 +64,7 @@ public final class LobbyManager implements SimpleManager
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
-
 		end = true;
-
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
@@ -82,7 +80,7 @@ public final class LobbyManager implements SimpleManager
 				(
 						() ->
 						{
-							if (!server.isStarted())
+							if (!server.isStarted()) //TODO: maybe not good! (replace with server State)
 								return;
 
 							server.getInfo().getPlayers().forEach
@@ -102,7 +100,7 @@ public final class LobbyManager implements SimpleManager
 				(
 						() ->
 						{
-							if (!server.isStarted())
+							if (!server.isStarted()) //TODO: maybe not good! (replace with server State)
 								return;
 
 							server.getInfo().getPlayers().forEach
@@ -124,10 +122,9 @@ public final class LobbyManager implements SimpleManager
 	private Server deployLobby()
 	{
 		Deployer deployer = Main.getInstance().getDeployer();
-		int id = deployer.getNextId();
 		int port = deployer.getNextPort();
 		Variant v = getNextLobbyVariant(Lobby.LobbyType.NORMAL);
-		DeployerServer server = new Lobby(id, Lobby.LobbyType.NORMAL, v, port);
+		DeployerServer server = new Lobby(Lobby.LobbyType.NORMAL, v, port);
 		return deployer.addServer(server);
 	}
 

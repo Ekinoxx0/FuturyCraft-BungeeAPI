@@ -198,7 +198,6 @@ public final class LogManager implements SimpleManager
 		{
 			Files.copy(path, logsDir.resolve(server.getBase64UUID() + ".log"));
 			writer.println(server.getName());
-			writer.println(server.getOffset());
 			writer.println(server.getDeployer().getPort());
 			writer.println(server.getDeployer().getType());
 			writer.println(server.getDeployer().getVariant());

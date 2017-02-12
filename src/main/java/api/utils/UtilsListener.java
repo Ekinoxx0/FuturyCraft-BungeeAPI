@@ -4,6 +4,7 @@ import api.Main;
 import api.commands.BossBarMessageCommand;
 import api.data.DataManager;
 import api.data.Server;
+import api.data.UserData;
 import api.events.PacketReceivedEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;

@@ -1,9 +1,7 @@
 package api.utils;
 
-import api.Main;
 import org.apache.commons.net.util.Base64;
 import org.bson.Document;
-import redis.clients.jedis.Jedis;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -89,22 +87,6 @@ public final class Utils
 		finally
 		{
 			lock.unlock();
-		}
-	}
-
-	public static <R> R returnRedis(ReturnArgAction<R, Jedis> action)
-	{
-		try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-		{
-			return action.perform(jedis);
-		}
-	}
-
-	public static void doRedis(ArgAction<Jedis> action)
-	{
-		try (Jedis jedis = Main.getInstance().getJedisPool().getResource())
-		{
-			action.perform(jedis);
 		}
 	}
 
@@ -239,14 +221,6 @@ public final class Utils
 	{
 		String str = doc.getString(key);
 		return str == null ? def : str;
-	}
-
-	public static String uuidToBase64(UUID uuid)
-	{
-		ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-		bb.putLong(uuid.getMostSignificantBits());
-		bb.putLong(uuid.getLeastSignificantBits());
-		return Base64.encodeBase64URLSafeString(bb.array());
 	}
 
 	public static UUID uuidFromBase64(String str)

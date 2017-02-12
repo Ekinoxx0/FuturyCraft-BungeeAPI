@@ -1,6 +1,7 @@
 package api.events;
 
 import api.data.Server;
+import api.data.UserData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
