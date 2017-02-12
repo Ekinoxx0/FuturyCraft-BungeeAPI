@@ -2,88 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b6a52068-622f-4602-aa66-ab9b265d8e2f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_annotations_2_6_0.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_core_2_6_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_databind_2_6_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_base_2_6_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_json_provider_2_6_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_module_jackson_module_jaxb_annotations_2_6_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_docker_java_docker_java_3_0_6.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_kohlschutter_junixsocket_junixsocket_common_2_0_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_kohlschutter_junixsocket_junixsocket_native_common_2_0_4.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_codec_commons_codec_1_10.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_io_commons_io_2_5.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_lang_commons_lang_2_6.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_2.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_http_4_1_3_Final.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_socks_4_1_3_Final.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_handler_4_1_3_Final.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_handler_proxy_4_1_3_Final.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_transport_native_epoll_linux_x86_64_4_1_3_Final.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_annotation_javax_annotation_api_1_2.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_ws_rs_javax_ws_rs_api_2_0_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__log4j_log4j_1_2_17.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_commons_commons_compress_1_12.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpclient_4_5.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpcore_4_4_5.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_bouncycastle_bcpkix_jdk15on_1_54.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_bouncycastle_bcprov_jdk15on_1_54.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_external_aopalliance_repackaged_2_4_0_b34.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_external_javax_inject_2_4_0_b34.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_api_2_4_0_b34.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_locator_2_4_0_b34.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_utils_2_4_0_b34.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_osgi_resource_locator_1_0_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_bundles_repackaged_jersey_guava_2_23_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_connectors_jersey_apache_connector_2_23_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_core_jersey_client_2_23_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_core_jersey_common_2_23_1.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_javassist_javassist_3_18_1_GA.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_scijava_native_lib_loader_2_0_2.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_slf4j_jcl_over_slf4j_1_7_21.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_slf4j_slf4j_api_1_7_21.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/api/config/ConfigVolume.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__redis_clients_jedis_2_9_0.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/InHeaderPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/OutHeaderPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/server/ConsoleInputServerInfoPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/server/ConsoleOutputServerInfoPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/server/IllegalServerInfoPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/server/InServerInfoPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/server/OutServerInfoPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/servers/AddServerListPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/servers/InServerListPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/servers/OutServerListPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/servers/RemoveServerListPanelPacket.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/api/panel/packets/servers/UpdateServerListPanelPacket.java" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_18_0.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_19_0.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_buffer_4_1_5_Final.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_buffer_4_1_3_Final.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_4_1_5_Final.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_4_1_3_Final.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_common_4_1_5_Final.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_common_4_1_3_Final.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_resolver_4_1_5_Final.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_resolver_4_1_3_Final.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_transport_4_1_5_Final.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_transport_4_1_3_Final.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Bungee.iml" afterPath="$PROJECT_DIR$/Bungee.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/Main.java" afterPath="$PROJECT_DIR$/src/main/java/api/Main.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/commands/DispatchCommand.java" afterPath="$PROJECT_DIR$/src/main/java/api/commands/DispatchCommand.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/config/Variant.java" afterPath="$PROJECT_DIR$/src/main/java/api/config/Variant.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/data/DataManager.java" afterPath="$PROJECT_DIR$/src/main/java/api/data/DataManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/data/Server.java" afterPath="$PROJECT_DIR$/src/main/java/api/data/Server.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/deployer/Deployer.java" afterPath="$PROJECT_DIR$/src/main/java/api/deployer/Deployer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/deployer/DeployerServer.java" afterPath="$PROJECT_DIR$/src/main/java/api/deployer/DeployerServer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/deployer/Lobby.java" afterPath="$PROJECT_DIR$/src/main/java/api/deployer/Lobby.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/events/PlayerConnectToServerEvent.java" afterPath="$PROJECT_DIR$/src/main/java/api/events/PlayerConnectToServerEvent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/events/PlayerDisconnectFromServerEvent.java" afterPath="$PROJECT_DIR$/src/main/java/api/events/PlayerDisconnectFromServerEvent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java" afterPath="$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/log/LogManager.java" afterPath="$PROJECT_DIR$/src/main/java/api/log/LogManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/packets/server/KeepAlivePacket.java" afterPath="$PROJECT_DIR$/src/main/java/api/packets/server/KeepAlivePacket.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/panel/PanelManager.java" afterPath="$PROJECT_DIR$/src/main/java/api/panel/PanelManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/panel/PanelPackets.java" afterPath="$PROJECT_DIR$/src/main/java/api/panel/PanelPackets.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/utils/Utils.java" afterPath="$PROJECT_DIR$/src/main/java/api/utils/Utils.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/utils/UtilsListener.java" afterPath="$PROJECT_DIR$/src/main/java/api/utils/UtilsListener.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/resources/deployer.json" afterPath="$PROJECT_DIR$/src/main/resources/deployer.json" />
     </list>
     <list id="ede3ad8d-d304-48b0-8843-4fcbeef2c0cf" name="New changelist" comment="resetListening !!!!! x))) XDDDD trololol" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -115,7 +34,7 @@
       <file leaf-file-name="LobbyManager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-90">
+            <state relative-caret-position="1080">
               <caret line="82" column="67" selection-start-line="82" selection-start-column="67" selection-end-line="82" selection-end-column="67" />
               <folding />
             </state>
@@ -125,7 +44,7 @@
       <file leaf-file-name="KeepAliveManager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/log/KeepAliveManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
+            <state relative-caret-position="144">
               <caret line="31" column="19" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
               <folding />
             </state>
@@ -135,7 +54,7 @@
       <file leaf-file-name="BossBarMessageCommand.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/commands/BossBarMessageCommand.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="281">
+            <state relative-caret-position="1764">
               <caret line="113" column="32" selection-start-line="113" selection-start-column="24" selection-end-line="113" selection-end-column="32" />
               <folding />
             </state>
@@ -145,7 +64,7 @@
       <file leaf-file-name="LogManager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/log/LogManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="215">
+            <state relative-caret-position="3186">
               <caret line="200" column="45" selection-start-line="200" selection-start-column="45" selection-end-line="200" selection-end-column="45" />
               <folding />
             </state>
@@ -155,7 +74,7 @@
       <file leaf-file-name="UtilsListener.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/utils/UtilsListener.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="174">
+            <state relative-caret-position="747">
               <caret line="97" column="58" selection-start-line="97" selection-start-column="58" selection-end-line="97" selection-end-column="58" />
               <folding>
                 <element signature="e#2645#2646#0" expanded="true" />
@@ -168,7 +87,7 @@
       <file leaf-file-name="DispatchCommand.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/commands/DispatchCommand.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="488">
+            <state relative-caret-position="540">
               <caret line="38" column="66" selection-start-line="38" selection-start-column="66" selection-end-line="38" selection-end-column="66" />
               <folding />
             </state>
@@ -190,7 +109,7 @@
       <file leaf-file-name="Deployer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/deployer/Deployer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="110">
+            <state relative-caret-position="882">
               <caret line="63" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
               <folding />
             </state>
@@ -202,9 +121,7 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="306">
               <caret line="19" column="1" selection-start-line="19" selection-start-column="1" selection-end-line="19" selection-end-column="1" />
-              <folding>
-                <element signature="imports" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -357,6 +274,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
@@ -666,7 +584,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -1227,6 +1144,7 @@
       <workItem from="1486854017383" duration="3627000" />
       <workItem from="1486897126673" duration="8592000" />
       <workItem from="1486915241246" duration="1033000" />
+      <workItem from="1486916328567" duration="23000" />
     </task>
     <task id="LOCAL-00001" summary="Fix newUUID method">
       <created>1484441536411</created>
@@ -1372,7 +1290,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="240342000" />
+    <option name="totallyTimeSpent" value="240365000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1385,23 +1303,22 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1280" y="27" width="1920" height="1053" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32930845" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.35611907" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2679162" sideWeight="0.50428265" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="JRebel Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32922912" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="JRebel Executor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3263506" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44432193" sideWeight="0.49571735" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42116868" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44432193" sideWeight="0.49571735" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4950386" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1980728" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1980728" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Statistic" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32855567" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="JRebel" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -1417,6 +1334,7 @@
       <window_info id="Redis Servers" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.11723769" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.35611907" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.49944875" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1591,7 +1509,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="166">
           <caret line="120" column="16" selection-start-line="120" selection-start-column="16" selection-end-line="120" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1750,15 +1667,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
           <caret line="19" column="1" selection-start-line="19" selection-start-column="1" selection-end-line="19" selection-end-column="1" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/commands/DispatchCommand.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
+        <state relative-caret-position="540">
           <caret line="38" column="66" selection-start-line="38" selection-start-column="66" selection-end-line="38" selection-end-column="66" />
           <folding />
         </state>
@@ -1794,7 +1709,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/commands/BossBarMessageCommand.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="281">
+        <state relative-caret-position="1764">
           <caret line="113" column="32" selection-start-line="113" selection-start-column="24" selection-end-line="113" selection-end-column="32" />
           <folding />
         </state>
@@ -1812,7 +1727,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/deployer/Deployer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="110">
+        <state relative-caret-position="882">
           <caret line="63" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
           <folding />
         </state>
@@ -1820,7 +1735,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-90">
+        <state relative-caret-position="1080">
           <caret line="82" column="67" selection-start-line="82" selection-start-column="67" selection-end-line="82" selection-end-column="67" />
           <folding />
         </state>
@@ -1828,7 +1743,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/log/KeepAliveManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
+        <state relative-caret-position="144">
           <caret line="31" column="19" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
           <folding />
         </state>
@@ -1836,7 +1751,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/log/LogManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="215">
+        <state relative-caret-position="3186">
           <caret line="200" column="45" selection-start-line="200" selection-start-column="45" selection-end-line="200" selection-end-column="45" />
           <folding />
         </state>
@@ -1844,7 +1759,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/utils/UtilsListener.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="174">
+        <state relative-caret-position="747">
           <caret line="97" column="58" selection-start-line="97" selection-start-column="58" selection-end-line="97" selection-end-column="58" />
           <folding>
             <element signature="e#2645#2646#0" expanded="true" />
