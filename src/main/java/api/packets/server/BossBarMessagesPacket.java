@@ -2,6 +2,7 @@ package api.packets.server;
 
 import api.packets.OutPacket;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.util.List;
  * Created by loucass003 on 2/4/17.
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class BossBarMessagesPacket extends OutPacket
 {
 	private final List<MessageData> messages;

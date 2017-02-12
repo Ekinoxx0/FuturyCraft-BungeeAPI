@@ -1,6 +1,7 @@
 package api.events;
 
 import api.data.Server;
+import api.deployer.ServerState;
 import api.packets.server.ServerStatePacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,5 +15,5 @@ import net.md_5.bungee.api.plugin.Event;
 public class ServerChangeStateEvent extends Event
 {
 	private final Server server;
-	private final ServerStatePacket.ServerState state;
+	private final ServerState state;
 }

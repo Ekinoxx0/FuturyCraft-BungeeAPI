@@ -16,5 +16,6 @@ public class Variant
 	private final int minRam;
 	private final int maxRam;
 
+	private final String img;
 	private List<ConfigVolume> volumes;
 }

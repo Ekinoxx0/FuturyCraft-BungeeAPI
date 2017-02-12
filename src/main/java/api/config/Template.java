@@ -1,6 +1,6 @@
 package api.config;
 
-import api.deployer.Lobby;
+import api.lobby.LobbyType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,9 +20,9 @@ public class Template
 	@EqualsAndHashCode(callSuper = false)
 	public static class LobbyTemplate extends Template
 	{
-		private final Lobby.LobbyType type;
+		private final LobbyType type;
 
-		public LobbyTemplate(List<Variant> variants, String displayName, Lobby.LobbyType type)
+		public LobbyTemplate(List<Variant> variants, String displayName, LobbyType type)
 		{
 			super(variants, displayName);
 			this.type = type;

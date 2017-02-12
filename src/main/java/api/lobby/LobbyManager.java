@@ -5,8 +5,7 @@ import api.config.Template;
 import api.config.Variant;
 import api.data.Server;
 import api.deployer.Deployer;
-import api.deployer.DeployerServer;
-import api.deployer.Lobby;
+import api.deployer.ServerState;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
 import api.packets.server.ServerStatePacket;
@@ -53,8 +52,8 @@ public final class LobbyManager implements SimpleManager
 
 		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 
-		acceptLobby = deployLobby();
-		waitingLobby = deployLobby();
+		/*acceptLobby = deployLobby();
+		waitingLobby = deployLobby();*/
 
 		init = true;
 	}
@@ -70,8 +69,8 @@ public final class LobbyManager implements SimpleManager
 
 	private void changeAcceptLobby()
 	{
-		acceptLobby = waitingLobby;
-		waitingLobby = deployLobby();
+		/*acceptLobby = waitingLobby;
+		waitingLobby = deployLobby();*/
 	}
 
 	private void scheduleWarn(Server server)
@@ -80,13 +79,9 @@ public final class LobbyManager implements SimpleManager
 				(
 						() ->
 						{
-							if (!server.isStarted()) //TODO: maybe not good! (replace with server State)
+							if (!server.getServerState().canAcceptPlayers())
 								return;
-
-							server.getInfo().getPlayers().forEach
-									(
-											player -> player.sendMessage(WARNING)
-									);
+							server.getInfo().getPlayers().forEach(player -> player.sendMessage(WARNING));
 							scheduleStop(server);
 						},
 						WARNING_TIME,
@@ -100,9 +95,8 @@ public final class LobbyManager implements SimpleManager
 				(
 						() ->
 						{
-							if (!server.isStarted()) //TODO: maybe not good! (replace with server State)
+							if (!server.getServerState().canAcceptPlayers())
 								return;
-
 							server.getInfo().getPlayers().forEach
 									(
 											player ->
@@ -119,34 +113,9 @@ public final class LobbyManager implements SimpleManager
 				);
 	}
 
-	private Server deployLobby()
+	private Server deployLobby(LobbyType type, Variant v)
 	{
-		Deployer deployer = Main.getInstance().getDeployer();
-		int port = deployer.getNextPort();
-		Variant v = getNextLobbyVariant(Lobby.LobbyType.NORMAL);
-		DeployerServer server = new Lobby(Lobby.LobbyType.NORMAL, v, port);
-		return deployer.addServer(server);
-	}
-
-	private Variant getNextLobbyVariant(Lobby.LobbyType type)
-	{
-		List<Template.LobbyTemplate> lobbies = Main.getInstance().getDeployer().getConfig().getLobbiesByType(type);
-		if (lobbies.isEmpty())
-			return null;
-		Template.LobbyTemplate t = lobbies.stream().findFirst().orElse(null);
-		if (t == null)
-			return null;
-		if (lobbies.size() == 1)
-			return t.getVariants().get(0);
-		t.setOffset(t.getOffset() + 1);
-		if (t.getOffset() >= t.getVariants().size())
-			t.setOffset(0);
-		return t.getVariants().get(t.getOffset());
-	}
-
-	private void undeployLobby(Server server)
-	{
-		server.getDeployer().kill();
+		return ;
 	}
 
 	public class Listen implements Listener
@@ -163,18 +132,18 @@ public final class LobbyManager implements SimpleManager
 			else if (!event.getTo().isLobby() && event.getTo() != acceptLobby)
 				return;
 
-			if (event.getTo().getServerState() != ServerStatePacket.ServerState.STARTED)
+			if (event.getTo().getServerState() != ServerState.STARTED)
 			{
 				if (event.getUser() != null)
-					event.getUser().getPlayer().disconnect(SERVER_STARTING);
+					event.getUser().getBungee().disconnect(SERVER_STARTING);
 				return;
 			}
 
-			Lobby lobby = (Lobby) event.getTo().getDeployer();
+			/*Lobby lobby = (Lobby) event.getTo().getDeployer();
 			lobby.incrementAcceptedPlayers();
 
 			if (lobby.getAcceptedPlayers() >= ACCEPT_PLAYERS)
-				changeAcceptLobby();
+				changeAcceptLobby();*/
 		}
 
 		@EventHandler
@@ -187,7 +156,7 @@ public final class LobbyManager implements SimpleManager
 			if (from == null || !from.isLobby() || from == acceptLobby || from == waitingLobby)
 				return;
 
-			Lobby lobby = (Lobby) from.getDeployer();
+			/*Lobby lobby = (Lobby) from.getDeployer();
 
 			if (lobby.getAcceptedPlayers() == 0)
 			{
@@ -196,7 +165,7 @@ public final class LobbyManager implements SimpleManager
 			}
 
 			if (lobby.getAcceptedPlayers() / lobby.getVariant().getSlots() >= 0.75)
-				scheduleWarn(from);
+				scheduleWarn(from);*/
 		}
 	}
 }

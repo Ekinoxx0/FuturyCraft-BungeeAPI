@@ -1,6 +1,6 @@
 package api.config;
 
-import api.deployer.Lobby;
+import api.lobby.LobbyType;
 import api.utils.FileAdapter;
 import api.utils.Utils;
 import com.google.gson.GsonBuilder;
@@ -44,7 +44,7 @@ public class DeployerConfig
 		return deployerDirCache;
 	}
 
-	public List<Template.LobbyTemplate> getLobbiesByType(Lobby.LobbyType type)
+	public List<Template.LobbyTemplate> getLobbiesByType(LobbyType type)
 	{
 		return lobbies.stream()
 				.filter(lobbyTemplate -> lobbyTemplate.getType() == type)

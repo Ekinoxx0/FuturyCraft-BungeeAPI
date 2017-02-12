@@ -193,14 +193,14 @@ public final class LogManager implements SimpleManager
 	public synchronized void saveLogs(Server server)
 	{
 		Path path = server.getDeployer().getLog();
-		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(logsDir.resolve(server.getBase64UUID() +
+		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(logsDir.resolve(server.getId() +
 				".info"))))
 		{
-			Files.copy(path, logsDir.resolve(server.getBase64UUID() + ".log"));
+			Files.copy(path, logsDir.resolve(server.getId() + ".log"));
 			writer.println(server.getName());
-			writer.println(server.getDeployer().getPort());
-			writer.println(server.getDeployer().getType());
-			writer.println(server.getDeployer().getVariant());
+			writer.println(server.getInfo().getAddress().getPort());
+			writer.println(server.getType());
+			writer.println(server.getVariant());
 		}
 		catch (IOException e)
 		{
@@ -212,19 +212,17 @@ public final class LogManager implements SimpleManager
 	/**
 	 * Check if a UUID was used in the last hour.
 	 *
-	 * @param uuid the uuid to check
+	 * @param id the uuid to check
 	 * @return whether or not the uuid was used
 	 */
-	public boolean checkUsedUUID(UUID uuid)
+	public boolean checkUsedID(String id)
 	{
 		try
 		{
-			return Files.walk(logsDir).anyMatch(path -> path.startsWith(Utils.uuidToBase64(uuid)));
+			return Files.walk(logsDir).anyMatch(path -> path.startsWith(id));
 		}
-		catch (IOException e)
+		catch (IOException ignored)
 		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving logs (UUID: " +
-					uuid + ')', e);
 			return true;
 		}
 	}

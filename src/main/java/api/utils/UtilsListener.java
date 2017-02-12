@@ -98,7 +98,6 @@ public class UtilsListener implements SimpleManager, Listener
 		return Main.getInstance().getDataManager().getData(p);
 	}
 
-
 	@EventHandler
 	public void onReceivePacket(PacketReceivedEvent e)
 	{

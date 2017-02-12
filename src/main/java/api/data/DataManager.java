@@ -1,7 +1,7 @@
 package api.data;
 
 import api.Main;
-import api.deployer.DeployerServer;
+import api.deployer.ServerState;
 import api.events.ServerChangeStateEvent;
 import api.packets.MessengerClient;
 import api.packets.server.ServerStatePacket;
@@ -63,7 +63,7 @@ public final class DataManager implements SimpleManager
 		return Utils.returnLocked
 				(
 						() -> servers.stream()
-								.filter(srv -> srv.getDeployer().getPort() == port)
+								.filter(srv -> srv.getInfo().getAddress().getPort() == port)
 								.findAny().orElse(null),
 						serversLock
 				);
@@ -89,12 +89,12 @@ public final class DataManager implements SimpleManager
 	 * @param consumer what to do
 	 * @param type type filter
 	 */
-	public void forEachServersByType(Consumer<? super Server> consumer, DeployerServer.ServerType type)
+	public void forEachServersByType(Consumer<? super Server> consumer, Server.ServerType type)
 	{
 		Utils.doLocked
 				(
 						() -> servers.stream()
-								.filter(server -> server.getDeployer().getType() == type)
+								.filter(server -> server.getType() == type)
 								.forEach(consumer),
 						serversLock
 				);
@@ -114,35 +114,12 @@ public final class DataManager implements SimpleManager
 						() ->
 						{
 							List<Integer> ports = servers.stream()
-									.map(server -> server.getDeployer().getPort())
+									.map(server -> server.getInfo().getAddress().getPort())
 									.collect(Collectors.toList());
 							return Stream.iterate(minPort, port -> port + 1)
 									.limit(maxPort)
 									.filter(i -> !ports.contains(i))
 									.findFirst().orElse(-1);
-						},
-						serversLock
-				);
-	}
-
-	/**
-	 * Construct a new Server.
-	 *
-	 * @param deployer the Deployer of the server
-	 * @param info     the ServerInfo of the server
-	 * @return the new Server
-	 */
-	public Server constructServer(DeployerServer deployer, ServerInfo info)
-	{
-		serverCount.getAndIncrement();
-
-		return Utils.returnLocked
-				(
-						() ->
-						{
-							Server server = new Server(deployer, info);
-							servers.add(server);
-							return server;
 						},
 						serversLock
 				);
@@ -206,7 +183,7 @@ public final class DataManager implements SimpleManager
 	 * @param srv   the server to update
 	 * @param state the new state
 	 */
-	public void updateServerState(Server srv, ServerStatePacket.ServerState state)
+	public void updateServerState(Server srv, ServerState state)
 	{
 		ProxyServer.getInstance().getPluginManager().callEvent(new ServerChangeStateEvent(srv, state));
 		srv.setServerState(state);

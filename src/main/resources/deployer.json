@@ -27,9 +27,6 @@
           "slots": 50,
           "minRam": 512,
           "maxRam": 1024,
-          "spigotArgs": "",
-          "jvmArgs": "",
-          "spigotPath": "../Templates/spigot/spigot-1.9-R0.1-SNAPSHOT-latest.jar",
           "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
           "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
         }

@@ -11,6 +11,7 @@ import java.io.IOException;
  * Created by SkyBeast on 22/12/2016.
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class KeepAlivePacket extends IncPacket
 {
 	private final byte[] lastTPS = new byte[3];

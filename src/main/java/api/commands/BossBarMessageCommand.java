@@ -2,7 +2,7 @@ package api.commands;
 
 import api.Main;
 import api.data.DataManager;
-import api.deployer.DeployerServer;
+import api.data.Server;
 import api.packets.server.BossBarMessagesPacket;
 import api.utils.Utils;
 import api.utils.UtilsListener;
@@ -67,8 +67,7 @@ public class BossBarMessageCommand extends Command
 			addMessage(time, sb.toString().trim());
 
 			Main.getInstance().getDataManager().forEachServersByType(server ->
-					Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					DeployerServer.ServerType.LOBBY
+					Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server), Server.ServerType.LOBBY
 			);
 			sender.sendMessage(ADD_SUCCESS);
 		}
@@ -115,7 +114,7 @@ public class BossBarMessageCommand extends Command
 			sender.sendMessage(REM_SUCCESS);
 			Main.getInstance().getDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					DeployerServer.ServerType.LOBBY
+					Server.ServerType.LOBBY
 			);
 		}
 		else

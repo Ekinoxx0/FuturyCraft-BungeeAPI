@@ -118,15 +118,7 @@ public final class KeepAliveManager implements SimpleManager
 	 */
 	private void putKeepAlive(Server server, Document doc)
 	{
-		byte[] tps = server.getLastTPS();
-		doc.put(server.getBase64UUID(),
-				new Document("freeMem", server.getFreeMemory())
-						.append("name", server.getName())
-						.append("offset", server.getOffset())
-						.append("totMem", server.getTotalMemory())
-						.append("cpu", server.getProcessCpuLoad())
-						.append("tps", Arrays.asList(tps[0], tps[1],
-								tps[2])));
+		//TODO: put keepAlive
 	}
 
 	/*

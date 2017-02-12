@@ -1,18 +1,13 @@
 package api.data;
 
 import api.Main;
-import api.deployer.DeployerServer;
-import api.deployer.Lobby;
+import api.config.Variant;
+import api.deployer.ServerState;
 import api.packets.MessengerClient;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import net.md_5.bungee.api.config.ServerInfo;
-
-import java.util.UUID;
 
 /**
  * Created by SkyBeast on 19/12/2016.
@@ -20,27 +15,24 @@ import java.util.UUID;
 @Getter
 public class Server
 {
-	private final DeployerServer deployer;
+	private final String id;
 	private final ServerInfo info;
+	private final ServerType type;
+	private final Variant variant;
 	@Setter(AccessLevel.PACKAGE)
 	private MessengerClient messenger;
 	@Setter(AccessLevel.PACKAGE)
-	private ServerStatePacket.ServerState serverState = ServerStatePacket.ServerState.STARTING; //Defaults to STARTING
+	private ServerState serverState = ServerState.STARTING;
 
 	private long lastKeepAlive = -1;
-	private final long minMemory;
-	private long freeMemory;
-	private long totalMemory;
-	private final long maxMemory;
-	private float processCpuLoad;
 	private byte[] lastTPS = new byte[3];
 
-	public Server(DeployerServer deployer, ServerInfo info)
+	public Server(String id, ServerType type, Variant variant, ServerInfo info)
 	{
-		this.deployer = deployer;
+		this.id = id;
+		this.type = type;
+		this.variant = variant;
 		this.info = info;
-		minMemory = deployer.getVariant().getMaxRam() << 20;
-		maxMemory = deployer.getVariant().getMinRam() << 20;
 	}
 
 	public static Server get(ServerInfo info)
@@ -48,19 +40,9 @@ public class Server
 		return Main.getInstance().getDataManager().getServer(info);
 	}
 
-	public UUID getUuid()
-	{
-		return deployer.getUuid();
-	}
-
-	public String getBase64UUID()
-	{
-		return deployer.getBase64UUID();
-	}
-
 	public String getName()
 	{
-		return deployer.getName();
+		return type + "#" + id;
 	}
 
 	public void updateData(KeepAlivePacket keepAlivePacket)
@@ -71,6 +53,22 @@ public class Server
 
 	public boolean isLobby()
 	{
-		return deployer instanceof Lobby;
+		return type == ServerType.LOBBY;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public enum ServerType
+	{
+		LOBBY("Lobby"),
+		GAME("Game");
+
+		private final String name;
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
 	}
 }
