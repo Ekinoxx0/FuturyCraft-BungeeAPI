@@ -1,109 +1,89 @@
 package api.data;
 
-import api.Main;
-import api.perms.Group;
-import api.utils.Utils;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.NotSaved;
 
 import java.util.UUID;
-
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Created by loucass003 on 2/7/17.
+ * Created by SkyBeast on 12/02/17.
  */
-@Data
+@Entity
 public class UserData
 {
-	private final MongoUser mongoImpl;
-	private final RedisUser redisImpl;
+	@Getter
+	@Id
+	private UUID uniqueID;
+	@Getter
+	@NotSaved
+	private long firstJoin;
+	@Getter
+	private long futuryCoins;
+	@Getter
+	private long turfuryCoins;
+	private transient Delayer delayer;
 
-	@Getter(AccessLevel.PACKAGE) private final String redisPrefix;
-	@Getter(AccessLevel.PACKAGE) private final String base64UUID;
-	@Getter private final ProxiedPlayer player;
-
-	UserData(ProxiedPlayer player, String base64UUID)
+	Delayer getDelayer()
 	{
-		this.player = player;
-		this.base64UUID = base64UUID;
-		redisPrefix = "u:" + base64UUID;
-		mongoImpl = new MongoUser(base64UUID, redisPrefix);
-		redisImpl = new RedisUser(redisPrefix);
+		if (delayer == null)
+			delayer = new Delayer();
+		return delayer;
 	}
 
-	private boolean cached()
+	public ProxiedPlayer getBungee()
 	{
-		return Main.getInstance().getDataManager().userCached(this);
+		return ProxyServer.getInstance().getPlayer(uniqueID);
 	}
 
-	public boolean isOnline()
-	{
-		return player.isConnected();
-	}
 
-	public UUID getUuid()
+	@Data
+	class Delayer implements Delayed
 	{
-		return Utils.uuidFromBase64(base64UUID);
-	}
+		private long deadLine;
 
-	/*-----------------*
-	 *      IDATA      *
-	 *-----------------*/
-
-	public int getFuturyCoins()
-	{
-		return cached() ? redisImpl.getFuturyCoins() : mongoImpl.getFuturyCoins();
-	}
-
-	public void setFuturyCoins(int fc, boolean forced)
-	{
-		if(forced)
+		UserData parent()
 		{
-			redisImpl.setFuturyCoins(fc);
-			mongoImpl.setFuturyCoins(fc);
+			return UserData.this;
 		}
-		else if (cached())
-			redisImpl.setFuturyCoins(fc);
-		else
-			mongoImpl.setFuturyCoins(fc);
-	}
 
-	public int getTurfuryCoins()
-	{
-		return cached() ? redisImpl.getTurfuryCoins() : mongoImpl.getTurfuryCoins();
-	}
-
-	public void setTurfuryCoins(int tc, boolean forced)
-	{
-		if(forced)
+		@Override
+		public String toString()
 		{
-			redisImpl.setTurfuryCoins(tc);
-			mongoImpl.setTurfuryCoins(tc);
+			return "Delayer{" +
+					"deadLine=" + deadLine +
+					", getDelay(TimeUnit.MILLISECONDS)=" + getDelay(TimeUnit.MILLISECONDS) +
+					'}';
 		}
-		else if (cached())
-			redisImpl.setTurfuryCoins(tc);
-		else
-			mongoImpl.setTurfuryCoins(tc);
-	}
 
-	public Group getGroup()
-	{
-		return cached() ? redisImpl.getGroup() : redisImpl.getGroup();
-	}
-
-	public void setGroup(Group g, boolean forced)
-	{
-		if(forced)
+		@Override
+		public long getDelay(TimeUnit unit) //Negative when deadLine passed
 		{
-			redisImpl.setGroup(g);
-			mongoImpl.setGroup(g);
+			return unit.convert(deadLine - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		}
-		else if (cached())
-			redisImpl.setGroup(g);
-		else
-			mongoImpl.setGroup(g);
-	}
 
+		@Override
+		public int compareTo(Delayed o) //Older first
+		{
+			return (deadLine == ((Delayer) o).deadLine ? 0 : (deadLine > ((Delayer) o).deadLine ? -1 : 1));
+		}
+
+		@Override
+		public boolean equals(Object o)
+		{
+			return o instanceof Delayer && ((Delayer) o).deadLine == deadLine;
+		}
+
+		@Override
+		public int hashCode()
+		{
+			return (int) (deadLine ^ (deadLine >>> 32));
+		}
+	}
 }
