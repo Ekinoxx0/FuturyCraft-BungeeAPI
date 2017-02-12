@@ -1,11 +1,19 @@
 package api.utils;
 
 /**
- * Created by SkyBeast on 04/01/2017.
+ * A simple manager.
  */
 public interface SimpleManager
 {
+	/**
+	 * Init the manager.
+	 * Should never be called twice.
+	 */
 	default void init() {}
 
+	/**
+	 * Stop the manager.
+	 * Should never be called twice.
+	 */
 	default void stop() {}
 }
