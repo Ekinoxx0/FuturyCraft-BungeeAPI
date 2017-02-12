@@ -100,7 +100,7 @@ public final class LobbyManager implements SimpleManager
 			throw new RuntimeException("No normal vip template");
 
 		lobbyVariants = normal.get().getVariants();
-		vipLobbyVariants = normal.get().getVariants();
+		vipLobbyVariants = vip.get().getVariants();
 
 		maxSlots = config.getMaxSlots();
 	}
@@ -226,6 +226,8 @@ public final class LobbyManager implements SimpleManager
 			int accepted = 0;
 			if (acceptedPlayers.containsKey(lobby))
 				accepted = acceptedPlayers.get(lobby);
+
+			acceptedPlayers.put(lobby, accepted + 1);
 
 			if (accepted >= ACCEPT_PLAYERS)
 				changeAcceptLobby();

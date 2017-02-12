@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b6a52068-622f-4602-aa66-ab9b265d8e2f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/api/events/DeployerConfigReloadEvent.java" />
+    <list default="true" id="b6a52068-622f-4602-aa66-ab9b265d8e2f" name="Default" comment="Updated Lobby Manager x2">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java" afterPath="$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java" />
     </list>
@@ -36,22 +35,30 @@
       <file leaf-file-name="LobbyManager.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3140">
-              <caret line="207" column="66" lean-forward="false" selection-start-line="207" selection-start-column="66" selection-end-line="207" selection-end-column="66" />
+            <state relative-caret-position="-1451">
+              <caret line="102" column="30" lean-forward="false" selection-start-line="102" selection-start-column="30" selection-end-line="102" selection-end-column="30" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#7061#7062#0" expanded="true" />
-                <element signature="e#7082#7083#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Collector.class" pinned="false" current-in-tab="false">
-        <entry file="jar:///usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar!/java/util/stream/Collector.class">
+      <file leaf-file-name="Server.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/api/data/Server.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="18" column="17" lean-forward="false" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+            <state relative-caret-position="234">
+              <caret line="20" column="20" lean-forward="true" selection-start-line="20" selection-start-column="20" selection-end-line="20" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DeployerConfig.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/api/config/DeployerConfig.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="162">
+              <caret line="20" column="18" lean-forward="false" selection-start-line="20" selection-start-column="18" selection-end-line="20" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -1404,11 +1411,18 @@
       <option name="project" value="LOCAL" />
       <updated>1486916355462</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Updated Lobby Manager">
+      <created>1486938798176</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1486938798176</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="256346000" />
+    <option name="totallyTimeSpent" value="256928000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1426,6 +1440,7 @@
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32930845" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.35604396" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1453,7 +1468,6 @@
       <window_info id="JRebel Executor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3263506" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Statistic" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32855567" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.35611907" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="JRebel" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.49944875" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1531,7 +1545,9 @@
     <MESSAGE value="Add group to DB + Add group command class" />
     <MESSAGE value="Add add/rem/list/set GroupCommands" />
     <MESSAGE value="Change UserData and DataManager functions." />
-    <option name="LAST_COMMIT_MESSAGE" value="Change UserData and DataManager functions." />
+    <MESSAGE value="Updated Lobby Manager" />
+    <MESSAGE value="Updated Lobby Manager x2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated Lobby Manager x2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1744,22 +1760,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/DeployerConfig.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="684">
-          <caret line="49" column="58" lean-forward="false" selection-start-line="49" selection-start-column="58" selection-end-line="49" selection-end-column="58" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/Variant.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="19" column="30" lean-forward="false" selection-start-line="19" selection-start-column="30" selection-end-line="19" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/com/github/docker-java/docker-java/3.0.6/docker-java-3.0.6.jar!/com/github/dockerjava/api/command/CreateContainerCmd.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="183">
@@ -1808,26 +1808,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar:///usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar!/java/util/stream/Collector.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="18" column="17" lean-forward="false" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar:///usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar!/java/util/stream/Collectors.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="401">
           <caret line="89" column="19" lean-forward="true" selection-start-line="89" selection-start-column="19" selection-end-line="89" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/Template.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="1" column="0" lean-forward="true" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1866,22 +1850,52 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/api/data/Server.java">
+    <entry file="jar:///usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar!/java/util/stream/Collector.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="18" column="17" lean-forward="false" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/Template.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
-          <caret line="15" column="13" lean-forward="false" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
+          <caret line="12" column="13" lean-forward="false" selection-start-line="12" selection-start-column="13" selection-end-line="12" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/Variant.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="10" column="13" lean-forward="false" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/api/config/DeployerConfig.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="20" column="18" lean-forward="false" selection-start-line="20" selection-start-column="18" selection-end-line="20" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/api/data/Server.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="20" column="20" lean-forward="true" selection-start-line="20" selection-start-column="20" selection-end-line="20" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/api/lobby/LobbyManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3140">
-          <caret line="207" column="66" lean-forward="false" selection-start-line="207" selection-start-column="66" selection-end-line="207" selection-end-column="66" />
+        <state relative-caret-position="-1451">
+          <caret line="102" column="30" lean-forward="false" selection-start-line="102" selection-start-column="30" selection-end-line="102" selection-end-column="30" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#7061#7062#0" expanded="true" />
-            <element signature="e#7082#7083#0" expanded="true" />
           </folding>
         </state>
       </provider>
