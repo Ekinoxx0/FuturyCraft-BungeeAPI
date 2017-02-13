@@ -2,7 +2,6 @@ package api.utils;
 
 import api.Main;
 import api.commands.BossBarMessageCommand;
-import api.data.DataManager;
 import api.data.Server;
 import api.data.UserData;
 import api.events.PacketReceivedEvent;
@@ -101,14 +100,15 @@ public class UtilsListener implements SimpleManager, Listener
 	@EventHandler
 	public void onReceivePacket(PacketReceivedEvent e)
 	{
-		if(e.getPacket() instanceof InBossBarMessages)
+		if (e.getPacket() instanceof InBossBarMessages)
 		{
 
 			if (BOSS_BAR_MESSAGES.isEmpty())
 			{
 				FindIterable<Document> fi = BossBarMessageCommand.getCOLLECTION().find();
 				for (Document doc : fi)
-					BOSS_BAR_MESSAGES.add(new BossBarMessagesPacket.MessageData(String.valueOf(doc.get("message")), (int) doc.get("time")));
+					BOSS_BAR_MESSAGES.add(new BossBarMessagesPacket.MessageData(String.valueOf(doc.get("message")),
+							(int) doc.get("time")));
 			}
 
 			sendBossBarMessagesPacket(e.getFrom());

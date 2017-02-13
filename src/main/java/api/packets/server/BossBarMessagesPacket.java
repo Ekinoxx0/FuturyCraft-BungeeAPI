@@ -21,7 +21,7 @@ public class BossBarMessagesPacket extends OutPacket
 	public void write(DataOutputStream out) throws IOException
 	{
 		out.writeShort(messages.size());
-		for(MessageData data : messages)
+		for (MessageData data : messages)
 			data.write(out);
 	}
 

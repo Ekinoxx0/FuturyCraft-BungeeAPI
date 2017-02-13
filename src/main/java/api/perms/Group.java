@@ -3,11 +3,7 @@ package api.perms;
 import api.Main;
 import gnu.trove.list.TIntList;
 import lombok.Data;
-import net.md_5.bungee.api.ChatColor;
 import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by loucass003 on 2/5/17.
@@ -37,12 +33,12 @@ public class Group
 	{
 		return doc != null ?
 				new Group(
-					doc.getString("name"),
-					doc.getString("prefix"),
-					doc.getString("suffix"),
-					doc.get("perms", TIntList.class),
-					doc.getString("color"),
-					doc.getString("chatColor")
+						doc.getString("name"),
+						doc.getString("prefix"),
+						doc.getString("suffix"),
+						doc.get("perms", TIntList.class),
+						doc.getString("color"),
+						doc.getString("chatColor")
 				)
 				: null;
 	}
@@ -64,11 +60,11 @@ public class Group
 
 	public static boolean hasPerm(Group group, String perm)
 	{
-		if(group == null)
+		if (group == null)
 			return false;
 
-		for(int i : group.getPerms().toArray())
-			if(perm.equals(Main.getInstance().getPermsManager().getPerms().get(i)))
+		for (int i : group.getPerms().toArray())
+			if (perm.equals(Main.getInstance().getPermsManager().getPerms().get(i)))
 				return true;
 		return false;
 	}

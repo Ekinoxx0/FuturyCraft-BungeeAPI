@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  * Created by SkyBeast on 19/12/2016.
  */
 @ToString
-public final class DataManager implements SimpleManager
+public final class ServerDataManager implements SimpleManager
 {
 	private final ExecutorService exec = Executors.newSingleThreadExecutor();
 	private final List<Server> servers = new CopyOnWriteArrayList<>();

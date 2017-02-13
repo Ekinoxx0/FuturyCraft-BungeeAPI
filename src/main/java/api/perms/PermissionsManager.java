@@ -1,7 +1,6 @@
 package api.perms;
 
 import api.Main;
-import api.data.DataManager;
 import api.perms.events.GroupRemovedEvent;
 import api.perms.events.GroupUpdatedEvent;
 import api.utils.SimpleManager;
@@ -16,6 +15,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import org.bson.Document;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -49,7 +49,8 @@ public class PermissionsManager implements SimpleManager
 
 	public void addGroup(Group g)
 	{
-		Utils.doLocked(() -> {
+		Utils.doLocked(() ->
+		{
 			GROUPS.add(g);
 			addGroupToDB(g);
 		}, groupsLock);
@@ -73,18 +74,19 @@ public class PermissionsManager implements SimpleManager
 
 	public Group getGroupByName(String name)
 	{
-		if(name == null)
+		if (name == null)
 			return null;
 		return Utils.returnLocked(() ->
-					GROUPS.stream()
-						.filter(g -> g.getName().equals(name))
-						.findFirst()
-						.orElseGet(() -> {
-							Document doc = groupsCollection.find(Filters.eq("name", name)).first();
-							Group group = Group.fromDoc(doc);
-							if(group != null) GROUPS.add(group);
-							return group;
-						}),
+						GROUPS.stream()
+								.filter(g -> g.getName().equals(name))
+								.findFirst()
+								.orElseGet(() ->
+								{
+									Document doc = groupsCollection.find(Filters.eq("name", name)).first();
+									Group group = Group.fromDoc(doc);
+									if (group != null) GROUPS.add(group);
+									return group;
+								}),
 				groupsLock);
 	}
 
@@ -93,7 +95,7 @@ public class PermissionsManager implements SimpleManager
 		return Utils.returnLocked(() ->
 		{
 			int count = (int) groupsCollection.count();
-			if(GROUPS.size() == count)
+			if (GROUPS.size() == count)
 				return GROUPS;
 			FindIterable<Document> docs = groupsCollection.find();
 			docs.forEach((Block<? super Document>) doc -> getGroupByName(Group.fromDoc(doc).getName()));
@@ -120,7 +122,7 @@ public class PermissionsManager implements SimpleManager
 	{
 		TIntObjectMap<String> perms = new TIntObjectHashMap<>();
 		FindIterable<Document> docs = permsCollection.find();
-		if(docs == null)
+		if (docs == null)
 			return perms;
 		docs.forEach((Block<? super Document>) doc -> perms.put(doc.getInteger("id"), doc.getString("value")));
 		return perms;

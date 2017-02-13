@@ -1,7 +1,7 @@
 package api.panel;
 
 import api.Main;
-import api.events.*;
+import api.events.PanelPacketReceivedEvent;
 import api.packets.IncPacket;
 import api.utils.SimpleManager;
 import lombok.AccessLevel;

@@ -2,7 +2,6 @@ package api.events;
 
 import api.data.Server;
 import api.deployer.ServerState;
-import api.packets.server.ServerStatePacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.md_5.bungee.api.plugin.Event;

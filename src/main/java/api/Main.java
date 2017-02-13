@@ -2,7 +2,7 @@ package api;
 
 import api.commands.BossBarMessageCommand;
 import api.commands.DispatchCommand;
-import api.data.DataManager;
+import api.data.ServerDataManager;
 import api.data.UserData;
 import api.data.UserDataManager;
 import api.deployer.Deployer;
@@ -37,7 +37,7 @@ public final class Main extends Plugin
 	private final Morphia morphia;
 
 	private final MessengerServer messenger;
-	private final DataManager dataManager;
+	private final ServerDataManager dataManager;
 	private final UserDataManager userDataManager;
 	private final Deployer deployer;
 	private final KeepAliveManager keepAliveManager;
@@ -57,7 +57,7 @@ public final class Main extends Plugin
 		mainDataStore = morphia.createDatastore(mongoClient, "FcDeployer");
 
 		messenger = new MessengerServer();
-		dataManager = new DataManager();
+		dataManager = new ServerDataManager();
 		userDataManager = new UserDataManager();
 		permsManager = new PermissionsManager();
 		deployer = new Deployer();

@@ -5,8 +5,10 @@ import api.config.Variant;
 import api.deployer.ServerState;
 import api.packets.MessengerClient;
 import api.packets.server.KeepAlivePacket;
-import api.packets.server.ServerStatePacket;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.config.ServerInfo;
 
 /**
