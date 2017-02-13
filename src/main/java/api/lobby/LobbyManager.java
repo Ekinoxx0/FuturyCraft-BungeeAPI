@@ -74,8 +74,8 @@ public final class LobbyManager implements SimpleManager
 		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> acceptLobby = server);
 		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
 
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipAcceptLobby = server);
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipWaitingLobby = server);
+		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipAcceptLobby = server);
+		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipWaitingLobby = server);
 
 		init = true;
 	}
@@ -142,7 +142,7 @@ public final class LobbyManager implements SimpleManager
 	private void changeVIPAcceptLobby()
 	{
 		vipAcceptLobby = vipWaitingLobby;
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipWaitingLobby = server);
+		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipWaitingLobby = server);
 	}
 
 	private void scheduleWarn(Server server)

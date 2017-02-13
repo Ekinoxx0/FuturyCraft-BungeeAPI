@@ -3,6 +3,8 @@ package api.data;
 import api.Main;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.mongodb.morphia.annotations.Entity;
@@ -17,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  * Created by SkyBeast on 12/02/17.
  */
 @Entity
+@NoArgsConstructor
 public class UserData
 {
 	@Getter
@@ -30,6 +33,11 @@ public class UserData
 	@Getter
 	private long turfuryCoins;
 	private transient Delayer delayer;
+
+	public UserData(UUID uniqueID)
+	{
+		this.uniqueID = uniqueID;
+	}
 
 	public static UserData get(ProxiedPlayer player)
 	{

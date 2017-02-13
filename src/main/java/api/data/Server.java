@@ -27,7 +27,7 @@ public class Server
 	private ServerState serverState = ServerState.STARTING;
 
 	private long lastKeepAlive = -1;
-	private byte[] lastTPS = new byte[3];
+	private short[] lastTPS = new short[3];
 
 	public Server(String id, ServerType type, Variant variant, ServerInfo info)
 	{

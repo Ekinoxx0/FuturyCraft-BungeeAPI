@@ -113,7 +113,6 @@ public final class LogManager implements SimpleManager
 			String fDate = dateFormat.format(date);
 			ftp.makeDirectory("/logs/" + fDate);
 			ftp.appendFile("/logs/" + fDate + '/' + timeFormat.format(date), new FileInputStream(zip));
-
 			ftp.logout();
 			ftp.disconnect();
 		}

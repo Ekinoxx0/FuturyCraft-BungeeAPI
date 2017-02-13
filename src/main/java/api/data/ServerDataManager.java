@@ -5,10 +5,13 @@ import api.deployer.ServerState;
 import api.events.ServerChangeStateEvent;
 import api.packets.MessengerClient;
 import api.utils.SimpleManager;
+import gnu.trove.list.TShortList;
+import gnu.trove.list.array.TShortArrayList;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +32,7 @@ public final class ServerDataManager implements SimpleManager
 {
 	private final ExecutorService exec = Executors.newSingleThreadExecutor();
 	private final List<Server> servers = new CopyOnWriteArrayList<>();
-	private final AtomicInteger serverCount = new AtomicInteger();
+	private final List<Short> ports = new CopyOnWriteArrayList<>();
 	private boolean init;
 	private volatile boolean end;
 
@@ -92,16 +96,20 @@ public final class ServerDataManager implements SimpleManager
 	 * @param maxPort the max bound
 	 * @return the next deployer port
 	 */
-	public int getNextDeployerPort(int minPort, int maxPort)
+	public synchronized int getNextDeployerPort(int minPort, int maxPort)
 	{
-		List<Integer> ports = servers.stream()
-				.map(server -> server.getInfo().getAddress().getPort())
-				.collect(Collectors.toList());
+		int port = IntStream.range(minPort , maxPort)
+				.filter(i -> !ports.contains((short)i))
+				.findFirst()
+				.orElseThrow(
+						() -> new IllegalStateException("Unable to find port!")
+				);
+		registerPort(port);
+		return port;
+	}
 
-		return Stream.iterate(minPort, port -> port + 1)
-				.limit(maxPort)
-				.filter(i -> !ports.contains(i))
-				.findFirst().orElse(-1);
+	public void registerPort(int port) {
+		ports.add((short)port);
 	}
 
 	/**
@@ -127,7 +135,6 @@ public final class ServerDataManager implements SimpleManager
 	 */
 	public void registerServer(Server server)
 	{
-		serverCount.getAndIncrement();
 		servers.add(server);
 	}
 
@@ -138,8 +145,8 @@ public final class ServerDataManager implements SimpleManager
 	 */
 	public void unregisterServer(Server server)
 	{
-		serverCount.getAndDecrement();
 		servers.remove(server);
+		ports.remove((short) server.getInfo().getAddress().getPort());
 	}
 
 	/**
@@ -149,7 +156,7 @@ public final class ServerDataManager implements SimpleManager
 	 */
 	public int getServerCount()
 	{
-		return serverCount.get();
+		return servers.size();
 	}
 
 	/**

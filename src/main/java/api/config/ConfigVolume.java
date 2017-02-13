@@ -10,5 +10,5 @@ public class ConfigVolume
 {
 	private final String host;
 	private final String container;
-	private final boolean readOnly = false;
+	private final boolean readOnly;
 }

@@ -18,6 +18,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +50,9 @@ public final class Deployer implements SimpleManager
 	{
 		if (init)
 			throw new IllegalStateException("Already initialised!");
-
 		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
 		dockerClient = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build();
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers
-				(this::kill)));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(this::kill)));
 		init = true;
 	}
 
@@ -61,42 +60,57 @@ public final class Deployer implements SimpleManager
 	{
 		exec.submit(() ->
 				{
-					ExposedPort tcpMc = ExposedPort.tcp(25565);
-					Ports portBindings = new Ports();
-					int port = getNextPort();
-					portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
-
-					CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
-							.withMemory(v.getMaxRam() * 8 * 1024L)
-							.withExposedPorts(tcpMc)
-							.withPortBindings(portBindings);
-
-					List<Volume> volumes = new ArrayList<>();
-					List<Bind> binds = new ArrayList<>();
-					v.getVolumes().forEach(cv ->
+					try
 					{
-						File bind = new File(config.getBaseDir(), cv.getHost());
-						Volume volume = new Volume(cv.getContainer());
-						volumes.add(volume);
-						binds.add(new Bind(bind.getAbsolutePath(), volume, cv.isReadOnly() ? AccessMode.ro :
-								AccessMode.rw));
-					});
-					cmd.withVolumes(volumes);
-					cmd.withBinds(binds);
+						ExposedPort tcpMc = ExposedPort.tcp(25565);
+						ExposedPort tcpSoc = ExposedPort.tcp(5555);
+						Ports portBindings = new Ports();
+						int port = getNextPort();
+						portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
+						portBindings.bind(tcpSoc, Ports.Binding.bindPort(5555));
 
-					CreateContainerResponse container = cmd.exec();
-					System.out.println("create container -> " + container.getId());
-					dockerClient.startContainerCmd(container.getId()).exec();
-					InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
-					String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
-					ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new
-							InetSocketAddress(host, port), "", false);
-					ProxyServer.getInstance().getServers().put(container.getId(), s);
-					Server server = new Server(container.getId(), type, v, s);
-					Main.getInstance().getDataManager().registerServer(server);
+						CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
+								.withMemory(v.getMaxRam() * (long)Math.pow(1024, 2))
+								.withExposedPorts(tcpMc, tcpSoc)
+								.withPortBindings(portBindings);
 
-					if (callback != null)
-						callback.response(server);
+						List<Volume> volumes = new ArrayList<>();
+						List<Bind> binds = new ArrayList<>();
+						v.getVolumes().forEach(cv ->
+						{
+							try
+							{
+								File bind = new File(config.getBaseDir(), cv.getHost());
+								Volume volume = new Volume(cv.getContainer());
+								volumes.add(volume);
+								binds.add(new Bind(bind.getCanonicalPath(), volume, cv.isReadOnly() ? AccessMode.ro : AccessMode.rw));
+							}
+							catch (IOException e)
+							{
+								Main.getInstance().getLogger().log(Level.SEVERE, "Unable to create path volume for " + cv.getHost(), e);
+							}
+						});
+						cmd.withVolumes(volumes);
+						cmd.withBinds(binds);
+
+						CreateContainerResponse container = cmd.exec();
+						System.out.println("create container -> " + container.getId());
+						dockerClient.startContainerCmd(container.getId()).exec();
+						InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
+						String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
+						ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
+						ProxyServer.getInstance().getServers().put(container.getId(), s);
+						Server server = new Server(container.getId(), type, v, s);
+						Main.getInstance().getDataManager().registerServer(server);
+
+						if (callback != null)
+							callback.response(server);
+					} catch (Throwable e)
+					{
+						e.printStackTrace();
+					}
+
+
 				}
 		);
 	}

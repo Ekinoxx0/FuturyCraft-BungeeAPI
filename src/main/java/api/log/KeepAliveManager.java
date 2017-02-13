@@ -104,12 +104,9 @@ public final class KeepAliveManager implements SimpleManager
 		Main.getInstance().getLogger().info("Sending keep-alives...");
 
 		Date now = new Date();
-		Document doc = new Document("ts", System.currentTimeMillis())
-				.append("time", timeFormat.format(now));
+		Document doc = new Document("ts", System.currentTimeMillis()).append("time", timeFormat.format(now));
 		cache.forEach(server -> putKeepAlive(server, doc));
-
 		mongoDatabase.getCollection(dateFormat.format(now)).insertOne(doc);
-
 		cache.clear();
 	}
 
@@ -159,8 +156,7 @@ public final class KeepAliveManager implements SimpleManager
 
 		//Stop server
 
-		Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server +
-				" did not send keep-alive");
+		Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server + " did not send keep-alive");
 	}
 
 	@Override

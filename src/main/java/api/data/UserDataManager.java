@@ -107,7 +107,7 @@ public class UserDataManager implements SimpleManager
 		 * If the player is cached in the disconnectQueue, then the player is pulled from Redis.
 		 * Else, the player is pulled from Mongo.
 		 */
-		@EventHandler(priority = EventPriority.HIGHEST)
+		@EventHandler(priority = EventPriority.LOWEST)
 		public void onJoin(ServerConnectEvent event)
 		{
 			ProxiedPlayer player = event.getPlayer();
@@ -127,7 +127,7 @@ public class UserDataManager implements SimpleManager
 		private UserData getUserFromDB(UUID uuid)
 		{
 			UserData data = Main.getInstance().getMainDataStore().get(UserData.class, uuid);
-			return data == null ? new UserData() : data;
+			return data == null ? new UserData(uuid) : data;
 		}
 
 		/**
@@ -159,7 +159,7 @@ public class UserDataManager implements SimpleManager
 		 */
 		private void addPlayer(UserData data)
 		{
-			System.out.println("add user -> " + data);
+			System.out.println("add user plop -> " + data);
 			users.put(data.getUniqueID(), data);
 		}
 

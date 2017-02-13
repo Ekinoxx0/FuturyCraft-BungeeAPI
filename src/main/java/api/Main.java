@@ -20,6 +20,7 @@ import lombok.ToString;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.mapping.DefaultCreator;
 
 import java.io.File;
 
@@ -54,6 +55,13 @@ public final class Main extends Plugin
 		mainDatabase = mongoClient.getDatabase("FcDeployer");
 		morphia = new Morphia();
 		morphia.map(UserData.class);
+		morphia.getMapper().getOptions().setObjectFactory(new DefaultCreator() {
+			@Override
+			protected ClassLoader getClassLoaderForClass()
+			{
+				return Main.class.getClassLoader();
+			}
+		});
 		mainDataStore = morphia.createDatastore(mongoClient, "FcDeployer");
 
 		messenger = new MessengerServer();
