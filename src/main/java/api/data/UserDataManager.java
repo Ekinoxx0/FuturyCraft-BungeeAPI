@@ -126,7 +126,8 @@ public class UserDataManager implements SimpleManager
 		 */
 		private UserData getUserFromDB(UUID uuid)
 		{
-			return Main.getInstance().getMainDataStore().get(UserData.class, uuid);
+			UserData data = Main.getInstance().getMainDataStore().get(UserData.class, uuid);
+			return data == null ? new UserData() : data;
 		}
 
 		/**
@@ -190,7 +191,6 @@ public class UserDataManager implements SimpleManager
 		 */
 		private void addToDisconnectQueue(UserData data)
 		{
-
 			disconnectQueue.add(data.getDelayer());
 		}
 	}
