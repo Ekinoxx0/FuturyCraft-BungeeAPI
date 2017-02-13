@@ -14,11 +14,13 @@ import java.io.IOException;
 @EqualsAndHashCode(callSuper = false)
 public class KeepAlivePacket extends IncPacket
 {
-	private final byte[] lastTPS = new byte[3];
+	private final short[] lastTPS = new short[3];
 
 	public KeepAlivePacket(DataInputStream data) throws IOException
 	{
 		super(data);
-		data.readFully(lastTPS);
+		lastTPS[0] = data.readShort();
+		lastTPS[1] = data.readShort();
+		lastTPS[2] = data.readShort();
 	}
 }
