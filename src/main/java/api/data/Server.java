@@ -53,6 +53,10 @@ public class Server
 		lastTPS = keepAlivePacket.getLastTPS();
 	}
 
+	public int getPort() {
+		return info.getAddress().getPort();
+	}
+
 	public boolean isLobby()
 	{
 		return type == ServerType.LOBBY;

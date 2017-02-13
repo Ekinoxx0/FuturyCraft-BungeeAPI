@@ -121,7 +121,12 @@ public final class KeepAliveManager implements SimpleManager
 	 */
 	private void putKeepAlive(Server server, Document doc)
 	{
-		//TODO: put keepAlive
+		doc.put(server.getId(),
+				new Document("name", server.getName())
+						.append("port", server.getPort())
+						.append("lastKeepAlive", server.getLastKeepAlive())
+						.append("tps", server.getLastTPS())
+		);
 	}
 
 	/*
@@ -135,8 +140,7 @@ public final class KeepAliveManager implements SimpleManager
 								(
 										server ->
 										{
-											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000
-													* 90)
+											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
 												fatality(server);
 										}
 								),
