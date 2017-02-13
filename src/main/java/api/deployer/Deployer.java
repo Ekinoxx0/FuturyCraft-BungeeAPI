@@ -88,6 +88,7 @@ public final class Deployer implements SimpleManager
 					InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
 					String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
 					ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
+					ProxyServer.getInstance().getServers().put(container.getId(), s);
 					Server server = new Server(container.getId(), type, v, s);
 					Main.getInstance().getDataManager().registerServer(server);
 
