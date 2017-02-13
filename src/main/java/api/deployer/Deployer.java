@@ -69,6 +69,8 @@ public final class Deployer implements SimpleManager
 				{
 					try
 					{
+						labels.put("type", type.toString());
+						labels.put("variant", v.getName());
 						ExposedPort tcpMc = ExposedPort.tcp(25565);
 						ExposedPort tcpSoc = ExposedPort.tcp(5555);
 						Ports portBindings = new Ports();

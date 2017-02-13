@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class Variant
 {
+	private final String name;
 	private final int slots;
 	private final int maxRam;
 	private final String img;
