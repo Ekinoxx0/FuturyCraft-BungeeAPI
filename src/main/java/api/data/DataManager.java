@@ -4,24 +4,22 @@ import api.Main;
 import api.deployer.ServerState;
 import api.events.ServerChangeStateEvent;
 import api.packets.MessengerClient;
-import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
-import api.utils.Utils;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Used to save players' data to Redis and Mongo.
+ * Used to save players' data MongoDB.
  * <p>
  * Created by SkyBeast on 19/12/2016.
  */
@@ -29,8 +27,7 @@ import java.util.stream.Stream;
 public final class DataManager implements SimpleManager
 {
 	private final ExecutorService exec = Executors.newSingleThreadExecutor();
-	private final List<Server> servers = new ArrayList<>();
-	private final ReentrantLock serversLock = new ReentrantLock();
+	private final List<Server> servers = new CopyOnWriteArrayList<>();
 	private final AtomicInteger serverCount = new AtomicInteger();
 	private boolean init;
 	private volatile boolean end;
@@ -60,13 +57,9 @@ public final class DataManager implements SimpleManager
 	 */
 	public Server findServerByPort(int port)
 	{
-		return Utils.returnLocked
-				(
-						() -> servers.stream()
-								.filter(srv -> srv.getInfo().getAddress().getPort() == port)
-								.findAny().orElse(null),
-						serversLock
-				);
+		return servers.stream()
+				.filter(srv -> srv.getInfo().getAddress().getPort() == port)
+				.findAny().orElse(null);
 	}
 
 	/**
@@ -76,28 +69,20 @@ public final class DataManager implements SimpleManager
 	 */
 	public void forEachServers(Consumer<? super Server> consumer)
 	{
-		Utils.doLocked
-				(
-						() -> servers.forEach(consumer),
-						serversLock
-				);
+		servers.forEach(consumer);
 	}
 
 	/**
 	 * Do whatever you want with the servers, but safely.
 	 *
 	 * @param consumer what to do
-	 * @param type type filter
+	 * @param type     type filter
 	 */
 	public void forEachServersByType(Consumer<? super Server> consumer, Server.ServerType type)
 	{
-		Utils.doLocked
-				(
-						() -> servers.stream()
-								.filter(server -> server.getType() == type)
-								.forEach(consumer),
-						serversLock
-				);
+		servers.stream()
+				.filter(server -> server.getType() == type)
+				.forEach(consumer);
 	}
 
 	/**
@@ -109,20 +94,14 @@ public final class DataManager implements SimpleManager
 	 */
 	public int getNextDeployerPort(int minPort, int maxPort)
 	{
-		return Utils.returnLocked
-				(
-						() ->
-						{
-							List<Integer> ports = servers.stream()
-									.map(server -> server.getInfo().getAddress().getPort())
-									.collect(Collectors.toList());
-							return Stream.iterate(minPort, port -> port + 1)
-									.limit(maxPort)
-									.filter(i -> !ports.contains(i))
-									.findFirst().orElse(-1);
-						},
-						serversLock
-				);
+		List<Integer> ports = servers.stream()
+				.map(server -> server.getInfo().getAddress().getPort())
+				.collect(Collectors.toList());
+
+		return Stream.iterate(minPort, port -> port + 1)
+				.limit(maxPort)
+				.filter(i -> !ports.contains(i))
+				.findFirst().orElse(-1);
 	}
 
 	/**
@@ -135,14 +114,10 @@ public final class DataManager implements SimpleManager
 	{
 		if (info == null) return null;
 
-		return Utils.returnLocked
-				(
-						() -> servers.stream()
-								.filter(server -> server.getInfo().equals(info))
-								.findFirst()
-								.orElse(null),
-						serversLock
-				);
+		return servers.stream()
+				.filter(server -> server.getInfo().equals(info))
+				.findFirst()
+				.orElse(null);
 	}
 
 	/**
@@ -153,7 +128,7 @@ public final class DataManager implements SimpleManager
 	public void registerServer(Server server)
 	{
 		serverCount.getAndIncrement();
-		Utils.doLocked(() -> servers.add(server), serversLock);
+		servers.add(server);
 	}
 
 	/**
@@ -164,7 +139,7 @@ public final class DataManager implements SimpleManager
 	public void unregisterServer(Server server)
 	{
 		serverCount.getAndDecrement();
-		Utils.doLocked(() -> servers.remove(server), serversLock);
+		servers.remove(server);
 	}
 
 	/**

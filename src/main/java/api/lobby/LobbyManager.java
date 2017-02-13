@@ -5,11 +5,12 @@ import api.config.DeployerConfig;
 import api.config.Template;
 import api.config.Variant;
 import api.data.Server;
-import api.deployer.ServerState;
+import api.data.UserData;
 import api.events.DeployerConfigReloadEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
 import api.utils.SimpleManager;
+import api.utils.concurrent.Callback;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import lombok.ToString;
@@ -17,6 +18,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
@@ -35,8 +37,8 @@ public final class LobbyManager implements SimpleManager
 	private static final int ACCEPT_PLAYERS = 50;
 	private static final int WARNING_TIME = 1000 * 60 * 13; //13min
 	private static final int SERVER_STOP_TIME = 1000 * 60 * 2; //2min
-	private static final BaseComponent[] WARNING = new ComponentBuilder("Vous avez été déconnecté car le serveur " +
-			"va redémarrer.").color(ChatColor.GREEN).create();
+	private static final BaseComponent[] WARNING = new ComponentBuilder("Vous avez été déconnecté car le serveur va " +
+			"redémarrer.").color(ChatColor.GREEN).create();
 	private static final BaseComponent[] SERVER_STOP = new ComponentBuilder("Le serveur va redémarrer dans 2 " +
 			"minutes.").color(ChatColor.RED).create();
 	private static final BaseComponent[] SERVER_STARTING = new ComponentBuilder("Le serveur démarre").color(ChatColor
@@ -69,11 +71,11 @@ public final class LobbyManager implements SimpleManager
 
 		loadConfig();
 
-		acceptLobby = deployLobby(LobbyType.NORMAL, getNextVariant());
-		waitingLobby = deployLobby(LobbyType.NORMAL, getNextVariant());
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> acceptLobby = server);
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
 
-		vipAcceptLobby = deployLobby(LobbyType.VIP, getNextVIPVariant());
-		vipWaitingLobby = deployLobby(LobbyType.VIP, getNextVIPVariant());
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipAcceptLobby = server);
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipWaitingLobby = server);
 
 		init = true;
 	}
@@ -134,13 +136,13 @@ public final class LobbyManager implements SimpleManager
 	private void changeAcceptLobby()
 	{
 		acceptLobby = waitingLobby;
-		waitingLobby = deployLobby(LobbyType.NORMAL, getNextVariant());
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
 	}
 
 	private void changeVIPAcceptLobby()
 	{
 		vipAcceptLobby = vipWaitingLobby;
-		vipWaitingLobby = deployLobby(LobbyType.VIP, getNextVIPVariant());
+		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> vipWaitingLobby = server);
 	}
 
 	private void scheduleWarn(Server server)
@@ -172,7 +174,7 @@ public final class LobbyManager implements SimpleManager
 											player ->
 											{
 												player.sendMessage(SERVER_STOP);
-												player.connect(acceptLobby.getInfo());
+												tryConnect(player);
 											}
 									);
 
@@ -183,9 +185,21 @@ public final class LobbyManager implements SimpleManager
 				);
 	}
 
-	private Server deployLobby(LobbyType type, Variant v)
+	private boolean tryConnect(ProxiedPlayer player)
 	{
-		return Main.getInstance().getDeployer().deployServer(Server.ServerType.LOBBY, v);
+		if (acceptLobby == null || !acceptLobby.getServerState().canAcceptPlayers())
+		{
+			player.disconnect(SERVER_STARTING);
+			return false;
+		}
+
+		player.connect(acceptLobby.getInfo());
+		return true;
+	}
+
+	private void deployLobby(LobbyType type, Variant v, Callback<Server> callback)
+	{
+		Main.getInstance().getDeployer().deployServer(Server.ServerType.LOBBY, v, callback);
 	}
 
 	private void undeployLobby(Server server)
@@ -201,24 +215,18 @@ public final class LobbyManager implements SimpleManager
 		public void onPlayerJoinLobby(PlayerConnectToServerEvent event)
 		{
 			System.out.println("connectToServerEvent = " + event);
+			UserData data = event.getUser();
 
 			if (ProxyServer.getInstance().getPlayers().size() >= maxSlots)
 			{
-				event.getUser().getBungee().disconnect(SERVER_FULL);
+				data.getBungee().disconnect(SERVER_FULL);
 				return;
 			}
 
-			if (event.getCause() == PlayerConnectToServerEvent.ConnectionCause.NETWORK_CONNECT)
-				event.setTo(acceptLobby);
-			else if (!event.getTo().isLobby() && event.getTo() != acceptLobby)
+			if ((event.getCause() == PlayerConnectToServerEvent.ConnectionCause.NETWORK_CONNECT
+					&& !tryConnect(data.getBungee())) ||
+					(!event.getTo().isLobby() && event.getTo() != acceptLobby))
 				return;
-
-			if (event.getTo().getServerState() != ServerState.STARTED)
-			{
-				if (event.getUser() != null)
-					event.getUser().getBungee().disconnect(SERVER_STARTING);
-				return;
-			}
 
 			Server lobby = event.getTo();
 

@@ -2,7 +2,6 @@ package api.data;
 
 import api.Main;
 import api.utils.SimpleManager;
-import api.utils.Utils;
 import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import lombok.ToString;
@@ -14,12 +13,11 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 /**
@@ -29,10 +27,9 @@ import java.util.function.Consumer;
 public class UserDataManager implements SimpleManager
 {
 	private static final int SAVE_DELAY = 1000 * 60 * 2;
-	private final Map<UUID, UserData> users = new HashMap<>(); //All cached online users -- acquire usersLock before
+	private final Map<UUID, UserData> users = new ConcurrentHashMap<>(); //All cached online users -- acquire usersLock before
 	// editing
 	private final Listen listener = new Listen();
-	private final ReentrantLock usersLock = new ReentrantLock();
 	private final DelayQueue<UserData.Delayer> disconnectQueue = new DelayQueue<>(); //The queue where data is cached
 	// before sent to Mongo
 	private final ThreadLoop saverThread = setupSaverThread(); //The thread loop used to send all data from the
@@ -151,11 +148,7 @@ public class UserDataManager implements SimpleManager
 		private void addPlayer(UserData data)
 		{
 			System.out.println("add user -> " + data);
-			Utils.doLocked
-					(
-							() -> users.put(data.getUniqueID(), data),
-							usersLock
-					);
+			users.put(data.getUniqueID(), data);
 		}
 
 		/*
@@ -176,11 +169,7 @@ public class UserDataManager implements SimpleManager
 		 */
 		private void removeData(UserData data)
 		{
-			Utils.doLocked
-					(
-							() -> users.remove(data.getUniqueID()),
-							usersLock
-					);
+			users.remove(data.getUniqueID());
 		}
 
 		/**
@@ -207,11 +196,7 @@ public class UserDataManager implements SimpleManager
 	 */
 	public UserData getData(UUID id)
 	{
-		return Utils.returnLocked
-				(
-						() -> users.get(id),
-						usersLock
-				);
+		return users.get(id);
 	}
 
 	/**
@@ -232,11 +217,7 @@ public class UserDataManager implements SimpleManager
 	 */
 	public void forEachUsers(Consumer<? super UserData> consumer)
 	{
-		Utils.doLocked
-				(
-						() -> users.values().forEach(consumer),
-						usersLock
-				);
+		users.values().forEach(consumer);
 	}
 
 	/**
