@@ -27,7 +27,8 @@ import java.util.function.Consumer;
 public class UserDataManager implements SimpleManager
 {
 	private static final int SAVE_DELAY = 1000 * 60 * 2;
-	private final Map<UUID, UserData> users = new ConcurrentHashMap<>(); //All cached online users -- acquire usersLock before
+	private final Map<UUID, UserData> users = new ConcurrentHashMap<>(); //All cached online users -- acquire
+	// usersLock before
 	// editing
 	private final Listen listener = new Listen();
 	private final DelayQueue<UserData.Delayer> disconnectQueue = new DelayQueue<>(); //The queue where data is cached
@@ -82,9 +83,14 @@ public class UserDataManager implements SimpleManager
 				);
 	}
 
+	/**
+	 * Save the data to MongoDB.
+	 *
+	 * @param data the data to save
+	 */
 	private void saveData(UserData data)
 	{
-		//todo: save player
+		Main.getInstance().getMainDataStore().save(data);
 	}
 
 	/* ------------- */
@@ -107,15 +113,20 @@ public class UserDataManager implements SimpleManager
 			ProxiedPlayer player = event.getPlayer();
 			UserData data = reconnectPlayer(player);
 
-			if (data != null) // Already cached!
-			{
-				addPlayer(data);
-				return;
-			}
-
-			//todo: get player
+			if (data == null) // Not cached
+				data = getUserFromDB(player.getUniqueId());
 
 			addPlayer(data);
+		}
+
+		/**
+		 * Get a user from MongoDB.
+		 *
+		 * @return the user
+		 */
+		private UserData getUserFromDB(UUID uuid)
+		{
+			return Main.getInstance().getMainDataStore().get(UserData.class, uuid);
 		}
 
 		/**

@@ -3,6 +3,7 @@ package api;
 import api.commands.BossBarMessageCommand;
 import api.commands.DispatchCommand;
 import api.data.DataManager;
+import api.data.UserData;
 import api.data.UserDataManager;
 import api.deployer.Deployer;
 import api.lobby.LobbyManager;
@@ -17,6 +18,8 @@ import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 
 import java.io.File;
 
@@ -30,6 +33,8 @@ public final class Main extends Plugin
 	private static Main instance;
 	private final MongoClient mongoClient;
 	private final MongoDatabase mainDatabase;
+	private final Datastore mainDataStore;
+	private final Morphia morphia;
 
 	private final MessengerServer messenger;
 	private final DataManager dataManager;
@@ -47,6 +52,9 @@ public final class Main extends Plugin
 		instance = this;
 		mongoClient = new MongoClient();
 		mainDatabase = mongoClient.getDatabase("FcDeployer");
+		morphia = new Morphia();
+		morphia.map(UserData.class);
+		mainDataStore = morphia.createDatastore(mongoClient, "FcDeployer");
 
 		messenger = new MessengerServer();
 		dataManager = new DataManager();
