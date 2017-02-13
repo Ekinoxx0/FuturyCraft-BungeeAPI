@@ -1,5 +1,6 @@
 package api.data;
 
+import api.Main;
 import lombok.Data;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
@@ -29,6 +30,16 @@ public class UserData
 	@Getter
 	private long turfuryCoins;
 	private transient Delayer delayer;
+
+	public static UserData get(ProxiedPlayer player)
+	{
+		return Main.getInstance().getUserDataManager().getData(player);
+	}
+
+	public static UserData get(UUID player)
+	{
+		return Main.getInstance().getUserDataManager().getData(player);
+	}
 
 	Delayer getDelayer()
 	{

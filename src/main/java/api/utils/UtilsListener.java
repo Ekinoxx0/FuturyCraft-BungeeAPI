@@ -11,7 +11,6 @@ import api.packets.server.BossBarMessagesPacket;
 import api.packets.server.InBossBarMessages;
 import com.mongodb.client.FindIterable;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Event;
@@ -41,18 +40,20 @@ public class UtilsListener implements SimpleManager, Listener
 	{
 		net.md_5.bungee.api.connection.Server from = event.getPlayer().getServer();
 
+		UserData data = UserData.get(event.getPlayer());
+
 		PlayerConnectToServerEvent newEvent = from == null
 				? new PlayerConnectToServerEvent
 				(
 						null,
-						get(event.getPlayer()),
+						data,
 						PlayerConnectToServerEvent.ConnectionCause.NETWORK_CONNECT,
 						Server.get(event.getTarget())
 				)
 				: new PlayerConnectToServerEvent
 				(
 						Server.get(from.getInfo()),
-						get(event.getPlayer()),
+						data,
 						PlayerConnectToServerEvent.ConnectionCause.SERVER_SWITCH,
 						Server.get(event.getTarget())
 				);
@@ -68,7 +69,7 @@ public class UtilsListener implements SimpleManager, Listener
 					new PlayerDisconnectFromServerEvent
 							(
 									Server.get(from.getInfo()),
-									get(event.getPlayer()),
+									data,
 									PlayerDisconnectFromServerEvent.ConnectionCause.SERVER_SWITCH,
 									newEvent.getTo()
 							)
@@ -80,21 +81,19 @@ public class UtilsListener implements SimpleManager, Listener
 	public void onDisconnect(PlayerDisconnectEvent event)
 	{
 		net.md_5.bungee.api.connection.Server server = event.getPlayer().getServer();
+
+		UserData data = UserData.get(event.getPlayer());
+
 		callEvent
 				(
 						new PlayerDisconnectFromServerEvent
 								(
 										server == null ? null : Server.get(server.getInfo()),
-										get(event.getPlayer()),
+										data,
 										PlayerDisconnectFromServerEvent.ConnectionCause.NETWORK_DISCONNECT,
 										null
 								)
 				);
-	}
-
-	public UserData get(ProxiedPlayer p)
-	{
-		return Main.getInstance().getUserDataManager().getData(p);
 	}
 
 	@EventHandler
