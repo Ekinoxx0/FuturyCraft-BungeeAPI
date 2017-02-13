@@ -24,6 +24,16 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <artifactSet>
+            <excludes>
+              <exclude>META-INF/*.SF</exclude>
+              <exclude>META-INF/*.DSA</exclude>
+              <exclude>META-INF/*.RSA</exclude>
+              <exclude>junit:junit</exclude>
+            </excludes>
+          </artifactSet>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -56,10 +66,6 @@
           <artifactId>bungeecord-protocol</artifactId>
           <groupId>net.md-5</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>guava</artifactId>
-          <groupId>com.google.guava</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -84,10 +90,6 @@
         <exclusion>
           <artifactId>bungeecord-protocol</artifactId>
           <groupId>net.md-5</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>guava</artifactId>
-          <groupId>com.google.guava</groupId>
         </exclusion>
       </exclusions>
     </dependency>

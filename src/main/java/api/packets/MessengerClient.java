@@ -3,6 +3,7 @@ package api.packets;
 import api.Main;
 import api.data.Server;
 import api.events.PacketReceivedEvent;
+import api.utils.concurrent.Callback;
 import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import lombok.AccessLevel;

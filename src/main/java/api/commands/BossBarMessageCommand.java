@@ -1,12 +1,13 @@
 package api.commands;
 
 import api.Main;
-import api.deployer.DeployerServer;
+import api.data.Server;
 import api.packets.server.BossBarMessagesPacket;
 import api.utils.Utils;
 import api.utils.UtilsListener;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -19,6 +20,7 @@ import org.bson.Document;
  */
 public class BossBarMessageCommand extends Command
 {
+	@Getter
 	private static final MongoCollection<Document> COLLECTION = Main.getInstance().getMainDatabase()
 			.getCollection("bossBarMessages");
 
@@ -77,7 +79,7 @@ public class BossBarMessageCommand extends Command
 
 			Main.getInstance().getDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					DeployerServer.ServerType.LOBBY
+					Server.ServerType.LOBBY
 			);
 			sender.sendMessage(ADD_SUCCESS);
 		}
@@ -124,7 +126,7 @@ public class BossBarMessageCommand extends Command
 			sender.sendMessage(REM_SUCCESS);
 			Main.getInstance().getDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					DeployerServer.ServerType.LOBBY
+					Server.ServerType.LOBBY
 			);
 		}
 		else

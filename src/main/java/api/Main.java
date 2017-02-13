@@ -80,7 +80,6 @@ public final class Main extends Plugin
 		deployer.init();
 		logManager.init();
 		lobbyManager.init();
-		deployer.initServers();
 		keepAliveManager.init();
 		panelManager.init();
 		utilsListener.init();

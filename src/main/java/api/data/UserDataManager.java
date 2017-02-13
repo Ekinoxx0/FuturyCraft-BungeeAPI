@@ -6,6 +6,7 @@ import api.utils.Utils;
 import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import lombok.ToString;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -30,6 +31,7 @@ public class UserDataManager implements SimpleManager
 	private static final int SAVE_DELAY = 1000 * 60 * 2;
 	private final Map<UUID, UserData> users = new HashMap<>(); //All cached online users -- acquire usersLock before
 	// editing
+	private final Listen listener = new Listen();
 	private final ReentrantLock usersLock = new ReentrantLock();
 	private final DelayQueue<UserData.Delayer> disconnectQueue = new DelayQueue<>(); //The queue where data is cached
 	// before sent to Mongo
@@ -49,7 +51,7 @@ public class UserDataManager implements SimpleManager
 			throw new IllegalStateException("Already initialised!");
 
 		saverThread.start();
-		//ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
+		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 
 		init = true;
 	}

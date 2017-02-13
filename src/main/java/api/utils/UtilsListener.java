@@ -95,7 +95,7 @@ public class UtilsListener implements SimpleManager, Listener
 
 	public UserData get(ProxiedPlayer p)
 	{
-		return Main.getInstance().getDataManager().getData(p);
+		return Main.getInstance().getUserDataManager().getData(p);
 	}
 
 	@EventHandler
@@ -106,7 +106,7 @@ public class UtilsListener implements SimpleManager, Listener
 
 			if (BOSS_BAR_MESSAGES.isEmpty())
 			{
-				FindIterable<Document> fi = DataManager.DB_UTILS.getCollection(BossBarMessageCommand.COLLECTION).find();
+				FindIterable<Document> fi = BossBarMessageCommand.getCOLLECTION().find();
 				for (Document doc : fi)
 					BOSS_BAR_MESSAGES.add(new BossBarMessagesPacket.MessageData(String.valueOf(doc.get("message")), (int) doc.get("time")));
 			}

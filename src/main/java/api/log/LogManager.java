@@ -123,7 +123,6 @@ public final class LogManager implements SimpleManager
 		{
 			disconnectFTP(ftp);
 		}
-
 	}
 
 	/**
@@ -192,7 +191,7 @@ public final class LogManager implements SimpleManager
 	 */
 	public synchronized void saveLogs(Server server)
 	{
-		Path path = server.getDeployer().getLog();
+		/*Path path = server.getDeployer().getLog();
 		try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(logsDir.resolve(server.getId() +
 				".info"))))
 		{
@@ -206,7 +205,7 @@ public final class LogManager implements SimpleManager
 		{
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving logs (Server: " +
 					server + ')', e);
-		}
+		}*/
 	}
 
 	/**

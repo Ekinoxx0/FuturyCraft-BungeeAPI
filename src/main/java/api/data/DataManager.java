@@ -146,13 +146,24 @@ public final class DataManager implements SimpleManager
 	}
 
 	/**
+	 * Register a server.
+	 *
+	 * @param server the server to add
+	 */
+	public void registerServer(Server server)
+	{
+		serverCount.getAndIncrement();
+		Utils.doLocked(() -> servers.add(server), serversLock);
+	}
+
+	/**
 	 * Unregister a server from the cached online server list.
 	 *
 	 * @param server the server to remove
 	 */
 	public void unregisterServer(Server server)
 	{
-		serverCount.getAndIncrement();
+		serverCount.getAndDecrement();
 		Utils.doLocked(() -> servers.remove(server), serversLock);
 	}
 

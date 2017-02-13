@@ -10,12 +10,8 @@ import java.util.List;
 @Data
 public class Variant
 {
-	private final int minServers;
-	private final int maxServers;
 	private final int slots;
-	private final int minRam;
 	private final int maxRam;
-
 	private final String img;
 	private List<ConfigVolume> volumes;
 }

@@ -60,7 +60,6 @@ public final class LobbyManager implements SimpleManager
 	private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
 	@Override
-
 	public void init()
 	{
 		if (init)
@@ -191,7 +190,7 @@ public final class LobbyManager implements SimpleManager
 
 	private void undeployLobby(Server server)
 	{
-		//TODO
+		Main.getInstance().getDeployer().undeployServer(server);
 	}
 
 	public class Listen implements Listener

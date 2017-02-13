@@ -1,4 +1,4 @@
-package api.packets;
+package api.utils.concurrent;
 
 /**
  * Created by SkyBeast on 18/12/2016.

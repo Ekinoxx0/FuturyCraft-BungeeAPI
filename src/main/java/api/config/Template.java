@@ -14,7 +14,6 @@ public class Template
 {
 	private final List<Variant> variants;
 	private final String displayName;
-	private transient int offset;
 
 	@Data
 	@EqualsAndHashCode(callSuper = false)

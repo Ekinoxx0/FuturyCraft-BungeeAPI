@@ -1,19 +1,21 @@
 {
   "baseDir": "..",
-  "deployerDir": "../deployer",
+  "maxSlots": 200,
   "lobbies": [
     {
       "type": "NORMAL",
       "displayName": "LOBBY NORMAL",
       "variants": [
         {
-          "minServers": 5,
-          "maxServers": 50,
           "slots": 50,
-          "minRam": 512,
           "maxRam": 1024,
-          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
-          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
+          "volumes": [
+            {
+              "host": "../templates/maps/lobby_normal",
+              "container": "/opt/spigot/world",
+              "readOnly": false
+            }
+          ]
         }
       ]
     },
@@ -22,13 +24,15 @@
       "displayName": "LOBBY VIP",
       "variants": [
         {
-          "minServers": 5,
-          "maxServers": 50,
           "slots": 50,
-          "minRam": 512,
           "maxRam": 1024,
-          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
-          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
+          "volumes": [
+            {
+              "host": "../templates/maps/lobby_vip",
+              "container": "/opt/spigot/world",
+              "readOnly": false
+            }
+          ]
         }
       ]
     }
@@ -38,16 +42,15 @@
       "displayName": "FIREWARS",
       "variants": [
         {
-          "minServers": 5,
-          "maxServers": 50,
           "slots": 50,
-          "minRam": 512,
           "maxRam": 1024,
-          "spigotArgs": "",
-          "jvmArgs": "",
-          "spigotPath": "../Templates/spigot/spigot-1.9-R0.1-SNAPSHOT-latest.jar",
-          "popsPath": "../Templates/properties/lobby/lobby_normal.zip",
-          "mapPath": "../Templates/maps/lobby/lobby_normal.zip"
+          "volumes": [
+            {
+              "host": "",
+              "container": "",
+              "readOnly": false
+            }
+          ]
         }
       ]
     }

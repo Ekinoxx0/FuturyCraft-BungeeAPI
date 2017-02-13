@@ -22,12 +22,12 @@ public class DeployerConfig
 {
 	@Getter
 	private File baseDir;
-	private String deployerDir;
+	@Getter
+	private int maxSlots;
 	@Getter
 	private List<Template.LobbyTemplate> lobbies;
 	@Getter
 	private List<Template> games;
-	private transient File deployerDirCache;
 
 	public static DeployerConfig load(File f)
 	{
@@ -35,13 +35,6 @@ public class DeployerConfig
 		gson.registerTypeAdapter(File.class, new FileAdapter());
 		gson.excludeFieldsWithModifiers(Modifier.TRANSIENT);
 		return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
-	}
-
-	public File getDeployerDir()
-	{
-		if (deployerDirCache == null)
-			deployerDirCache = new File(getBaseDir(), deployerDir);
-		return deployerDirCache;
 	}
 
 	public List<Template.LobbyTemplate> getLobbiesByType(LobbyType type)

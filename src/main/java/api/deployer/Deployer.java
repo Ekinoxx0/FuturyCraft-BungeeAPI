@@ -4,15 +4,13 @@ import api.Main;
 import api.config.DeployerConfig;
 import api.config.Variant;
 import api.data.Server;
+import api.utils.concurrent.Callback;
 import api.utils.SimpleManager;
-import api.utils.Utils;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.Getter;
 import lombok.ToString;
@@ -20,8 +18,11 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 /**
@@ -33,6 +34,7 @@ public final class Deployer implements SimpleManager
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;
 	private static final int MAX_SERVERS = MAX_PORT - MIN_PORT;
+	private final ExecutorService exec = Executors.newCachedThreadPool();
 
 	@Getter
 	private DeployerConfig config;
@@ -49,51 +51,63 @@ public final class Deployer implements SimpleManager
 			throw new IllegalStateException("Already initialised!");
 
 		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
-		try
-		{
-			Utils.deleteFolder(config.getDeployerDir());
-			if (!config.getDeployerDir().exists() && !config.getDeployerDir().mkdirs())
-			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "Unable to mkdirs (Deployer: " + this + ')');
-				return;
-			}
-		}
-		catch (IOException e)
-		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while initializing the Deployer (Deployer: " + this + ')', e);
-		}
-
-		dockerClient =  DockerClientBuilder.getInstance("tcp://localhost:2375").build();
-
+		dockerClient = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(this::kill)));
 		init = true;
 	}
 
-	public Server deployServer(Server.ServerType type, Variant v)
+	public void deployServer(Server.ServerType type, Variant v, Callback<Server> callback)
 	{
-		ExposedPort tcpMc = ExposedPort.tcp(25565);
-		Ports portBindings = new Ports();
-		int port = getNextPort();
-		portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
+		exec.submit(() ->
+				{
+					ExposedPort tcpMc = ExposedPort.tcp(25565);
+					Ports portBindings = new Ports();
+					int port = getNextPort();
+					portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
 
-		CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
-				.withMemory((long)v.getMaxRam())
-				.withExposedPorts(tcpMc)
-				.withPortBindings(portBindings);
+					CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
+							.withMemory(v.getMaxRam() * 8 * 1024L)
+							.withExposedPorts(tcpMc)
+							.withPortBindings(portBindings);
 
-		CreateContainerResponse container = cmd.exec();
+					List<Volume> volumes = new ArrayList<>();
+					List<Bind> binds = new ArrayList<>();
+					v.getVolumes().forEach(cv ->
+					{
+						File bind = new File(config.getBaseDir(), cv.getHost());
+						Volume volume = new Volume(cv.getContainer());
+						volumes.add(volume);
+						binds.add(new Bind(bind.getAbsolutePath(), volume, cv.isReadOnly() ? AccessMode.ro : AccessMode.rw));
+					});
+					cmd.withVolumes(volumes);
+					cmd.withBinds(binds);
 
-		dockerClient.startContainerCmd(container.getId()).exec();
-		InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
-		String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
-		ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
-		return new Server(container.getId(), type, v, s);
+					CreateContainerResponse container = cmd.exec();
+					System.out.println("create container -> " + container.getId());
+					dockerClient.startContainerCmd(container.getId()).exec();
+					InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
+					String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
+					ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
+					Server server = new Server(container.getId(), type, v, s);
+					Main.getInstance().getDataManager().registerServer(server);
+
+					if (callback != null)
+						callback.response(server);
+				}
+		);
 	}
 
-	public void initServers()
+	public void undeployServer(Server s)
 	{
-		if(!init)
-			throw new IllegalStateException("Deployer not initialised!");
+		Main.getInstance().getLogger().log(Level.INFO, "undeploy server with id -> " + s.getId());
+		Main.getInstance().getDataManager().unregisterServer(s);
+		kill(s);
+	}
 
+	public void kill(Server s)
+	{
+		dockerClient.killContainerCmd(s.getId()).exec();
+		dockerClient.removeContainerCmd(s.getId()).exec();
 	}
 
 	public int getNextPort()
@@ -106,7 +120,7 @@ public final class Deployer implements SimpleManager
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
-		//TODO: kill containers
+		Main.getInstance().getDataManager().forEachServers(this::kill);
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 }
