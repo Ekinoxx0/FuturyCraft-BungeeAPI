@@ -14,41 +14,45 @@ import net.md_5.bungee.api.ProxyServer;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
  * Created by SkyBeast on 17/12/2016.
  */
-@ToString(exclude = {"server"})
+@ToString(exclude = "server")
 public class MessengerClient
 {
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
-	private final List<PacketListener<?>> listeners = new ArrayList<>();
+	private final List<PacketListener<?>> listeners = new CopyOnWriteArrayList<>();
 	private final ExecutorService sendPacketPool = Executors.newSingleThreadExecutor();
+	private final BlockingQueue<PacketData> sendBuffer = new ArrayBlockingQueue<>(Main.getInstance().getDeployer()
+			.getConfig().getSendBufferSize());
 	@Getter(AccessLevel.PACKAGE)
 	protected Server server;
-	private volatile short lastTransactionID;
-	private final ThreadLoop listener = setupSocketListener();
+	private final AtomicInteger lastTransactionID = new AtomicInteger();
+	private final ThreadLoop listener = setupListenerThreadLoop();
+	private final ThreadLoop sender = setupListenerThreadLoop();
 	private volatile boolean end;
 
-	public MessengerClient(Socket socket, DataInputStream in, DataOutputStream out, Server server) throws IOException
-	//Called in MessengerClient identifier thread
+	public MessengerClient(Socket socket, DataInputStream in, DataOutputStream out, Server server)
+			throws IOException //Called in MessengerClient identifier thread
 	{
 		this.socket = socket;
 		this.in = in;
 		this.out = out;
 		this.server = server;
 		listener.start();
+		sender.start();
 	}
 
-	private ThreadLoop setupSocketListener() //Called in MessengerClient connection listener
+	private ThreadLoop setupListenerThreadLoop() //Called in MessengerClient connection listener
 	{
 		return ThreadLoops.newConditionThreadLoop
 				(
@@ -58,7 +62,7 @@ public class MessengerClient
 							try
 							{
 								byte id = in.readByte();
-								short transactionID = in.readShort();
+								int transactionID = in.readShort();
 								int size = in.readUnsignedShort();
 								byte[] data = new byte[size];
 								in.readFully(data); //Read all data and store it to the array
@@ -79,13 +83,30 @@ public class MessengerClient
 				);
 	}
 
-	protected void handleDisconnection()
+	private ThreadLoop setupSenderThreadLoop()
 	{
-
+		return ThreadLoops.newInfiniteThreadLoop(
+				() ->
+				{
+					try
+					{
+						PacketData toSend = sendBuffer.take();
+						out.writeByte(toSend.packetID);
+						out.writeInt(toSend.transactionID);
+						out.writeShort(toSend.data.length);
+						out.write(toSend.data);
+						out.flush();
+					}
+					catch (IOException e)
+					{
+						Main.getInstance().getLogger().log(Level.SEVERE, "Cannot send buffered packet!", e);
+					}
+				}
+		);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
+	protected void handleData(byte id, int transactionID, byte[] arrayIn) throws IOException
 	{
 		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn)); //Create an InputStream
 		// from the byte array, so it can be redistributed
@@ -98,16 +119,14 @@ public class MessengerClient
 				throw new IllegalArgumentException("Cannot find packet ID " + id + " (transactionID=" + transactionID
 						+ ", in=" + Arrays.toString(arrayIn) + ')');
 
-			synchronized (listeners)
+			for (Iterator<PacketListener<?>> iterator = listeners.iterator(); iterator.hasNext(); )
 			{
-				listeners.forEach(listener ->
-				{
-					if (listener.transactionID == transactionID && listener.clazz == packet.getClass())
-					{
-						((Callback<IncPacket>) listener.callback).response(packet);
-						listeners.remove(listener);
-					}
-				});
+				PacketListener<IncPacket> listener = (PacketListener<IncPacket>) iterator.next();
+				if (listener.transactionID != transactionID || listener.clazz != packet.getClass())
+					continue;
+
+				listener.callback.response(packet);
+				iterator.remove();
 			}
 
 			ProxyServer.getInstance().getPluginManager().callEvent(new PacketReceivedEvent(server, packet,
@@ -122,45 +141,51 @@ public class MessengerClient
 
 	public <T extends IncPacket> void listenPacket(Class<T> clazz, int transactionID, Callback<T> callback)
 	{
-		synchronized (listeners)
-		{
-			listeners.add(new PacketListener<>(clazz, callback, transactionID));
-		}
+		listeners.add(new PacketListener<>(clazz, callback, transactionID));
 	}
 
-	public short sendPacket(OutPacket packet)
+	public int sendPacket(OutPacket packet)
 	{
-		short transactionID = lastTransactionID++;
-		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
+		int transactionID = lastTransactionID.getAndIncrement();
+		sendPacket(packet, transactionID);
 		return transactionID;
 	}
 
-	public void sendPacket(OutPacket packet, short transactionID)
-	{
-		sendPacketPool.execute(() -> internalSendPacket(packet, transactionID));
-	}
-
-	protected void internalSendPacket(OutPacket packet, short transactionID)
+	public void sendPacket(OutPacket packet, int transactionID)
 	{
 		ByteArrayOutputStream array = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(array);
-
-		System.out.println("Send packet -> " + packet + " | " + transactionID);
 		try
 		{
 			packet.write(data);
-			out.writeByte(getPacketID(packet));
-			out.writeShort(transactionID);
-			out.writeShort(array.size());
-			out.write(array.toByteArray());
-			out.flush();
-
 		}
 		catch (IOException e)
 		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "Error while sending packet " + packet + " with " +
-					"transactionID " + transactionID + " (Client: " + this + ')', e);
+			throw new IllegalArgumentException("Cannot serialize packet " + packet, e);
 		}
+
+		boolean bool = false;
+		try
+		{
+			bool = sendBuffer.offer(new PacketData(getPacketID(packet), transactionID,
+							array.toByteArray()),
+					10000,
+					TimeUnit.MILLISECONDS);
+		}
+		catch (InterruptedException e)
+		{
+			cannotBuffer(e);
+		}
+
+		if (!bool)
+			cannotBuffer(null);
+	}
+
+	private void cannotBuffer(InterruptedException e)
+	{
+		Main.getInstance().getLogger().log(Level.SEVERE, "Cannot buffer packet!");
+		if (e != null)
+			Main.getInstance().getLogger().log(Level.SEVERE, "Exception:", e);
 	}
 
 	protected byte getPacketID(Packet packet)
@@ -173,6 +198,7 @@ public class MessengerClient
 		unregister();
 		end = true;
 		listener.stop();
+		sender.stop();
 		try
 		{
 			socket.close();
@@ -195,5 +221,14 @@ public class MessengerClient
 		Class<T> clazz;
 		Callback<T> callback;
 		int transactionID;
+	}
+
+	@ToString
+	@AllArgsConstructor
+	private static class PacketData
+	{
+		byte packetID;
+		int transactionID;
+		byte[] data;
 	}
 }

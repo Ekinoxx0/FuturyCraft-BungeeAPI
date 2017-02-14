@@ -15,5 +15,5 @@ public class PacketReceivedEvent extends Event
 {
 	private final Server from;
 	private final IncPacket packet;
-	private final short transactionID;
+	private final int transactionID;
 }

@@ -10,6 +10,9 @@ import java.util.function.BooleanSupplier;
  */
 public final class ThreadLoops
 {
+	private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = Executors
+			.newSingleThreadScheduledExecutor();
+
 	private ThreadLoops()
 	{
 		throw new InstantiationError("You cannot instantiate me! :p");
@@ -163,7 +166,6 @@ public final class ThreadLoops
 	private static class ScheduledThreadLoop implements ThreadLoop
 	{
 		final Loop loop;
-		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 		long initialDelay;
 		long period;
 		TimeUnit unit;
@@ -184,7 +186,7 @@ public final class ThreadLoops
 				throw new IllegalStateException("Looper thread already started");
 			started = true;
 
-			executorService.scheduleWithFixedDelay
+			SCHEDULED_EXECUTOR_SERVICE.scheduleWithFixedDelay
 					(
 							this::runLoop,
 							initialDelay,
@@ -210,13 +212,13 @@ public final class ThreadLoops
 		public void stop()
 		{
 			started = false;
-			executorService.shutdown();
+			SCHEDULED_EXECUTOR_SERVICE.shutdown();
 		}
 
 		@Override
 		public boolean isAlive()
 		{
-			return !executorService.isShutdown();
+			return !SCHEDULED_EXECUTOR_SERVICE.isShutdown();
 		}
 	}
 
@@ -235,7 +237,7 @@ public final class ThreadLoops
 	public static ThreadLoop newScheduledConditionThreadLoop(BooleanSupplier condition, Loop loop, long period,
 	                                                         TimeUnit unit)
 	{
-		return new ScheduledConditionThreadLoop(condition, loop, 0, period, unit);
+		return new ScheduledConditionThreadLoop(condition, loop, period, period, unit);
 	}
 
 
@@ -276,7 +278,7 @@ public final class ThreadLoops
 				throw new IllegalStateException("Looper thread already started");
 			started = true;
 
-			executorService.scheduleWithFixedDelay
+			SCHEDULED_EXECUTOR_SERVICE.scheduleWithFixedDelay
 					(
 							() ->
 							{

@@ -19,10 +19,10 @@ import org.bson.Document;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,7 +34,11 @@ import java.util.logging.Level;
 @ToString
 public final class KeepAliveManager implements SimpleManager
 {
-	private final List<Server> cache = new ArrayList<>();
+	private static final int SENDER_LOOP_PERIOD = 1000 * 60 * 5;
+	private static final int SENDER_LOOP_INITIAL_DELAY = 1000 * 30;
+	private static final int WATCHER_LOOP_PERIOD = 90 * 1000;
+	private static final int KILLER_PERIOD = 45 * 1000;
+	private final Queue<Server> cache = new ArrayBlockingQueue<>(20);
 	private final ReentrantLock cacheLock = new ReentrantLock(); //Thread safe
 	private final Condition cacheNotEmpty = cacheLock.newCondition();
 	private final Listen listener = new Listen();
@@ -44,6 +48,7 @@ public final class KeepAliveManager implements SimpleManager
 	private final DateFormat timeFormat; //HH:mm:ss
 	private final ThreadLoop senderThread = setupSenderThread();
 	private final ThreadLoop watcherThread = setupWatcherThread();
+	private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 	private boolean init;
 	private volatile boolean end;
 
@@ -90,8 +95,8 @@ public final class KeepAliveManager implements SimpleManager
 								cacheLock.unlock();
 							}
 						},
-						1000 * 30,
-						1000 * 60 * 5,
+						SENDER_LOOP_INITIAL_DELAY,
+						SENDER_LOOP_PERIOD,
 						TimeUnit.MILLISECONDS
 				);
 	}
@@ -137,11 +142,12 @@ public final class KeepAliveManager implements SimpleManager
 								(
 										server ->
 										{
-											if (System.currentTimeMillis() - server.getLastKeepAlive() > 1000 * 90)
+											if (System.currentTimeMillis() - server.getLastKeepAlive() >
+													WATCHER_LOOP_PERIOD)
 												fatality(server);
 										}
 								),
-						100 * 90,
+						WATCHER_LOOP_PERIOD,
 						TimeUnit.MILLISECONDS
 				);
 	}
@@ -205,6 +211,21 @@ public final class KeepAliveManager implements SimpleManager
 				Main.getInstance().getDataManager().updateServerState(event.getFrom(), ((ServerStatePacket) packet)
 						.getServerState());
 			}
+		}
+
+		/**
+		 * Kill it with fire!
+		 */
+		private void scheduleKiller(Server server)
+		{
+			exec.schedule(
+					() ->
+					{
+
+					},
+					KILLER_PERIOD,
+					TimeUnit.MILLISECONDS
+			);
 		}
 	}
 }
