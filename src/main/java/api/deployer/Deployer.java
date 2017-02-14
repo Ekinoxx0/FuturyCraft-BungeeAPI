@@ -2,6 +2,7 @@ package api.deployer;
 
 import api.Main;
 import api.config.DeployerConfig;
+import api.config.ServerPattern;
 import api.config.Variant;
 import api.data.Server;
 import api.utils.SimpleManager;
