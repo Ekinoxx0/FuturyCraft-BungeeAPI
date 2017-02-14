@@ -38,7 +38,7 @@ public final class Main extends Plugin
 	private final Morphia morphia;
 
 	private final MessengerServer messenger;
-	private final ServerDataManager dataManager;
+	private final ServerDataManager serverDataManager;
 	private final UserDataManager userDataManager;
 	private final Deployer deployer;
 	private final KeepAliveManager keepAliveManager;
@@ -65,7 +65,7 @@ public final class Main extends Plugin
 		mainDataStore = morphia.createDatastore(mongoClient, "FcDeployer");
 
 		messenger = new MessengerServer();
-		dataManager = new ServerDataManager();
+		serverDataManager = new ServerDataManager();
 		userDataManager = new UserDataManager();
 		permsManager = new PermissionsManager();
 		deployer = new Deployer();
@@ -90,7 +90,7 @@ public final class Main extends Plugin
 			throw new IllegalStateException("Cannot mkdirs data folder");
 
 		messenger.init();
-		dataManager.init();
+		serverDataManager.init();
 		userDataManager.init();
 		permsManager.init();
 		deployer.init();
@@ -109,7 +109,7 @@ public final class Main extends Plugin
 	public void onDisable()
 	{
 		messenger.stop();
-		dataManager.stop();
+		serverDataManager.stop();
 		userDataManager.stop();
 		deployer.stop();
 		lobbyManager.stop();

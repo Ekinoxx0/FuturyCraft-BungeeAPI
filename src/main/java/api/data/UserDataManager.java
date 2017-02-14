@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -26,15 +27,17 @@ import java.util.function.Consumer;
 @ToString
 public class UserDataManager implements SimpleManager
 {
-	private static final int SAVE_DELAY = 1000 * 60 * 2;
+	private static final int SAVE_DELAY_ON_DISCONNECT = 1000 * 60 * 2;
+	private static final int SAVE_DELAY = 1000 * 60 * 60;
 	private final Map<UUID, UserData> users = new ConcurrentHashMap<>(); //All cached online users -- acquire
 	// usersLock before
 	// editing
 	private final Listen listener = new Listen();
 	private final DelayQueue<UserData.Delayer> disconnectQueue = new DelayQueue<>(); //The queue where data is cached
 	// before sent to Mongo
-	private final ThreadLoop saverThread = setupSaverThread(); //The thread loop used to send all data from the
+	private final ThreadLoop saverOnDisconnect = setupSaverOnDisconnectThreadLoop(); //The thread loop used to send all data from the
 	// disconnect queue
+	private final ThreadLoop saver = setupSaverThreadLoop();
 	private boolean init;
 	private volatile boolean end;
 
@@ -48,7 +51,8 @@ public class UserDataManager implements SimpleManager
 		if (init)
 			throw new IllegalStateException("Already initialised!");
 
-		saverThread.start();
+		saverOnDisconnect.start();
+		saver.start();
 		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 
 		init = true;
@@ -60,16 +64,16 @@ public class UserDataManager implements SimpleManager
 		if (end)
 			throw new IllegalStateException("Already ended!");
 
-		saverThread.stop();
+		saverOnDisconnect.stop();
+		saver.stop();
 
 		end = true;
-		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
 	/*
-	 * Setup the InfiniteThreadLoop for saving users
+	 * Setup the InfiniteThreadLoop which save users on disconnect
 	 */
-	private ThreadLoop setupSaverThread()
+	private ThreadLoop setupSaverOnDisconnectThreadLoop()
 	{
 		return ThreadLoops.newInfiniteThreadLoop
 				(
@@ -80,6 +84,23 @@ public class UserDataManager implements SimpleManager
 
 							saveData(data);
 						}
+				);
+	}
+
+	/*
+	 * Setup the ScheduledThreadLoop which save users
+	 */
+	private ThreadLoop setupSaverThreadLoop()
+	{
+		return ThreadLoops.newScheduledThreadLoop
+				(
+						() ->
+						{
+							for (UserData data : users.values())
+								saveData(data);
+						},
+						SAVE_DELAY,
+						TimeUnit.MILLISECONDS
 				);
 	}
 

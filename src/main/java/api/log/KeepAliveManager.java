@@ -19,7 +19,9 @@ import org.bson.Document;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Queue;
+import java.util.TimeZone;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -138,7 +140,7 @@ public final class KeepAliveManager implements SimpleManager
 	{
 		return ThreadLoops.newScheduledThreadLoop
 				(
-						() -> Main.getInstance().getDataManager().forEachServers
+						() -> Main.getInstance().getServerDataManager().forEachServers
 								(
 										server ->
 										{
@@ -175,8 +177,6 @@ public final class KeepAliveManager implements SimpleManager
 		watcherThread.stop();
 
 		end = true;
-
-		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
 	public class Listen implements Listener
@@ -208,7 +208,8 @@ public final class KeepAliveManager implements SimpleManager
 			}
 			else if (packet instanceof ServerStatePacket)
 			{
-				Main.getInstance().getDataManager().updateServerState(event.getFrom(), ((ServerStatePacket) packet)
+				Main.getInstance().getServerDataManager().updateServerState(event.getFrom(), ((ServerStatePacket)
+						packet)
 						.getServerState());
 			}
 		}

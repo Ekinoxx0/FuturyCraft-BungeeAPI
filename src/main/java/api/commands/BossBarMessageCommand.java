@@ -77,7 +77,7 @@ public class BossBarMessageCommand extends Command
 				sb.append(args[i]).append(i == args.length - 1 ? "" : " ");
 			addMessage(time, sb.toString().trim());
 
-			Main.getInstance().getDataManager().forEachServersByType(server ->
+			Main.getInstance().getServerDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
 					"lobby"
 			);
@@ -124,7 +124,7 @@ public class BossBarMessageCommand extends Command
 			UtilsListener.BOSS_BAR_MESSAGES.remove(offset - 1);
 			COLLECTION.deleteOne(fi);
 			sender.sendMessage(REM_SUCCESS);
-			Main.getInstance().getDataManager().forEachServersByType(server ->
+			Main.getInstance().getServerDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
 					"lobby"
 			);

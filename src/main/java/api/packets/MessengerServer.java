@@ -160,7 +160,7 @@ public final class MessengerServer implements SimpleManager
 			return;
 		}
 
-		Server server = Main.getInstance().getDataManager().findServerByPort(port);
+		Server server = Main.getInstance().getServerDataManager().findServerByPort(port);
 		if (server == null)
 		{
 			rejected(socket, port); //Socket connection not accepted
@@ -230,7 +230,7 @@ public final class MessengerServer implements SimpleManager
 
 		nonRegistered.remove(socket);
 
-		Main.getInstance().getDataManager().updateMessenger(server, client);
+		Main.getInstance().getServerDataManager().updateMessenger(server, client);
 
 		Main.getInstance().getLogger().info(client + " identified");
 	}
@@ -282,7 +282,7 @@ public final class MessengerServer implements SimpleManager
 	 */
 	private void closeMessengers()
 	{
-		Main.getInstance().getDataManager().forEachServers(srv ->
+		Main.getInstance().getServerDataManager().forEachServers(srv ->
 				{
 					if (srv.getMessenger() != null)
 						srv.getMessenger().disconnect();
@@ -297,6 +297,6 @@ public final class MessengerServer implements SimpleManager
 	 */
 	void unregister(MessengerClient client)
 	{
-		Main.getInstance().getDataManager().updateMessenger(client.getServer(), null);
+		Main.getInstance().getServerDataManager().updateMessenger(client.getServer(), null);
 	}
 }
