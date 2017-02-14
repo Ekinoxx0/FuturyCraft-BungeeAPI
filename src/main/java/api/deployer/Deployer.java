@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -58,21 +60,28 @@ public final class Deployer implements SimpleManager
 
 	public void deployServer(Server.ServerType type, Variant v, Callback<Server> callback)
 	{
+		deployServer(type, v, callback, new HashMap<>());
+	}
+
+	public void deployServer(Server.ServerType type, Variant v, Callback<Server> callback, Map<String, String> labels)
+	{
 		exec.submit(() ->
 				{
 					try
 					{
+						labels.put("type", type.toString());
+						labels.put("variant", v.getName());
 						ExposedPort tcpMc = ExposedPort.tcp(25565);
 						ExposedPort tcpSoc = ExposedPort.tcp(5555);
 						Ports portBindings = new Ports();
 						int port = getNextPort();
 						portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
-						portBindings.bind(tcpSoc, Ports.Binding.bindPort(5555));
 
 						CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
 								.withMemory(v.getMaxRam() * (long)Math.pow(1024, 2))
 								.withExposedPorts(tcpMc, tcpSoc)
-								.withPortBindings(portBindings);
+								.withPortBindings(portBindings)
+								.withLabels(labels);
 
 						List<Volume> volumes = new ArrayList<>();
 						List<Bind> binds = new ArrayList<>();
@@ -105,12 +114,11 @@ public final class Deployer implements SimpleManager
 
 						if (callback != null)
 							callback.response(server);
-					} catch (Throwable e)
+					}
+					catch (Throwable e)
 					{
 						e.printStackTrace();
 					}
-
-
 				}
 		);
 	}

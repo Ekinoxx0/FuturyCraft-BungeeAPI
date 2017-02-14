@@ -7,6 +7,7 @@
       "displayName": "LOBBY NORMAL",
       "variants": [
         {
+          "name": "map lobby normal",
           "slots": 50,
           "maxRam": 1024,
           "volumes": [
@@ -24,6 +25,7 @@
       "displayName": "LOBBY VIP",
       "variants": [
         {
+          "name": "map lobby vip",
           "slots": 50,
           "maxRam": 1024,
           "volumes": [

@@ -22,7 +22,9 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,8 +76,8 @@ public final class LobbyManager implements SimpleManager
 		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> acceptLobby = server);
 		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
 
-		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipAcceptLobby = server);
-		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipWaitingLobby = server);
+		deployLobby(LobbyType.VIP, getNextVariant(), server -> vipAcceptLobby = server);
+		deployLobby(LobbyType.VIP, getNextVariant(), server -> vipWaitingLobby = server);
 
 		init = true;
 	}
@@ -199,7 +201,9 @@ public final class LobbyManager implements SimpleManager
 
 	private void deployLobby(LobbyType type, Variant v, Callback<Server> callback)
 	{
-		Main.getInstance().getDeployer().deployServer(Server.ServerType.LOBBY, v, callback);
+		Map<String, String> labels = new HashMap<>();
+		labels.put("lobbyType", type.toString());
+		Main.getInstance().getDeployer().deployServer(Server.ServerType.LOBBY, v, callback, labels);
 	}
 
 	private void undeployLobby(Server server)
