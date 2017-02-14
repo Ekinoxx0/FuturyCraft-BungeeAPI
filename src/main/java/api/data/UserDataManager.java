@@ -159,7 +159,6 @@ public class UserDataManager implements SimpleManager
 		 */
 		private void addPlayer(UserData data)
 		{
-			System.out.println("add user plop -> " + data);
 			users.put(data.getUniqueID(), data);
 		}
 
