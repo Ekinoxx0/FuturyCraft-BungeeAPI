@@ -35,8 +35,8 @@ public class UserDataManager implements SimpleManager
 	private final Listen listener = new Listen();
 	private final DelayQueue<UserData.Delayer> disconnectQueue = new DelayQueue<>(); //The queue where data is cached
 	// before sent to Mongo
-	private final ThreadLoop saverOnDisconnect = setupSaverOnDisconnectThreadLoop(); //The thread loop used to send all data from the
-	// disconnect queue
+	private final ThreadLoop saverOnDisconnect = setupSaverOnDisconnectThreadLoop(); //The thread loop used to send
+	// all data from the disconnect queue
 	private final ThreadLoop saver = setupSaverThreadLoop();
 	private boolean init;
 	private volatile boolean end;

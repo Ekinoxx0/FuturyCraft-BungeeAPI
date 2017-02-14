@@ -1,7 +1,6 @@
 package api.lobby;
 
 import api.Main;
-import api.config.DeployerConfig;
 import api.config.ServerConfig;
 import api.config.ServerPattern;
 import api.config.Variant;
@@ -10,6 +9,7 @@ import api.data.UserData;
 import api.events.DeployerConfigReloadEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
+import api.utils.MapBuilder;
 import api.utils.SimpleManager;
 import api.utils.concurrent.Callback;
 import gnu.trove.map.TObjectIntMap;
@@ -23,10 +23,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,11 +52,11 @@ public final class LobbyManager implements SimpleManager
 	private volatile boolean end;
 	private Server acceptLobby;
 	private Server waitingLobby;
-	private List<Variant> lobbyVariants;
+	private ServerConfig serverConfig;
 	private int counter;
 	private Server vipAcceptLobby;
 	private Server vipWaitingLobby;
-	private List<Variant> vipLobbyVariants;
+	private ServerConfig vipServerConfig;
 	private int vipCounter;
 	private int maxSlots;
 	private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -74,39 +71,35 @@ public final class LobbyManager implements SimpleManager
 
 		loadConfig();
 
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> acceptLobby = server);
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
+		deployLobby(false, server -> acceptLobby = server);
+		deployLobby(false, server -> waitingLobby = server);
 
-		deployLobby(LobbyType.VIP, getNextVariant(), server -> vipAcceptLobby = server);
-		deployLobby(LobbyType.VIP, getNextVariant(), server -> vipWaitingLobby = server);
+		deployLobby(true, server -> vipAcceptLobby = server);
+		deployLobby(true, server -> vipWaitingLobby = server);
 
 		init = true;
 	}
 
 	public void loadConfig()
 	{
-		DeployerConfig config = Main.getInstance()
-				.getDeployer().getConfig();
+		serverConfig = getConfig("normal");
+		vipServerConfig = getConfig("vip");
 
-		List<ServerConfig> templates = config.getServers();
+		maxSlots = Main.getInstance()
+				.getDeployer().getConfig().getMaxSlots();
+	}
 
-		Optional<ServerConfig> normal = templates.stream()
-				.filter(lobby -> lobby.has("lobbyType", "normal"))
-				.findFirst();
+	private ServerConfig getConfig(String lobbyType)
+	{
+		List<ServerConfig> configs = ServerConfig.getByLabels(
+				MapBuilder.mapOf(String.class, String.class,
+						"type", "lobby",
+						"lobbyType", lobbyType));
 
-		Optional<ServerConfig> vip = templates.stream()
-				.filter(lobby ->  lobby.has("lobbyType", "vip"))
-				.findFirst();
+		if (configs.isEmpty())
+			throw new IllegalArgumentException("Cannot find vip config");
 
-		if (!normal.isPresent())
-			throw new RuntimeException("No normal lobby template");
-		if (!vip.isPresent())
-			throw new RuntimeException("No normal vip template");
-
-		lobbyVariants = normal.get().getVariants();
-		vipLobbyVariants = vip.get().getVariants();
-
-		maxSlots = config.getMaxSlots();
+		return configs.get(0);
 	}
 
 	@Override
@@ -121,31 +114,31 @@ public final class LobbyManager implements SimpleManager
 	private Variant getNextVariant()
 	{
 		counter++;
-		if (counter == lobbyVariants.size())
+		if (counter == serverConfig.getVariants().size())
 			counter = 0;
 
-		return lobbyVariants.get(counter);
+		return serverConfig.getVariants().get(counter);
 	}
 
 	private Variant getNextVIPVariant()
 	{
 		vipCounter++;
-		if (vipCounter == vipLobbyVariants.size())
+		if (vipCounter == vipServerConfig.getVariants().size())
 			vipCounter = 0;
 
-		return vipLobbyVariants.get(vipCounter);
+		return vipServerConfig.getVariants().get(vipCounter);
 	}
 
 	private void changeAcceptLobby()
 	{
 		acceptLobby = waitingLobby;
-		deployLobby(LobbyType.NORMAL, getNextVariant(), server -> waitingLobby = server);
+		deployLobby(false, server -> waitingLobby = server);
 	}
 
 	private void changeVIPAcceptLobby()
 	{
 		vipAcceptLobby = vipWaitingLobby;
-		deployLobby(LobbyType.VIP, getNextVIPVariant(), server -> vipWaitingLobby = server);
+		deployLobby(true, server -> vipWaitingLobby = server);
 	}
 
 	private void scheduleWarn(Server server)
@@ -200,9 +193,11 @@ public final class LobbyManager implements SimpleManager
 		return true;
 	}
 
-	private void deployLobby(ServerPattern pattern, Callback<Server> callback)
+	private void deployLobby(boolean vip, Callback<Server> callback)
 	{
-		Main.getInstance().getDeployer().deployServer(pattern, callback);
+		Main.getInstance().getDeployer()
+				.deployServer(vip ? ServerPattern.of(vipServerConfig, getNextVIPVariant()) :
+						ServerPattern.of(serverConfig, getNextVariant()), callback);
 	}
 
 	private void undeployLobby(Server server)

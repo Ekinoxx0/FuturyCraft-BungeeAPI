@@ -1,6 +1,5 @@
 package api.config;
 
-import api.Main;
 import lombok.Data;
 
 import java.util.Map;
@@ -20,7 +19,7 @@ public class ServerPattern
 		return value.equalsIgnoreCase(labels.get(key));
 	}
 
-	public static ServerPattern get(Map<String, String> labels, int variantOffset)
+	public static ServerPattern of(Map<String, String> labels, int variantOffset)
 	{
 		ServerConfig config = ServerConfig.getByLabels(labels).get(0);
 		if (config == null)
@@ -29,12 +28,12 @@ public class ServerPattern
 		return v != null ? new ServerPattern(config.getName(), config.getLabels(), v) : null;
 	}
 
-	public static ServerPattern get(Map<String, String> labels, Variant v)
+	public static ServerPattern of(Map<String, String> labels, Variant v)
 	{
-		return get(ServerConfig.getByLabels(labels).get(0), v);
+		return of(ServerConfig.getByLabels(labels).get(0), v);
 	}
 
-	public static ServerPattern get(ServerConfig config, Variant v)
+	public static ServerPattern of(ServerConfig config, Variant v)
 	{
 		return config != null && v != null ? new ServerPattern(config.getName(), config.getLabels(), v) : null;
 	}

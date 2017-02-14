@@ -30,7 +30,7 @@ public class DispatchCommand extends Command
 			return;
 		}
 /*
-		Server server = Server.get(args[0]);
+		Server server = Server.of(args[0]);
 		if (server == null)
 		{
 			sender.sendMessage(NOT_FOUND);
