@@ -30,7 +30,7 @@ public class MessengerPanel extends MessengerClient
 	}
 
 	@Override
-	protected void handleData(byte id, short transactionID, byte[] arrayIn) throws IOException
+	protected void handleData(byte id, int transactionID, byte[] arrayIn) throws IOException
 	{
 		DataInputStream data = new DataInputStream(new ByteArrayInputStream(arrayIn));
 		try

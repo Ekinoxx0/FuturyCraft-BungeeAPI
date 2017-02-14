@@ -2,7 +2,7 @@ package api.deployer;
 
 import api.Main;
 import api.config.DeployerConfig;
-import api.config.Variant;
+import api.config.ServerPattern;
 import api.data.Server;
 import api.utils.SimpleManager;
 import api.utils.concurrent.Callback;
@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -58,34 +57,27 @@ public final class Deployer implements SimpleManager
 		init = true;
 	}
 
-	public void deployServer(Server.ServerType type, Variant v, Callback<Server> callback)
-	{
-		deployServer(type, v, callback, new HashMap<>());
-	}
-
-	public void deployServer(Server.ServerType type, Variant v, Callback<Server> callback, Map<String, String> labels)
+	public void deployServer(ServerPattern pattern, Callback<Server> callback)
 	{
 		exec.submit(() ->
 				{
 					try
 					{
-						labels.put("type", type.toString());
-						labels.put("variant", v.getName());
 						ExposedPort tcpMc = ExposedPort.tcp(25565);
 						ExposedPort tcpSoc = ExposedPort.tcp(5555);
 						Ports portBindings = new Ports();
 						int port = getNextPort();
 						portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
 
-						CreateContainerCmd cmd = dockerClient.createContainerCmd(v.getImg())
-								.withMemory(v.getMaxRam() * (long)Math.pow(1024, 2))
+						CreateContainerCmd cmd = dockerClient.createContainerCmd(pattern.getVariant().getImg())
+								.withMemory(pattern.getVariant().getMaxRam() * (long)Math.pow(1024, 2))
 								.withExposedPorts(tcpMc, tcpSoc)
 								.withPortBindings(portBindings)
-								.withLabels(labels);
+								.withLabels(pattern.getLabels());
 
 						List<Volume> volumes = new ArrayList<>();
 						List<Bind> binds = new ArrayList<>();
-						v.getVolumes().forEach(cv ->
+						pattern.getVariant().getVolumes().forEach(cv ->
 						{
 							try
 							{
@@ -109,7 +101,7 @@ public final class Deployer implements SimpleManager
 						String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
 						ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
 						ProxyServer.getInstance().getServers().put(container.getId(), s);
-						Server server = new Server(container.getId(), type, v, s);
+						Server server = new Server(container.getId(), pattern, s);
 						Main.getInstance().getDataManager().registerServer(server);
 
 						if (callback != null)

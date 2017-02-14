@@ -79,7 +79,7 @@ public class BossBarMessageCommand extends Command
 
 			Main.getInstance().getDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					Server.ServerType.LOBBY
+					"lobby"
 			);
 			sender.sendMessage(ADD_SUCCESS);
 		}
@@ -126,7 +126,7 @@ public class BossBarMessageCommand extends Command
 			sender.sendMessage(REM_SUCCESS);
 			Main.getInstance().getDataManager().forEachServersByType(server ->
 							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
-					Server.ServerType.LOBBY
+					"lobby"
 			);
 		}
 		else

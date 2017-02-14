@@ -1,6 +1,7 @@
 package api.data;
 
 import api.Main;
+import api.config.ServerPattern;
 import api.config.Variant;
 import api.deployer.ServerState;
 import api.packets.MessengerClient;
@@ -19,8 +20,7 @@ public class Server
 {
 	private final String id;
 	private final ServerInfo info;
-	private final ServerType type;
-	private final Variant variant;
+	private final ServerPattern pattern;
 	@Setter(AccessLevel.PACKAGE)
 	private MessengerClient messenger;
 	@Setter(AccessLevel.PACKAGE)
@@ -29,11 +29,10 @@ public class Server
 	private long lastKeepAlive = -1;
 	private short[] lastTPS = new short[3];
 
-	public Server(String id, ServerType type, Variant variant, ServerInfo info)
+	public Server(String id, ServerPattern pattern, ServerInfo info)
 	{
 		this.id = id;
-		this.type = type;
-		this.variant = variant;
+		this.pattern = pattern;
 		this.info = info;
 	}
 
@@ -42,39 +41,24 @@ public class Server
 		return Main.getInstance().getDataManager().getServer(info);
 	}
 
-	public String getName()
-	{
-		return type + "#" + id;
-	}
-
 	public void updateData(KeepAlivePacket keepAlivePacket)
 	{
 		lastKeepAlive = System.currentTimeMillis();
 		lastTPS = keepAlivePacket.getLastTPS();
 	}
 
-	public int getPort() {
-		return info.getAddress().getPort();
+	public String getName()
+	{
+		return String.format("%s:%s#%s", pattern.getName(), pattern.getVariant().getName(), id);
 	}
 
 	public boolean isLobby()
 	{
-		return type == ServerType.LOBBY;
+		return pattern.has("type", "lobby");
 	}
 
-	@Getter
-	@AllArgsConstructor
-	public enum ServerType
-	{
-		LOBBY("Lobby"),
-		GAME("Game");
-
-		private final String name;
-
-		@Override
-		public String toString()
-		{
-			return name;
-		}
+	public int getPort() {
+		return info.getAddress().getPort();
 	}
+
 }

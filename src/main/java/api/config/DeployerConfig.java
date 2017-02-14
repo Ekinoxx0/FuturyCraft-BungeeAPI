@@ -1,6 +1,5 @@
 package api.config;
 
-import api.lobby.LobbyType;
 import api.utils.FileAdapter;
 import api.utils.Utils;
 import com.google.gson.GsonBuilder;
@@ -11,7 +10,6 @@ import lombok.ToString;
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by loucass003 on 21/12/16.
@@ -23,8 +21,7 @@ public class DeployerConfig
 {
 	private File baseDir;
 	private int maxSlots;
-	private List<Template.LobbyTemplate> lobbies;
-	private List<Template> games;
+	private List<ServerConfig> servers;
 	private int sendBufferSize;
 
 	public static DeployerConfig load(File f)
@@ -35,10 +32,10 @@ public class DeployerConfig
 		return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
 	}
 
-	public List<Template.LobbyTemplate> getLobbiesByType(LobbyType type)
-	{
-		return lobbies.stream()
-				.filter(lobbyTemplate -> lobbyTemplate.getType() == type)
-				.collect(Collectors.toList());
-	}
+//	public List<Template.LobbyTemplate> getLobbiesByType(LobbyType type)
+//	{
+//		return lobbies.stream()
+//				.filter(lobbyTemplate -> lobbyTemplate.getType() == type)
+//				.collect(Collectors.toList());
+//	}
 }

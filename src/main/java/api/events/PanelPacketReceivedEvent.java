@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class PanelPacketReceivedEvent extends PacketReceivedEvent
 {
-	public PanelPacketReceivedEvent(Server from, IncPanelPacket packet, short transactionID)
+	public PanelPacketReceivedEvent(Server from, IncPanelPacket packet, int transactionID)
 	{
 		super(from, (IncPacket) packet, transactionID);
 	}

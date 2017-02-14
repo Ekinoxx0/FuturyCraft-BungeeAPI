@@ -2,7 +2,8 @@ package api.lobby;
 
 import api.Main;
 import api.config.DeployerConfig;
-import api.config.Template;
+import api.config.ServerConfig;
+import api.config.ServerPattern;
 import api.config.Variant;
 import api.data.Server;
 import api.data.UserData;
@@ -87,14 +88,14 @@ public final class LobbyManager implements SimpleManager
 		DeployerConfig config = Main.getInstance()
 				.getDeployer().getConfig();
 
-		List<Template.LobbyTemplate> templates = config.getLobbies();
+		List<ServerConfig> templates = config.getServers();
 
-		Optional<Template.LobbyTemplate> normal = templates.stream()
-				.filter(lobby -> lobby.getType() == LobbyType.NORMAL)
+		Optional<ServerConfig> normal = templates.stream()
+				.filter(lobby -> lobby.has("lobbyType", "normal"))
 				.findFirst();
 
-		Optional<Template.LobbyTemplate> vip = templates.stream()
-				.filter(lobby -> lobby.getType() == LobbyType.VIP)
+		Optional<ServerConfig> vip = templates.stream()
+				.filter(lobby ->  lobby.has("lobbyType", "vip"))
 				.findFirst();
 
 		if (!normal.isPresent())
@@ -199,11 +200,9 @@ public final class LobbyManager implements SimpleManager
 		return true;
 	}
 
-	private void deployLobby(LobbyType type, Variant v, Callback<Server> callback)
+	private void deployLobby(ServerPattern pattern, Callback<Server> callback)
 	{
-		Map<String, String> labels = new HashMap<>();
-		labels.put("lobbyType", type.toString());
-		Main.getInstance().getDeployer().deployServer(Server.ServerType.LOBBY, v, callback, labels);
+		Main.getInstance().getDeployer().deployServer(pattern, callback);
 	}
 
 	private void undeployLobby(Server server)
@@ -264,7 +263,7 @@ public final class LobbyManager implements SimpleManager
 				return;
 			}
 
-			if (accepted / from.getVariant().getSlots() >= 0.75)
+			if (accepted / from.getPattern().getVariant().getSlots() >= 0.75)
 				scheduleWarn(from);
 		}
 

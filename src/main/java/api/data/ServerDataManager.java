@@ -82,10 +82,10 @@ public final class ServerDataManager implements SimpleManager
 	 * @param consumer what to do
 	 * @param type     type filter
 	 */
-	public void forEachServersByType(Consumer<? super Server> consumer, Server.ServerType type)
+	public void forEachServersByType(Consumer<? super Server> consumer, String type)
 	{
 		servers.stream()
-				.filter(server -> server.getType() == type)
+				.filter(server -> server.getPattern().has("type", type))
 				.forEach(consumer);
 	}
 
