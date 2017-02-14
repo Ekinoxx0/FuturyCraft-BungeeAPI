@@ -32,7 +32,8 @@ public class MessengerClient
 	private final DataOutputStream out;
 	private final List<PacketListener<?>> listeners = new CopyOnWriteArrayList<>();
 	private final ExecutorService sendPacketPool = Executors.newSingleThreadExecutor();
-	private final BlockingQueue<PacketData> sendBuffer = new ArrayBlockingQueue<>(20);
+	private final BlockingQueue<PacketData> sendBuffer = new ArrayBlockingQueue<>(Main.getInstance().getDeployer()
+			.getConfig().getSendBufferSize());
 	@Getter(AccessLevel.PACKAGE)
 	protected Server server;
 	private final AtomicInteger lastTransactionID = new AtomicInteger();
@@ -48,6 +49,7 @@ public class MessengerClient
 		this.out = out;
 		this.server = server;
 		listener.start();
+		sender.start();
 	}
 
 	private ThreadLoop setupListenerThreadLoop() //Called in MessengerClient connection listener
@@ -196,6 +198,7 @@ public class MessengerClient
 		unregister();
 		end = true;
 		listener.stop();
+		sender.stop();
 		try
 		{
 			socket.close();

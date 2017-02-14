@@ -15,8 +15,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -28,7 +28,7 @@ public final class MessengerServer implements SimpleManager
 {
 	private static final int PORT = 5555;
 	private static final String[] WHITELIST = {"localhost", "127.0.0.1"};
-	private final List<Socket> nonRegistered = new ArrayList<>(); //Keep an instance
+	private final List<Socket> nonRegistered = new CopyOnWriteArrayList<>(); //Keep an instance
 	private ServerSocket server;
 	private final ThreadLoop connectionListener = setupConnectionListener();
 	private volatile boolean end;
@@ -93,10 +93,7 @@ public final class MessengerServer implements SimpleManager
 	{
 		if (passWhitelist(socket))
 		{
-			synchronized (nonRegistered)
-			{
-				nonRegistered.add(socket);
-			}
+			nonRegistered.add(socket);
 
 			identify(socket);
 		}
@@ -231,10 +228,7 @@ public final class MessengerServer implements SimpleManager
 
 		MessengerClient client = new MessengerClient(socket, in, out, server);
 
-		synchronized (nonRegistered)
-		{
-			nonRegistered.remove(socket);
-		}
+		nonRegistered.remove(socket);
 
 		Main.getInstance().getDataManager().updateMessenger(server, client);
 
@@ -279,11 +273,8 @@ public final class MessengerServer implements SimpleManager
 	 */
 	private void closeNonRegistered()
 	{
-		synchronized (nonRegistered)
-		{
-			nonRegistered.forEach(this::closeConnection);
-			nonRegistered.clear();
-		}
+		nonRegistered.forEach(this::closeConnection);
+		nonRegistered.clear();
 	}
 
 	/**

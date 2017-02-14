@@ -17,17 +17,15 @@ import java.util.stream.Collectors;
  * Created by loucass003 on 21/12/16.
  */
 @ToString
+@Getter
 @EqualsAndHashCode
 public class DeployerConfig
 {
-	@Getter
 	private File baseDir;
-	@Getter
 	private int maxSlots;
-	@Getter
 	private List<Template.LobbyTemplate> lobbies;
-	@Getter
 	private List<Template> games;
+	private int sendBufferSize;
 
 	public static DeployerConfig load(File f)
 	{
