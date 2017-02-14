@@ -39,7 +39,7 @@ public class Server
 
 	public static Server get(ServerInfo info)
 	{
-		return Main.getInstance().getDataManager().getServer(info);
+		return Main.getInstance().getServerDataManager().getServer(info);
 	}
 
 	public String getName()

@@ -54,7 +54,7 @@ public final class Deployer implements SimpleManager
 			throw new IllegalStateException("Already initialised!");
 		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
 		dockerClient = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build();
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getDataManager().forEachServers(this::kill)));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getServerDataManager().forEachServers(this::kill)));
 		init = true;
 	}
 
@@ -110,7 +110,7 @@ public final class Deployer implements SimpleManager
 						ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
 						ProxyServer.getInstance().getServers().put(container.getId(), s);
 						Server server = new Server(container.getId(), type, v, s);
-						Main.getInstance().getDataManager().registerServer(server);
+						Main.getInstance().getServerDataManager().registerServer(server);
 
 						if (callback != null)
 							callback.response(server);
@@ -126,7 +126,7 @@ public final class Deployer implements SimpleManager
 	public void undeployServer(Server s)
 	{
 		Main.getInstance().getLogger().log(Level.INFO, "undeploy server with id -> " + s.getId());
-		Main.getInstance().getDataManager().unregisterServer(s);
+		Main.getInstance().getServerDataManager().unregisterServer(s);
 		kill(s);
 	}
 
@@ -138,7 +138,7 @@ public final class Deployer implements SimpleManager
 
 	public int getNextPort()
 	{
-		return Main.getInstance().getDataManager().getNextDeployerPort(MIN_PORT, MAX_PORT);
+		return Main.getInstance().getServerDataManager().getNextDeployerPort(MIN_PORT, MAX_PORT);
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public final class Deployer implements SimpleManager
 	{
 		if (end)
 			throw new IllegalStateException("Already ended!");
-		Main.getInstance().getDataManager().forEachServers(this::kill);
+		Main.getInstance().getServerDataManager().forEachServers(this::kill);
 		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 }

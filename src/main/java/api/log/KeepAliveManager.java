@@ -138,7 +138,7 @@ public final class KeepAliveManager implements SimpleManager
 	{
 		return ThreadLoops.newScheduledThreadLoop
 				(
-						() -> Main.getInstance().getDataManager().forEachServers
+						() -> Main.getInstance().getServerDataManager().forEachServers
 								(
 										server ->
 										{
@@ -208,7 +208,7 @@ public final class KeepAliveManager implements SimpleManager
 			}
 			else if (packet instanceof ServerStatePacket)
 			{
-				Main.getInstance().getDataManager().updateServerState(event.getFrom(), ((ServerStatePacket) packet)
+				Main.getInstance().getServerDataManager().updateServerState(event.getFrom(), ((ServerStatePacket) packet)
 						.getServerState());
 			}
 		}
