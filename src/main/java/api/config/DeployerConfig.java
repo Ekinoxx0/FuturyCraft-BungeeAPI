@@ -20,6 +20,7 @@ import java.util.List;
 public class DeployerConfig
 {
 	private File baseDir;
+	private File deployerDir;
 	private int maxSlots;
 	private List<ServerConfig> servers;
 	private int sendBufferSize;
