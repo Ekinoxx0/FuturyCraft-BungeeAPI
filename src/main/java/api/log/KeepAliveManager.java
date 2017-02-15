@@ -208,6 +208,7 @@ public final class KeepAliveManager implements SimpleManager
 			}
 			else if (packet instanceof ServerStatePacket)
 			{
+				System.out.println("Server State packet ->" + event.getFrom() + " " + packet);
 				Main.getInstance().getServerDataManager().updateServerState(event.getFrom(), ((ServerStatePacket)
 						packet)
 						.getServerState());

@@ -81,17 +81,9 @@ public final class Deployer implements SimpleManager
 						List<Bind> binds = new ArrayList<>();
 						pattern.getVariant().getVolumes().forEach(cv ->
 						{
-							try
-							{
-								File bind = new File(config.getBaseDir(), cv.getHost());
-								Volume volume = new Volume(cv.getContainer());
-								volumes.add(volume);
-								binds.add(new Bind(bind.getCanonicalPath(), volume, cv.isReadOnly() ? AccessMode.ro : AccessMode.rw));
-							}
-							catch (IOException e)
-							{
-								Main.getInstance().getLogger().log(Level.SEVERE, "Unable to create path volume for " + cv.getHost(), e);
-							}
+							Volume volume = new Volume(cv.getContainer());
+							volumes.add(volume);
+							binds.add(new Bind(cv.getHost().getAbsolutePath(), volume, cv.isReadOnly() ? AccessMode.ro : AccessMode.rw));
 						});
 						cmd.withVolumes(volumes);
 						cmd.withBinds(binds);
