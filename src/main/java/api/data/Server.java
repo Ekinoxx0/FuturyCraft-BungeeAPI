@@ -1,9 +1,9 @@
 package api.data;
 
-import api.Main;
 import api.config.ServerPattern;
 import api.deployer.ServerState;
 import api.packets.OutPacket;
+import api.packets.ServerMessenger;
 import api.packets.server.KeepAlivePacket;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class Server
 	 */
 	public static Server get(ServerInfo info)
 	{
-		return Main.getInstance().getServerDataManager().getServer(info);
+		return ServerDataManager.instance().getServer(info);
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class Server
 	 */
 	public static Server get(String id)
 	{
-		return Main.getInstance().getServerDataManager().getServer(id);
+		return ServerDataManager.instance().getServer(id);
 	}
 
 	public void updateData(KeepAlivePacket keepAlivePacket)
@@ -100,7 +100,7 @@ public class Server
 	 */
 	public void sendPacket(OutPacket packet)
 	{
-		Main.getInstance().getServerMessenger().sendPacket(id, packet);
+		ServerMessenger.instance().sendPacket(id, packet);
 	}
 
 }

@@ -1,7 +1,7 @@
 package api;
 
 import api.commands.BossBarMessageCommand;
-import api.commands.DispatchCommand;
+import api.commands.permissons.GroupCommand;
 import api.data.ServerDataManager;
 import api.data.UserData;
 import api.data.UserDataManager;
@@ -16,6 +16,11 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.java.Log;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.Event;
+import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -28,6 +33,7 @@ import java.io.File;
  */
 @ToString
 @Getter
+@Log
 public final class Main extends Plugin
 {
 	private static Main instance;
@@ -44,7 +50,7 @@ public final class Main extends Plugin
 	private final LogManager logManager;
 	private final UtilsListener utilsListener;
 	private final LobbyManager lobbyManager;
-	private final PermissionsManager permsManager;
+	private final PermissionsManager permissionsManager;
 
 	public Main()
 	{
@@ -53,7 +59,8 @@ public final class Main extends Plugin
 		mainDatabase = mongoClient.getDatabase("FcDeployer");
 		morphia = new Morphia();
 		morphia.map(UserData.class);
-		morphia.getMapper().getOptions().setObjectFactory(new DefaultCreator() {
+		morphia.getMapper().getOptions().setObjectFactory(new DefaultCreator()
+		{
 			@Override
 			protected ClassLoader getClassLoaderForClass()
 			{
@@ -65,7 +72,7 @@ public final class Main extends Plugin
 		serverMessenger = new ServerMessenger();
 		serverDataManager = new ServerDataManager();
 		userDataManager = new UserDataManager();
-		permsManager = new PermissionsManager();
+		permissionsManager = new PermissionsManager();
 		deployer = new Deployer();
 		lobbyManager = new LobbyManager();
 		keepAliveManager = new KeepAliveManager();
@@ -86,19 +93,19 @@ public final class Main extends Plugin
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
 
-		serverMessenger.init();
-		serverDataManager.init();
-		userDataManager.init();
-		permsManager.init();
-		deployer.init();
-		logManager.init();
-		lobbyManager.init();
-		keepAliveManager.init();
-		utilsListener.init();
+		serverMessenger.start();
+		serverDataManager.start();
+		userDataManager.start();
+		permissionsManager.start();
+		deployer.start();
+		logManager.start();
+		lobbyManager.start();
+		keepAliveManager.start();
+		utilsListener.start();
 
-		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
-		getProxy().getPluginManager().registerCommand(this, new BossBarMessageCommand());
-		getLogger().info("FcApiBungee enabled!");
+		registerCommand(new GroupCommand());
+		registerCommand(new BossBarMessageCommand());
+		log.info("FcApiBungee enabled!");
 	}
 
 	@Override
@@ -113,5 +120,20 @@ public final class Main extends Plugin
 		logManager.stop();
 		utilsListener.stop();
 		mongoClient.close();
+	}
+
+	public static <T extends Event> T callEvent(T event)
+	{
+		return ProxyServer.getInstance().getPluginManager().callEvent(event);
+	}
+
+	public static void registerListener(Listener listener)
+	{
+		ProxyServer.getInstance().getPluginManager().registerListener(instance, listener);
+	}
+
+	public static void registerCommand(Command command)
+	{
+		ProxyServer.getInstance().getPluginManager().registerCommand(instance, command);
 	}
 }

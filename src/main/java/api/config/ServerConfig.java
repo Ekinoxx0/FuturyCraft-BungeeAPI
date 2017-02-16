@@ -1,11 +1,10 @@
 package api.config;
 
-import api.Main;
+import api.deployer.Deployer;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +24,7 @@ public class ServerConfig
 
 	public static List<ServerConfig> getByLabels(Map<String, String> labels)
 	{
-		List<ServerConfig> configs = Main.getInstance().getDeployer().getConfig().getServers();
+		List<ServerConfig> configs = Deployer.instance().getConfig().getServers();
 		return configs.stream()
 				.filter(config -> search(labels, config.labels))
 				.collect(Collectors.toList());

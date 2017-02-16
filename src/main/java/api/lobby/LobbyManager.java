@@ -6,6 +6,7 @@ import api.config.ServerPattern;
 import api.config.Variant;
 import api.data.Server;
 import api.data.UserData;
+import api.deployer.Deployer;
 import api.events.DeployerConfigReloadEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
@@ -64,10 +65,7 @@ public final class LobbyManager implements SimpleManager
 	@Override
 	public void init()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialized!");
-
-		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
+		Main.registerListener(listener);
 
 		loadConfig();
 
@@ -76,8 +74,6 @@ public final class LobbyManager implements SimpleManager
 
 		deployLobby(true, server -> vipAcceptLobby = server);
 		deployLobby(true, server -> vipWaitingLobby = server);
-
-		init = true;
 	}
 
 	public void loadConfig()
@@ -85,8 +81,7 @@ public final class LobbyManager implements SimpleManager
 		serverConfig = getConfig("normal");
 		vipServerConfig = getConfig("vip");
 
-		maxSlots = Main.getInstance()
-				.getDeployer().getConfig().getMaxSlots();
+		maxSlots = Deployer.instance().getConfig().getMaxSlots();
 	}
 
 	private ServerConfig getConfig(String lobbyType)
@@ -100,15 +95,6 @@ public final class LobbyManager implements SimpleManager
 			throw new IllegalArgumentException("Cannot find vip config");
 
 		return configs.get(0);
-	}
-
-	@Override
-	public void stop()
-	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-		end = true;
-		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
 	private Variant getNextVariant()
@@ -195,14 +181,14 @@ public final class LobbyManager implements SimpleManager
 
 	private void deployLobby(boolean vip, Callback<Server> callback)
 	{
-		Main.getInstance().getDeployer()
+		Deployer.instance()
 				.deployServer(vip ? ServerPattern.of(vipServerConfig, getNextVIPVariant()) :
 						ServerPattern.of(serverConfig, getNextVariant()), callback);
 	}
 
 	private void undeployLobby(Server server)
 	{
-		Main.getInstance().getDeployer().undeployServer(server);
+		Deployer.instance().undeployServer(server);
 	}
 
 	public class Listen implements Listener

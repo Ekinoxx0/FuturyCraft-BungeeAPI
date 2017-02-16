@@ -5,7 +5,7 @@ import api.deployer.ServerState;
 import api.events.ServerChangeStateEvent;
 import api.utils.SimpleManager;
 import lombok.ToString;
-import net.md_5.bungee.api.ProxyServer;
+import lombok.extern.java.Log;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.util.List;
@@ -21,29 +21,16 @@ import java.util.stream.IntStream;
  * Created by SkyBeast on 19/12/2016.
  */
 @ToString
+@Log
 public final class ServerDataManager implements SimpleManager
 {
 	private final ExecutorService exec = Executors.newSingleThreadExecutor();
 	private final List<Server> servers = new CopyOnWriteArrayList<>();
 	private final List<Short> ports = new CopyOnWriteArrayList<>();
-	private boolean init;
-	private volatile boolean end;
 
-	@Override
-	public void init()
+	public static ServerDataManager instance()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialised!");
-		init = true;
-	}
-
-	@Override
-	public void stop()
-	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-		end = true;
-		Main.getInstance().getLogger().info(this + " stopped.");
+		return Main.getInstance().getServerDataManager();
 	}
 
 	/**
@@ -177,7 +164,7 @@ public final class ServerDataManager implements SimpleManager
 	 */
 	public void updateServerState(Server srv, ServerState state)
 	{
-		ProxyServer.getInstance().getPluginManager().callEvent(new ServerChangeStateEvent(srv, state));
+		Main.callEvent(new ServerChangeStateEvent(srv, state));
 		srv.setServerState(state);
 	}
 }

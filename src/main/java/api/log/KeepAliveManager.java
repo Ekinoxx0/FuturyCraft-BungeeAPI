@@ -2,6 +2,7 @@ package api.log;
 
 import api.Main;
 import api.data.Server;
+import api.data.ServerDataManager;
 import api.events.PacketReceivedEvent;
 import api.packets.InPacket;
 import api.packets.server.KeepAlivePacket;
@@ -12,7 +13,7 @@ import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import com.mongodb.client.MongoDatabase;
 import lombok.ToString;
-import net.md_5.bungee.api.ProxyServer;
+import lombok.extern.java.Log;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import org.bson.Document;
@@ -34,6 +35,7 @@ import java.util.logging.Level;
  * Created by SkyBeast on 22/12/2016.
  */
 @ToString
+@Log
 public final class KeepAliveManager implements SimpleManager
 {
 	private static final int SENDER_LOOP_PERIOD = 1000 * 60 * 5;
@@ -51,8 +53,6 @@ public final class KeepAliveManager implements SimpleManager
 	private final ThreadLoop senderThread = setupSenderThread();
 	private final ThreadLoop watcherThread = setupWatcherThread();
 	private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-	private boolean init;
-	private volatile boolean end;
 
 	public KeepAliveManager()
 	{
@@ -65,14 +65,15 @@ public final class KeepAliveManager implements SimpleManager
 	@Override
 	public void init()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialized!");
-
-		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
+		Main.registerListener(listener);
 
 		senderThread.start();
 		watcherThread.start();
-		init = true;
+	}
+
+	public static KeepAliveManager instance()
+	{
+		return Main.getInstance().getKeepAliveManager();
 	}
 
 	/*
@@ -108,7 +109,7 @@ public final class KeepAliveManager implements SimpleManager
 	 */
 	private void sendKeepAlives()
 	{
-		Main.getInstance().getLogger().info("Sending keep-alives...");
+		log.info("Sending keep-alives...");
 
 		Date now = new Date();
 		Document doc = new Document("ts", System.currentTimeMillis()).append("time", timeFormat.format(now));
@@ -140,7 +141,7 @@ public final class KeepAliveManager implements SimpleManager
 	{
 		return ThreadLoops.newScheduledThreadLoop
 				(
-						() -> Main.getInstance().getServerDataManager().forEachServers
+						() -> ServerDataManager.instance().forEachServers
 								(
 										server ->
 										{
@@ -164,19 +165,14 @@ public final class KeepAliveManager implements SimpleManager
 
 		//Stop server
 
-		Main.getInstance().getLogger().log(Level.SEVERE, "Server " + server + " did not send keep-alive");
+		log.log(Level.SEVERE, "Server " + server + " did not send keep-alive");
 	}
 
 	@Override
 	public void stop()
 	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-
 		senderThread.stop();
 		watcherThread.stop();
-
-		end = true;
 	}
 
 	public class Listen implements Listener
@@ -199,7 +195,7 @@ public final class KeepAliveManager implements SimpleManager
 								() ->
 								{
 									cache.add(event.getFrom());
-									cacheNotEmpty.signal(); //Wake up sender thread! You have work to do!
+									cacheNotEmpty.signal();
 								},
 								cacheLock
 						);
@@ -209,7 +205,7 @@ public final class KeepAliveManager implements SimpleManager
 			else if (packet instanceof ServerStatePacket)
 			{
 				System.out.println("Server State packet ->" + event.getFrom() + " " + packet);
-				Main.getInstance().getServerDataManager().updateServerState(event.getFrom(), ((ServerStatePacket)
+				ServerDataManager.instance().updateServerState(event.getFrom(), ((ServerStatePacket)
 						packet)
 						.getServerState());
 			}

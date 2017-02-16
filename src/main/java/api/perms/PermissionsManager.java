@@ -1,10 +1,9 @@
 package api.perms;
 
 import api.Main;
-import api.perms.events.GroupRemovedEvent;
-import api.perms.events.GroupUpdatedEvent;
+import api.events.GroupRemovedEvent;
+import api.events.GroupUpdatedEvent;
 import api.utils.SimpleManager;
-import api.utils.Utils;
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -12,95 +11,82 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.plugin.Listener;
+import lombok.ToString;
+import lombok.extern.java.Log;
 import org.bson.Document;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
  * Created by loucass003 on 2/5/17.
  */
-public class PermissionsManager implements SimpleManager
+@ToString
+@Log
+public final class PermissionsManager implements SimpleManager
 {
 	private final MongoDatabase permsDB = Main.getInstance().getMongoClient().getDatabase("perms");
 	private final MongoCollection<Document> groupsCollection = permsDB.getCollection("groups");
 	private final MongoCollection<Document> permsCollection = permsDB.getCollection("perms");
 
-	private final Listen listener = new Listen();
-
-	private final ReentrantLock groupsLock = new ReentrantLock();
-	private static final List<Group> GROUPS = new ArrayList<>();
+	private static final List<Group> GROUPS = new CopyOnWriteArrayList<>();
 	private TIntObjectMap<String> perms;
-	private boolean init;
 
 	@Override
 	public void init()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialised!");
-		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
 		perms = getPerms();
-		init = true;
+	}
+
+	public static PermissionsManager instance()
+	{
+		return Main.getInstance().getPermissionsManager();
 	}
 
 	public void addGroup(Group g)
 	{
-		Utils.doLocked(() ->
-		{
-			GROUPS.add(g);
-			addGroupToDB(g);
-		}, groupsLock);
+		GROUPS.add(g);
+		addGroupToDB(g);
 	}
 
 	public void remGroup(Group g)
 	{
-		Utils.doLocked(() ->
-		{
-			GROUPS.remove(g);
-			remGroupFromDB(g);
-		}, groupsLock);
-		ProxyServer.getInstance().getPluginManager().callEvent(new GroupRemovedEvent(g));
+		GROUPS.remove(g);
+		remGroupFromDB(g);
+		Main.callEvent(new GroupRemovedEvent(g));
 	}
 
 	public void updateGroup(Group g)
 	{
 		updateGroupToDB(g);
-		ProxyServer.getInstance().getPluginManager().callEvent(new GroupUpdatedEvent(g));
+		Main.callEvent(new GroupUpdatedEvent(g));
 	}
 
 	public Group getGroupByName(String name)
 	{
 		if (name == null)
 			return null;
-		return Utils.returnLocked(() ->
-						GROUPS.stream()
-								.filter(g -> g.getName().equals(name))
-								.findFirst()
-								.orElseGet(() ->
-								{
-									Document doc = groupsCollection.find(Filters.eq("name", name)).first();
-									Group group = Group.fromDoc(doc);
-									if (group != null) GROUPS.add(group);
-									return group;
-								}),
-				groupsLock);
+		return GROUPS.stream()
+				.filter(g -> g.getName().equals(name))
+				.findFirst()
+				.orElseGet(() ->
+				{
+					Document doc = groupsCollection.find(Filters.eq("name", name)).first();
+					Group group = Group.fromDoc(doc);
+					if (group != null) GROUPS.add(group);
+					return group;
+				});
 	}
 
 	public List<Group> getGroups()
 	{
-		return Utils.returnLocked(() ->
-		{
-			int count = (int) groupsCollection.count();
-			if (GROUPS.size() == count)
-				return GROUPS;
-			FindIterable<Document> docs = groupsCollection.find();
-			docs.forEach((Block<? super Document>) doc -> getGroupByName(Group.fromDoc(doc).getName()));
+		int count = (int) groupsCollection.count();
+		if (GROUPS.size() == count)
 			return GROUPS;
-		}, groupsLock);
+		FindIterable<Document> docs = groupsCollection.find();
+		docs.forEach((Block<? super Document>) doc -> getGroupByName(Group.fromDoc(doc).getName()));
+		return GROUPS;
 	}
 
 	private void addGroupToDB(Group g)
@@ -126,13 +112,6 @@ public class PermissionsManager implements SimpleManager
 			return perms;
 		docs.forEach((Block<? super Document>) doc -> perms.put(doc.getInteger("id"), doc.getString("value")));
 		return perms;
-	}
-
-	public class Listen implements Listener
-	{
-		private Listen() {}
-
-
 	}
 
 	public TIntObjectMap<String> getPerms()

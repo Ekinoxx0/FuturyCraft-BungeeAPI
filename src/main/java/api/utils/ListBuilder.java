@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 @ToString
 @EqualsAndHashCode
 @Getter
-public class ListBuilder<E>
+public final class ListBuilder<E>
 {
 	private final List<E> list;
 	private static final Collector COLLECTOR = Collector.of(ListBuilder::new, ListBuilder::append,

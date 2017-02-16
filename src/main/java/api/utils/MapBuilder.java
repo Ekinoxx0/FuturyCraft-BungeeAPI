@@ -14,7 +14,7 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 @Getter
-public class MapBuilder<K, V>
+public final class MapBuilder<K, V>
 {
 	private final Map<K, V> map;
 	private final Class<K> kClass;

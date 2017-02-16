@@ -1,18 +1,19 @@
 package api.log;
 
-import api.Main;
 import api.data.Server;
+import api.deployer.Deployer;
 import api.utils.SimpleManager;
 import api.utils.Utils;
 import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
+import lombok.ToString;
+import lombok.extern.java.Log;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +27,8 @@ import java.util.logging.Level;
 /**
  * Created by SkyBeast on 07/01/2017.
  */
+@ToString
+@Log
 public final class LogManager implements SimpleManager
 {
 	private static final String FTP_HOST = "dedibackup-dc3.online.net:22";
@@ -35,8 +38,6 @@ public final class LogManager implements SimpleManager
 	private final DateFormat dateFormat; //dd-MMM-yyyy
 	private final DateFormat timeFormat; //HH:mm:ss
 	private final ThreadLoop senderLoop = setupSenderExecutor();
-	private boolean init;
-	private volatile boolean end;
 	private Path logsDir;
 
 	public LogManager()
@@ -50,27 +51,12 @@ public final class LogManager implements SimpleManager
 	@Override
 	public void init()
 	{
-		File file = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs");
+		File file = new File(Deployer.instance().getConfig().getBaseDir(), "logs");
 		if (!file.exists() && !file.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs file " + file + '.');
 		logsDir = file.toPath();
-		if (init)
-			throw new IllegalStateException("Already initialized!");
 
 		//setupSenderExecutor();
-
-		init = true;
-	}
-
-	@Override
-	public void stop()
-	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-
-		end = true;
-
-		Main.getInstance().getLogger().info(this + " stopped.");
 	}
 
 	private ThreadLoop setupSenderExecutor()
@@ -85,7 +71,7 @@ public final class LogManager implements SimpleManager
 							}
 							catch (IOException e)
 							{
-								Main.getInstance().getLogger().log(Level.SEVERE, "Error while sending logs", e);
+								log.log(Level.SEVERE, "Error while sending logs", e);
 							}
 						},
 						getInitialDelay(),
@@ -99,7 +85,7 @@ public final class LogManager implements SimpleManager
 	 *
 	 * @throws IOException uses FTPClient
 	 */
-	private synchronized void sendLogs() throws IOException
+	private void sendLogs() throws IOException
 	{
 		File zip = zipLogs();
 		FTPClient ftp = new FTPClient();
@@ -130,7 +116,7 @@ public final class LogManager implements SimpleManager
 	 */
 	private File zipLogs() throws IOException
 	{
-		File zip = new File(Main.getInstance().getDeployer().getConfig().getBaseDir(), "logs.zip");
+		File zip = new File(Deployer.instance().getConfig().getBaseDir(), "logs.zip");
 		Utils.zipDirectory(logsDir.toFile(), zip);
 		return zip;
 	}
@@ -148,7 +134,7 @@ public final class LogManager implements SimpleManager
 
 		if (!FTPReply.isPositiveCompletion(reply))
 		{
-			Main.getInstance().getLogger().log(Level.SEVERE, "FTP server did not accept me ;ç Reply code: " +
+			log.log(Level.SEVERE, "FTP server did not accept me ;ç Reply code: " +
 					reply);
 			ftp.disconnect();
 			return false;
@@ -203,23 +189,5 @@ public final class LogManager implements SimpleManager
 			Main.getInstance().getLogger().log(Level.SEVERE, "Error while saving logs (Server: " +
 					server + ')', e);
 		}*/
-	}
-
-	/**
-	 * Check if a UUID was used in the last hour.
-	 *
-	 * @param id the uuid to check
-	 * @return whether or not the uuid was used
-	 */
-	public boolean checkUsedID(String id)
-	{
-		try
-		{
-			return Files.walk(logsDir).anyMatch(path -> path.startsWith(id));
-		}
-		catch (IOException ignored)
-		{
-			return true;
-		}
 	}
 }

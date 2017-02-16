@@ -1,6 +1,5 @@
 package api.perms;
 
-import api.Main;
 import gnu.trove.list.TIntList;
 import lombok.Data;
 import org.bson.Document;
@@ -64,7 +63,7 @@ public class Group
 			return false;
 
 		for (int i : group.getPerms().toArray())
-			if (perm.equals(Main.getInstance().getPermsManager().getPerms().get(i)))
+			if (perm.equals(PermissionsManager.instance().getPerms().get(i)))
 				return true;
 		return false;
 	}

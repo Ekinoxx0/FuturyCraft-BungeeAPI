@@ -1,7 +1,7 @@
 package api.commands;
 
 import api.Main;
-import api.data.Server;
+import api.data.ServerDataManager;
 import api.packets.server.BossBarMessagesPacket;
 import api.utils.Utils;
 import api.utils.UtilsListener;
@@ -77,8 +77,8 @@ public class BossBarMessageCommand extends Command
 				sb.append(args[i]).append(i == args.length - 1 ? "" : " ");
 			addMessage(time, sb.toString().trim());
 
-			Main.getInstance().getServerDataManager().forEachServersByType(server ->
-							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
+			ServerDataManager.instance().forEachServersByType(server ->
+							UtilsListener.instance().sendBossBarMessagesPacket(server),
 					"lobby"
 			);
 			sender.sendMessage(ADD_SUCCESS);
@@ -121,11 +121,11 @@ public class BossBarMessageCommand extends Command
 				return;
 			}
 
-			UtilsListener.BOSS_BAR_MESSAGES.remove(offset - 1);
+			UtilsListener.instance().removeBossBarMessage(offset - 1);
 			COLLECTION.deleteOne(fi);
 			sender.sendMessage(REM_SUCCESS);
-			Main.getInstance().getServerDataManager().forEachServersByType(server ->
-							Main.getInstance().getUtilsListener().sendBossBarMessagesPacket(server),
+			ServerDataManager.instance().forEachServersByType(server ->
+							UtilsListener.instance().sendBossBarMessagesPacket(server),
 					"lobby"
 			);
 		}
@@ -139,6 +139,6 @@ public class BossBarMessageCommand extends Command
 		doc.put("time", time);
 		doc.put("message", message);
 		COLLECTION.insertOne(doc);
-		UtilsListener.BOSS_BAR_MESSAGES.add(new BossBarMessagesPacket.MessageData(message, time));
+		UtilsListener.instance().addBossBarMessage(new BossBarMessagesPacket.MessageData(message, time));
 	}
 }

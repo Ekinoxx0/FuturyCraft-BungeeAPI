@@ -2,6 +2,7 @@ package api.packets;
 
 import api.Main;
 import api.data.Server;
+import api.data.ServerDataManager;
 import api.events.PacketReceivedEvent;
 import api.utils.SimpleManager;
 import com.google.common.io.ByteArrayDataInput;
@@ -10,8 +11,6 @@ import com.google.common.io.ByteStreams;
 import com.rabbitmq.client.*;
 import lombok.ToString;
 import lombok.extern.java.Log;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.plugin.Event;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,22 +31,20 @@ public final class ServerMessenger implements SimpleManager
 	private MessageHandler consumer;
 
 	@Override
-	public void init()
+	public void init() throws IOException, TimeoutException
 	{
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost("localhost");
-		try
-		{
-			connection = factory.newConnection();
-			channel = connection.createChannel();
-			channel.queueDeclare(INCOMING_QUEUE, false, false, false, null);
-			consumer = new MessageHandler();
-			channel.basicConsume(INCOMING_QUEUE, true, consumer);
-		}
-		catch (IOException | TimeoutException e)
-		{
-			throw new IllegalStateException("Cannot start ServerMessenger", e);
-		}
+		connection = factory.newConnection();
+		channel = connection.createChannel();
+		channel.queueDeclare(INCOMING_QUEUE, false, false, false, null);
+		consumer = new MessageHandler();
+		channel.basicConsume(INCOMING_QUEUE, true, consumer);
+	}
+
+	public static ServerMessenger instance()
+	{
+		return Main.getInstance().getServerMessenger();
 	}
 
 	/**
@@ -152,26 +149,15 @@ public final class ServerMessenger implements SimpleManager
 			//Packet
 			InPacket packet = deserializePacket(in);
 
-			Server server = Main.getInstance().getServerDataManager().getServer(serverID);
+			Server server = ServerDataManager.instance().getServer(serverID);
 
-			callEvent(new PacketReceivedEvent(null, packet));
+			Main.callEvent(new PacketReceivedEvent(null, packet));
 		}
 	}
 
 	/**
-	 * Call an event.
-	 *
-	 * @param event the event
-	 * @param <T>   the event type
-	 * @return the event
-	 */
-	private static <T extends Event> T callEvent(T event)
-	{
-		return ProxyServer.getInstance().getPluginManager().callEvent(event);
-	}
-
-	/**
 	 * Deserialize a packet with its header.
+	 *
 	 * @param in the data of the packet
 	 * @return the packet
 	 * @throws IOException i/o related method
@@ -189,6 +175,7 @@ public final class ServerMessenger implements SimpleManager
 
 	/**
 	 * Deserialize a raw packet without its header.
+	 *
 	 * @param id the id of the packet
 	 * @param in the data of the packet
 	 * @return the packet

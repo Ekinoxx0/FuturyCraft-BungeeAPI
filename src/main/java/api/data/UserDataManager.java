@@ -5,7 +5,7 @@ import api.utils.SimpleManager;
 import api.utils.concurrent.ThreadLoop;
 import api.utils.concurrent.ThreadLoops;
 import lombok.ToString;
-import net.md_5.bungee.api.ProxyServer;
+import lombok.extern.java.Log;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -25,7 +25,8 @@ import java.util.function.Consumer;
  * Created by SkyBeast on 12/02/17.
  */
 @ToString
-public class UserDataManager implements SimpleManager
+@Log
+public final class UserDataManager implements SimpleManager
 {
 	private static final int SAVE_DELAY_ON_DISCONNECT = 1000 * 60 * 2;
 	private static final int SAVE_DELAY = 1000 * 60 * 60;
@@ -38,36 +39,29 @@ public class UserDataManager implements SimpleManager
 	private final ThreadLoop saverOnDisconnect = setupSaverOnDisconnectThreadLoop(); //The thread loop used to send
 	// all data from the disconnect queue
 	private final ThreadLoop saver = setupSaverThreadLoop();
-	private boolean init;
-	private volatile boolean end;
 
 	/* ------------ */
 	/* - INTERNAL - */
 	/* ------------ */
 
+	public static UserDataManager instance()
+	{
+		return Main.getInstance().getUserDataManager();
+	}
+
 	@Override
 	public void init()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialised!");
-
 		saverOnDisconnect.start();
 		saver.start();
-		ProxyServer.getInstance().getPluginManager().registerListener(Main.getInstance(), listener);
-
-		init = true;
+		Main.registerListener(listener);
 	}
 
 	@Override
 	public void stop()
 	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-
 		saverOnDisconnect.stop();
 		saver.stop();
-
-		end = true;
 	}
 
 	/*

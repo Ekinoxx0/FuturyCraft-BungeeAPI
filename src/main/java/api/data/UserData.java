@@ -1,10 +1,8 @@
 package api.data;
 
-import api.Main;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.mongodb.morphia.annotations.Entity;
@@ -41,12 +39,12 @@ public class UserData
 
 	public static UserData get(ProxiedPlayer player)
 	{
-		return Main.getInstance().getUserDataManager().getData(player);
+		return UserDataManager.instance().getData(player);
 	}
 
 	public static UserData get(UUID player)
 	{
-		return Main.getInstance().getUserDataManager().getData(player);
+		return UserDataManager.instance().getData(player);
 	}
 
 	Delayer getDelayer()
@@ -60,7 +58,6 @@ public class UserData
 	{
 		return ProxyServer.getInstance().getPlayer(uniqueID);
 	}
-
 
 	@Data
 	class Delayer implements Delayed

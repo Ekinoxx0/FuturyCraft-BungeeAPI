@@ -1,7 +1,7 @@
 package api.commands.permissons;
 
-import api.Main;
 import api.perms.Group;
+import api.perms.PermissionsManager;
 import gnu.trove.list.array.TIntArrayList;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -16,7 +16,8 @@ public class GroupCommand extends Command
 {
 	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /group <add|set|rem|list|perm|member>")
 			.color(ChatColor.RED).create();
-	private static final BaseComponent[] HELP_ADD = new ComponentBuilder("Usage: /group add {name} {prefix} {suffix} " +
+	private static final BaseComponent[] HELP_ADD = new ComponentBuilder("Usage: /group add {name} {prefix} {suffix}" +
+			" " +
 			"{chatcolor} {color}").color(ChatColor.RED).create();
 	private static final BaseComponent[] HELP_LIST = new ComponentBuilder("Usage: /group list").color(ChatColor.RED)
 			.create();
@@ -87,7 +88,7 @@ public class GroupCommand extends Command
 
 		String name = args[1];
 
-		if (Main.getInstance().getPermsManager().getGroupByName(name) != null)
+		if (PermissionsManager.instance().getGroupByName(name) != null)
 		{
 			sender.sendMessage(GROUP_ALREADY_EXIST);
 			return;
@@ -98,7 +99,7 @@ public class GroupCommand extends Command
 		String chatColor = args[4].replace("&", "§");
 		String color = args[5].replace("&", "§");
 
-		Main.getInstance().getPermsManager().addGroup(new Group(name, prefix, suffix, new TIntArrayList(), color,
+		PermissionsManager.instance().addGroup(new Group(name, prefix, suffix, new TIntArrayList(), color,
 				chatColor));
 	}
 
@@ -110,7 +111,7 @@ public class GroupCommand extends Command
 			return;
 		}
 
-		Group group = Main.getInstance().getPermsManager().getGroupByName(args[1]);
+		Group group = PermissionsManager.instance().getGroupByName(args[1]);
 
 		if (group == null)
 		{
@@ -135,7 +136,7 @@ public class GroupCommand extends Command
 			return;
 		}
 
-		Main.getInstance().getPermsManager().updateGroup(group);
+		PermissionsManager.instance().updateGroup(group);
 	}
 
 	private void remGroup(CommandSender sender, String[] args)
@@ -146,7 +147,7 @@ public class GroupCommand extends Command
 			return;
 		}
 
-		Group group = Main.getInstance().getPermsManager().getGroupByName(args[1]);
+		Group group = PermissionsManager.instance().getGroupByName(args[1]);
 
 		if (group == null)
 		{
@@ -154,13 +155,14 @@ public class GroupCommand extends Command
 			return;
 		}
 
-		Main.getInstance().getPermsManager().remGroup(group);
+		PermissionsManager.instance().remGroup(group);
 	}
 
 	private void listGroups(CommandSender sender)
 	{
 		sender.sendMessage(new ComponentBuilder("Liste des groupes :").color(ChatColor.GREEN).create());
-		Main.getInstance().getPermsManager().getGroups().forEach(g ->
+
+		PermissionsManager.instance().getGroups().forEach(g ->
 				sender.sendMessage(new ComponentBuilder("name: ")
 						.append(g.getName())
 						.append(" displayName: ")

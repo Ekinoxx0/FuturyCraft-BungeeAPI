@@ -4,8 +4,8 @@ import api.Main;
 import api.config.ConfigVolume;
 import api.config.DeployerConfig;
 import api.config.ServerPattern;
-import api.config.Variant;
 import api.data.Server;
+import api.data.ServerDataManager;
 import api.utils.SimpleManager;
 import api.utils.concurrent.Callback;
 import com.github.dockerjava.api.DockerClient;
@@ -16,6 +16,7 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.java.Log;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import org.apache.commons.io.FileUtils;
@@ -23,9 +24,9 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -34,30 +35,36 @@ import java.util.logging.Level;
  * Created by loucass003 on 14/12/16.
  */
 @ToString
+@Log
 public final class Deployer implements SimpleManager
 {
 	private static final int MIN_PORT = 12000;
 	private static final int MAX_PORT = 25000;
 	private static final int MAX_SERVERS = MAX_PORT - MIN_PORT;
 	private final ExecutorService exec = Executors.newCachedThreadPool();
-
 	@Getter
 	private DeployerConfig config;
 	@Getter
 	private DockerClient dockerClient;
 
-	private boolean init;
-	private volatile boolean end;
-
 	@Override
 	public void init()
 	{
-		if (init)
-			throw new IllegalStateException("Already initialised!");
 		config = DeployerConfig.load(new File(Main.getInstance().getDataFolder(), "deployer.json"));
 		dockerClient = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build();
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.getInstance().getServerDataManager().forEachServers(this::kill)));
-		init = true;
+		Runtime.getRuntime().addShutdownHook(
+				new Thread(() -> ServerDataManager.instance().forEachServers(this::kill)));
+	}
+
+	public static Deployer instance()
+	{
+		return Main.getInstance().getDeployer();
+	}
+
+	@Override
+	public void stop()
+	{
+		ServerDataManager.instance().forEachServers(this::kill);
 	}
 
 	public void deployServer(ServerPattern pattern, Callback<Server> callback)
@@ -74,12 +81,13 @@ public final class Deployer implements SimpleManager
 						UUID uuid = UUID.randomUUID();
 
 						File folder = new File(getConfig().getDeployerDir(), uuid.toString());
-						if(!folder.exists() && !folder.mkdir())
-							throw new IllegalStateException("Unable to cretate tmp folder for container " + folder.getPath());
+						if (!folder.exists() && !folder.mkdir())
+							throw new IllegalStateException("Unable to cretate tmp folder for container " + folder
+									.getPath());
 
 						pattern.getLabels().put("uuid", uuid.toString());
 						CreateContainerCmd cmd = dockerClient.createContainerCmd(pattern.getVariant().getImg())
-								.withMemory(pattern.getVariant().getMaxRam() * (long)Math.pow(1024, 2))
+								.withMemory(pattern.getVariant().getMaxRam() * (long) Math.pow(1024, 2))
 								.withExposedPorts(tcpMc)
 								.withPortBindings(portBindings)
 								.withLabels(pattern.getLabels());
@@ -100,17 +108,18 @@ public final class Deployer implements SimpleManager
 						dockerClient.startContainerCmd(container.getId()).exec();
 						InspectContainerResponse inspect = dockerClient.inspectContainerCmd(container.getId()).exec();
 						String host = inspect.getNetworkSettings().getPorts().getBindings().get(tcpMc)[0].getHostIp();
-						ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new InetSocketAddress(host, port), "", false);
+						ServerInfo s = ProxyServer.getInstance().constructServerInfo(container.getId(), new
+								InetSocketAddress(host, port), "", false);
 						ProxyServer.getInstance().getServers().put(container.getId(), s);
 						Server server = new Server(container.getId(), pattern, folder, s);
-						Main.getInstance().getServerDataManager().registerServer(server);
+						ServerDataManager.instance().registerServer(server);
 
 						if (callback != null)
 							callback.response(server);
 					}
-					catch (Throwable e)
+					catch (Exception e)
 					{
-						e.printStackTrace();
+						log.log(Level.SEVERE, "Cannot start new container", e);
 					}
 				}
 		);
@@ -119,8 +128,9 @@ public final class Deployer implements SimpleManager
 	public Bind prepareVolume(File folder, UUID uuid, ConfigVolume cv, Volume volume)
 	{
 		File to = new File(folder, cv.getContainer());
-		if(!to.getParentFile().exists())
-			to.getParentFile().mkdirs();
+		if (!to.getParentFile().exists() && !to.getParentFile().mkdirs())
+			throw new IllegalStateException("Cannot mkdirs volume");
+
 		try
 		{
 			FileUtils.copyDirectory(cv.getHost(), to);
@@ -135,16 +145,20 @@ public final class Deployer implements SimpleManager
 
 	public void undeployServer(Server s)
 	{
-		Main.getInstance().getLogger().log(Level.INFO, "undeploy server with id -> " + s.getId());
-		Main.getInstance().getServerDataManager().unregisterServer(s);
+		log.log(Level.INFO, "undeploy server with id -> " + s.getId());
+		ServerDataManager.instance().unregisterServer(s);
 		kill(s);
 	}
 
+	/**
+	 * Kill it with fire!
+	 * @param s the server
+	 */
 	public void kill(Server s)
 	{
 		dockerClient.killContainerCmd(s.getId()).exec();
 		dockerClient.removeContainerCmd(s.getId()).exec();
-		if(s.getTempFolder().exists())
+		if (s.getTempFolder().exists())
 		{
 			try
 			{
@@ -152,22 +166,14 @@ public final class Deployer implements SimpleManager
 			}
 			catch (IOException e)
 			{
-				Main.getInstance().getLogger().log(Level.SEVERE, "Unable to remove folder :" + s.getTempFolder().getPath(), e);
+				log.log(Level.SEVERE, "Unable to remove folder:" + s.getTempFolder()
+						.getPath(), e);
 			}
 		}
 	}
 
 	public int getNextPort()
 	{
-		return Main.getInstance().getServerDataManager().getNextDeployerPort(MIN_PORT, MAX_PORT);
-	}
-
-	@Override
-	public void stop()
-	{
-		if (end)
-			throw new IllegalStateException("Already ended!");
-		Main.getInstance().getServerDataManager().forEachServers(this::kill);
-		Main.getInstance().getLogger().info(this + " stopped.");
+		return ServerDataManager.instance().getNextDeployerPort(MIN_PORT, MAX_PORT);
 	}
 }
