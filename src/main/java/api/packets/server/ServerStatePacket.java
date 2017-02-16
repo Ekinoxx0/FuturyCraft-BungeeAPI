@@ -1,11 +1,11 @@
 package api.packets.server;
 
 import api.deployer.ServerState;
-import api.packets.IncPacket;
+import api.packets.InPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.DataInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 
 /**
@@ -13,11 +13,11 @@ import java.io.IOException;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ServerStatePacket extends IncPacket
+public class ServerStatePacket extends InPacket
 {
 	private final ServerState serverState;
 
-	public ServerStatePacket(DataInputStream data) throws IOException
+	public ServerStatePacket(DataInput data) throws IOException
 	{
 		super(data);
 		serverState = ServerState.values()[data.readUnsignedByte()];

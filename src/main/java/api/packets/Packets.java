@@ -1,11 +1,14 @@
 package api.packets;
 
 import api.packets.players.SendPlayerDataPacket;
-import api.packets.server.*;
+import api.packets.server.BossBarMessagesPacket;
+import api.packets.server.InBossBarMessages;
+import api.packets.server.KeepAlivePacket;
+import api.packets.server.ServerStatePacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.io.DataInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 
 /**
@@ -17,7 +20,6 @@ public enum Packets
 {
 	// OUTGOING - Spigot-bound
 	SEND_PLAYER_DATA((byte) 0x00, false, SendPlayerDataPacket.class),
-	REQUEST_STOP((byte) 0x01, false, StopPacket.class),
 	BB_MESSAGES((byte) 0x02, false, BossBarMessagesPacket.class),
 
 	// INCOMING - Bungee-bound
@@ -29,12 +31,12 @@ public enum Packets
 	private final boolean in;
 	private final Class<? extends Packet> clazz;
 
-	static IncPacket constructIncomingPacket(byte id, DataInputStream dis)
+	static InPacket constructIncomingPacket(byte id, DataInput dis)
 			throws IOException, ReflectiveOperationException
 	{
 		for (Packets p : values())
 			if (p.in && id == p.id)
-				return (IncPacket) p.clazz.getConstructor(DataInputStream.class).newInstance(dis);
+				return (InPacket) p.clazz.getConstructor(DataInput.class).newInstance(dis);
 		return null;
 	}
 

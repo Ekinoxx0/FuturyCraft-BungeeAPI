@@ -4,7 +4,7 @@ import api.packets.OutPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -19,7 +19,7 @@ public class SendPlayerDataPacket extends OutPacket
 	private final String rank;
 
 	@Override
-	public void write(DataOutputStream data) throws IOException
+	public void write(DataOutput data) throws IOException
 	{
 		data.writeLong(uuid.getMostSignificantBits());
 		data.writeLong(uuid.getLeastSignificantBits());

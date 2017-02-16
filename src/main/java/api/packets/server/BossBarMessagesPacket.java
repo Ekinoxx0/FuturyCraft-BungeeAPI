@@ -4,7 +4,7 @@ import api.packets.OutPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class BossBarMessagesPacket extends OutPacket
 	private final List<MessageData> messages;
 
 	@Override
-	public void write(DataOutputStream out) throws IOException
+	public void write(DataOutput out) throws IOException
 	{
 		out.writeShort(messages.size());
 		for (MessageData data : messages)
@@ -31,7 +31,7 @@ public class BossBarMessagesPacket extends OutPacket
 		private final String message;
 		private final int time;
 
-		public void write(DataOutputStream out) throws IOException
+		public void write(DataOutput out) throws IOException
 		{
 			out.writeUTF(message);
 			out.writeInt(time);

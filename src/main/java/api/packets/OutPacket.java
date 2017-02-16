@@ -1,6 +1,6 @@
 package api.packets;
 
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -8,5 +8,5 @@ import java.io.IOException;
  */
 public abstract class OutPacket extends Packet
 {
-	public void write(DataOutputStream out) throws IOException {}
+	public void write(DataOutput out) throws IOException {}
 }

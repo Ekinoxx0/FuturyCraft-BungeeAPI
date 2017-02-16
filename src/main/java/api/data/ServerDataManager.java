@@ -3,7 +3,6 @@ package api.data;
 import api.Main;
 import api.deployer.ServerState;
 import api.events.ServerChangeStateEvent;
-import api.packets.MessengerClient;
 import api.utils.SimpleManager;
 import lombok.ToString;
 import net.md_5.bungee.api.ProxyServer;
@@ -92,8 +91,8 @@ public final class ServerDataManager implements SimpleManager
 	 */
 	public synchronized int getNextDeployerPort(int minPort, int maxPort)
 	{
-		int port = IntStream.range(minPort , maxPort)
-				.filter(i -> !ports.contains((short)i))
+		int port = IntStream.range(minPort, maxPort)
+				.filter(i -> !ports.contains((short) i))
 				.findFirst()
 				.orElseThrow(
 						() -> new IllegalStateException("Unable to find port!")
@@ -102,8 +101,9 @@ public final class ServerDataManager implements SimpleManager
 		return port;
 	}
 
-	public void registerPort(int port) {
-		ports.add((short)port);
+	public void registerPort(int port)
+	{
+		ports.add((short) port);
 	}
 
 	/**
@@ -118,6 +118,22 @@ public final class ServerDataManager implements SimpleManager
 
 		return servers.stream()
 				.filter(server -> server.getInfo().equals(info))
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
+	 * Get a server from its container id.
+	 *
+	 * @param id the container id
+	 * @return the server
+	 */
+	public Server getServer(String id)
+	{
+		if (id == null) return null;
+
+		return servers.stream()
+				.filter(server -> server.getId().equals(id))
 				.findFirst()
 				.orElse(null);
 	}
@@ -151,17 +167,6 @@ public final class ServerDataManager implements SimpleManager
 	public int getServerCount()
 	{
 		return servers.size();
-	}
-
-	/**
-	 * Update a server's MessengerClient.
-	 *
-	 * @param srv    the server to update
-	 * @param client the new client
-	 */
-	public void updateMessenger(Server srv, MessengerClient client)
-	{
-		srv.setMessenger(client);
 	}
 
 	/**

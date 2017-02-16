@@ -1,10 +1,10 @@
 package api.packets.server;
 
-import api.packets.IncPacket;
+import api.packets.InPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.DataInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 
 /**
@@ -12,11 +12,11 @@ import java.io.IOException;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class KeepAlivePacket extends IncPacket
+public class KeepAlivePacket extends InPacket
 {
 	private final short[] lastTPS = new short[3];
 
-	public KeepAlivePacket(DataInputStream data) throws IOException
+	public KeepAlivePacket(DataInput data) throws IOException
 	{
 		super(data);
 		lastTPS[0] = data.readShort();

@@ -114,9 +114,9 @@ public class UtilsListener implements SimpleManager, Listener
 		}
 	}
 
-	public void sendBossBarMessagesPacket(Server s)
+	public void sendBossBarMessagesPacket(Server server)
 	{
-		s.getMessenger().sendPacket(new BossBarMessagesPacket(BOSS_BAR_MESSAGES));
+		server.sendPacket(new BossBarMessagesPacket(BOSS_BAR_MESSAGES));
 	}
 
 	private <T extends Event> T callEvent(T event)

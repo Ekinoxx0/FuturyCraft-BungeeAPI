@@ -9,8 +9,7 @@ import api.deployer.Deployer;
 import api.lobby.LobbyManager;
 import api.log.KeepAliveManager;
 import api.log.LogManager;
-import api.packets.MessengerServer;
-import api.panel.PanelManager;
+import api.packets.ServerMessenger;
 import api.perms.PermissionsManager;
 import api.utils.UtilsListener;
 import com.mongodb.MongoClient;
@@ -37,12 +36,11 @@ public final class Main extends Plugin
 	private final Datastore mainDataStore;
 	private final Morphia morphia;
 
-	private final MessengerServer messenger;
+	private final ServerMessenger serverMessenger;
 	private final ServerDataManager serverDataManager;
 	private final UserDataManager userDataManager;
 	private final Deployer deployer;
 	private final KeepAliveManager keepAliveManager;
-	private final PanelManager panelManager;
 	private final LogManager logManager;
 	private final UtilsListener utilsListener;
 	private final LobbyManager lobbyManager;
@@ -64,14 +62,13 @@ public final class Main extends Plugin
 		});
 		mainDataStore = morphia.createDatastore(mongoClient, "FcDeployer");
 
-		messenger = new MessengerServer();
+		serverMessenger = new ServerMessenger();
 		serverDataManager = new ServerDataManager();
 		userDataManager = new UserDataManager();
 		permsManager = new PermissionsManager();
 		deployer = new Deployer();
 		lobbyManager = new LobbyManager();
 		keepAliveManager = new KeepAliveManager();
-		panelManager = new PanelManager();
 		logManager = new LogManager();
 		utilsListener = new UtilsListener();
 
@@ -89,7 +86,7 @@ public final class Main extends Plugin
 		if (!dataFolder.exists() && !dataFolder.mkdirs())
 			throw new IllegalStateException("Cannot mkdirs data folder");
 
-		messenger.init();
+		serverMessenger.init();
 		serverDataManager.init();
 		userDataManager.init();
 		permsManager.init();
@@ -97,7 +94,6 @@ public final class Main extends Plugin
 		logManager.init();
 		lobbyManager.init();
 		keepAliveManager.init();
-		panelManager.init();
 		utilsListener.init();
 
 		getProxy().getPluginManager().registerCommand(this, new DispatchCommand());
@@ -108,13 +104,12 @@ public final class Main extends Plugin
 	@Override
 	public void onDisable()
 	{
-		messenger.stop();
+		serverMessenger.stop();
 		serverDataManager.stop();
 		userDataManager.stop();
 		deployer.stop();
 		lobbyManager.stop();
 		keepAliveManager.stop();
-		panelManager.stop();
 		logManager.stop();
 		utilsListener.stop();
 		mongoClient.close();

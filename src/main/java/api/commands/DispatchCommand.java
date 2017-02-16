@@ -38,7 +38,7 @@ public class DispatchCommand extends Command
 		}
 
 		server.getDeployer().sendCommand(backToString(1, args));*/
-		//server.getMessenger().sendPacket(new DispatchCommandPacket(backToString(1, args)));
+		//server.getServerMessenger().sendPacket(new DispatchCommandPacket(backToString(1, args)));
 	}
 
 	private static String backToString(int start, String[] args)

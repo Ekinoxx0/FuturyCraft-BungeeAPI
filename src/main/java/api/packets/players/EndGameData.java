@@ -1,10 +1,10 @@
 package api.packets.players;
 
-import api.packets.IncPacket;
+import api.packets.InPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.DataInputStream;
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +14,11 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class EndGameData extends IncPacket
+public class EndGameData extends InPacket
 {
 	private final List<RelativeData> players = new ArrayList<>();
 
-	public EndGameData(DataInputStream data) throws IOException
+	public EndGameData(DataInput data) throws IOException
 	{
 		super(data);
 
@@ -33,7 +33,7 @@ public class EndGameData extends IncPacket
 		private final long earnedFuturyCoins;
 		private final long earnedTurfuryCoins;
 
-		public RelativeData(DataInputStream data) throws IOException
+		public RelativeData(DataInput data) throws IOException
 		{
 			earnedFuturyCoins = data.readLong();
 			earnedTurfuryCoins = data.readLong();

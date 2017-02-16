@@ -3,7 +3,7 @@ package api.log;
 import api.Main;
 import api.data.Server;
 import api.events.PacketReceivedEvent;
-import api.packets.IncPacket;
+import api.packets.InPacket;
 import api.packets.server.KeepAlivePacket;
 import api.packets.server.ServerStatePacket;
 import api.utils.SimpleManager;
@@ -191,7 +191,7 @@ public final class KeepAliveManager implements SimpleManager
 		@EventHandler
 		public void onPacket(PacketReceivedEvent event)
 		{
-			IncPacket packet = event.getPacket();
+			InPacket packet = event.getPacket();
 			if (packet instanceof KeepAlivePacket)
 			{
 				Utils.doLocked
