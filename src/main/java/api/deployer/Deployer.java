@@ -99,7 +99,6 @@ public final class Deployer implements SimpleManager
 						portBindings.bind(tcpMc, Ports.Binding.bindPort(port));
 
 						UUID uuid = UUID.randomUUID();
-
 						File folder = new File(getConfig().getDeployerDir(), uuid.toString());
 						if (!folder.exists() && !folder.mkdir())
 							throw new IllegalStateException("Unable to cretate tmp folder for container " + folder
