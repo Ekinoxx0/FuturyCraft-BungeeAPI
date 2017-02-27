@@ -88,11 +88,7 @@ public final class UserDataManager implements SimpleManager
 	{
 		return ThreadLoops.newScheduledThreadLoop
 				(
-						() ->
-						{
-							for (UserData data : users.values())
-								saveData(data);
-						},
+						() -> users.values().forEach(this::saveData),
 						SAVE_DELAY,
 						TimeUnit.MILLISECONDS
 				);

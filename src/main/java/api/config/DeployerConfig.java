@@ -32,11 +32,4 @@ public class DeployerConfig
 		gson.excludeFieldsWithModifiers(Modifier.TRANSIENT);
 		return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
 	}
-
-//	public List<Template.LobbyTemplate> getLobbiesByType(LobbyType type)
-//	{
-//		return lobbies.stream()
-//				.filter(lobbyTemplate -> lobbyTemplate.getType() == type)
-//				.collect(Collectors.toList());
-//	}
 }
