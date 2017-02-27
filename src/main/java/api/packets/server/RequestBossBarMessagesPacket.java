@@ -8,9 +8,9 @@ import java.io.IOException;
 /**
  * Created by loucass003 on 2/4/17.
  */
-public class InBossBarMessages extends InPacket
+public class RequestBossBarMessagesPacket extends InPacket
 {
-	public InBossBarMessages(DataInput data) throws IOException
+	public RequestBossBarMessagesPacket(DataInput data) throws IOException
 	{
 		super(data);
 	}

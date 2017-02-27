@@ -1,10 +1,10 @@
 package api.data;
 
 import api.config.ServerPattern;
+import api.deployer.Deployer;
 import api.deployer.ServerState;
 import api.packets.OutPacket;
 import api.packets.ServerMessenger;
-import api.packets.server.KeepAlivePacket;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,9 +24,7 @@ public class Server
 	private final File tempFolder;
 	@Setter(AccessLevel.PACKAGE)
 	private ServerState serverState = ServerState.STARTING;
-
-	private long lastKeepAlive = -1;
-	private short[] lastTPS = new short[3];
+	private boolean paused;
 
 	public Server(String id, ServerPattern pattern, File tempFolder, ServerInfo info)
 	{
@@ -58,14 +56,9 @@ public class Server
 		return ServerDataManager.instance().getServer(id);
 	}
 
-	public void updateData(KeepAlivePacket keepAlivePacket)
-	{
-		lastKeepAlive = System.currentTimeMillis();
-		lastTPS = keepAlivePacket.getLastTPS();
-	}
-
 	/**
 	 * Get the name of the server.
+	 *
 	 * @return a human readable name for the server
 	 */
 	public String getName()
@@ -101,6 +94,35 @@ public class Server
 	public void sendPacket(OutPacket packet)
 	{
 		ServerMessenger.instance().sendPacket(id, packet);
+	}
+
+	/**
+	 * Set the pause state of the server.
+	 *
+	 * @param pause the pause state
+	 */
+	public void setPause(boolean pause)
+	{
+		if(pause) pause();
+		else unPause();
+	}
+
+	/**
+	 * Pause the server.
+	 */
+	public void pause()
+	{
+		Deployer.instance().getDockerClient().pauseContainerCmd(id);
+		paused = true;
+	}
+
+	/**
+	 * Un-pause the server.
+	 */
+	public void unPause()
+	{
+		Deployer.instance().getDockerClient().unpauseContainerCmd(id);
+		paused = false;
 	}
 
 }

@@ -3,137 +3,84 @@ package api.commands;
 import api.Main;
 import api.data.ServerDataManager;
 import api.packets.server.BossBarMessagesPacket;
-import api.utils.Utils;
 import api.utils.UtilsListener;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import fr.skybeast.commandcreator.Arg;
+import fr.skybeast.commandcreator.Command;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.plugin.Command;
 import org.bson.Document;
 
 /**
  * Created by loucass003 on 2/3/17.
  */
-public class BossBarMessageCommand extends Command
+@Command(value = "bossbar", permissions = "admin.bossbar", aliases = "bb")
+public final class BossBarMessageCommand
 {
 	@Getter
 	private static final MongoCollection<Document> COLLECTION = Main.getInstance().getMainDatabase()
 			.getCollection("bossBarMessages");
 
-	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /bossbar <add|rem|list>")
-			.color(ChatColor.RED).create();
-	private static final BaseComponent[] ADD_HELP = new ComponentBuilder("Usage: /bossbar add {time (s)} {message}")
-			.color(ChatColor.RED).create();
-	private static final BaseComponent[] LIST_HELP = new ComponentBuilder("Usage: /bossbar list")
-			.color(ChatColor.RED).create();
-	private static final BaseComponent[] REM_HELP = new ComponentBuilder("Usage: /bossbar rem {id}").color(ChatColor
-			.RED).create();
-
-	private static final BaseComponent[] NOT_A_NUMBER = new ComponentBuilder("Param used is not a number")
-			.color(ChatColor.RED).create();
-	private static final BaseComponent[] NOT_EXISTING = new ComponentBuilder("Message id does not exist !")
+	private static final BaseComponent[] NOT_EXISTING = new ComponentBuilder("Aucun message avec cet ID trouvé.")
 			.color(ChatColor.RED).create();
 
+	private static final BaseComponent[] MESSAGE_LIST_HEADER = new ComponentBuilder("Liste des messages:")
+			.color(ChatColor.GREEN).create();
 	private static final BaseComponent[] ADD_SUCCESS = new ComponentBuilder("Le message a bien été ajouté")
 			.color(ChatColor.GREEN).create();
 	private static final BaseComponent[] REM_SUCCESS = new ComponentBuilder("Le message a bien été supprimé")
 			.color(ChatColor.GREEN).create();
 
-	public BossBarMessageCommand()
+	@Command
+	public static void add(CommandSender sender,
+	                       @Arg(value = "temps", desc = "en secondes") int time,
+	                       @Arg("message") String... message)
 	{
-		super("bossbar", "admin.bossbar", "bb");
+		String fullMessage = String.join(" ", message);
+
+		addMessage(time, fullMessage);
+
+		ServerDataManager.instance().forEachServersByType(server ->
+				UtilsListener.instance().sendBossBarMessagesPacket(server), "lobby");
+
+		sender.sendMessage(ADD_SUCCESS);
 	}
 
-	@Override
-	public void execute(CommandSender sender, String[] args)
+	@Command
+	public static void list(CommandSender sender)
 	{
-		if (args.length < 1)
+		sender.sendMessage(MESSAGE_LIST_HEADER);
+
+		int count = 0;
+		for (Document doc : COLLECTION.find())
+			sender.sendMessage(new ComponentBuilder(count++ + " " + doc.get("time") +
+					" " + doc.get("message")).create());
+	}
+
+	@Command
+	public static void remove(CommandSender sender,
+	                          @Arg("ID") int offset)
+	{
+		Document fi = COLLECTION.find().limit(offset).skip(offset - 1).first();
+
+		if (fi == null)
 		{
-			sender.sendMessage(HELP);
+			sender.sendMessage(NOT_EXISTING);
 			return;
 		}
 
-		if ("add".equalsIgnoreCase(args[0]))
-		{
-			if (args.length < 3)
-			{
-				sender.sendMessage(ADD_HELP);
-				return;
-			}
+		UtilsListener.instance().removeBossBarMessage(offset - 1);
+		COLLECTION.deleteOne(fi);
+		ServerDataManager.instance().forEachServersByType(server ->
+				UtilsListener.instance().sendBossBarMessagesPacket(server), "lobby");
 
-			Integer time = Utils.isNumeric(args[1]);
-			if (time == null)
-			{
-				sender.sendMessage(NOT_A_NUMBER);
-				return;
-			}
-
-			StringBuilder sb = new StringBuilder();
-			for (int i = 2; i < args.length; i++)
-				sb.append(args[i]).append(i == args.length - 1 ? "" : " ");
-			addMessage(time, sb.toString().trim());
-
-			ServerDataManager.instance().forEachServersByType(server ->
-							UtilsListener.instance().sendBossBarMessagesPacket(server),
-					"lobby"
-			);
-			sender.sendMessage(ADD_SUCCESS);
-		}
-		else if ("list".equalsIgnoreCase(args[0]))
-		{
-			sender.sendMessage(new ComponentBuilder("Liste des messages :").color(ChatColor.GREEN).create());
-
-			int count = 0;
-			FindIterable<Document> fi = COLLECTION.find();
-			for (Document doc : fi)
-			{
-				count++;
-				ComponentBuilder builder = new ComponentBuilder(String.valueOf(count));
-				builder.append(" " + doc.get("time"));
-				builder.append(" " + doc.get("message"));
-				sender.sendMessage(builder.create());
-			}
-		}
-		else if ("rem".equalsIgnoreCase(args[0]))
-		{
-			if (args.length != 2)
-			{
-				sender.sendMessage(REM_HELP);
-				return;
-			}
-
-			Integer offset = Utils.isNumeric(args[1]);
-			if (offset == null)
-			{
-				sender.sendMessage(NOT_A_NUMBER);
-				return;
-			}
-
-			Document fi = COLLECTION.find().limit(offset).skip(offset - 1).first();
-
-			if (fi == null)
-			{
-				sender.sendMessage(NOT_EXISTING);
-				return;
-			}
-
-			UtilsListener.instance().removeBossBarMessage(offset - 1);
-			COLLECTION.deleteOne(fi);
-			sender.sendMessage(REM_SUCCESS);
-			ServerDataManager.instance().forEachServersByType(server ->
-							UtilsListener.instance().sendBossBarMessagesPacket(server),
-					"lobby"
-			);
-		}
-		else
-			sender.sendMessage(HELP);
+		sender.sendMessage(REM_SUCCESS);
 	}
 
-	public void addMessage(int time, String message)
+	private static void addMessage(int time, String message)
 	{
 		Document doc = new Document();
 		doc.put("time", time);
@@ -141,4 +88,6 @@ public class BossBarMessageCommand extends Command
 		COLLECTION.insertOne(doc);
 		UtilsListener.instance().addBossBarMessage(new BossBarMessagesPacket.MessageData(message, time));
 	}
+
+	private BossBarMessageCommand() {}
 }

@@ -13,6 +13,8 @@ import java.lang.reflect.Type;
  */
 public class FileAdapter implements JsonDeserializer<File>
 {
+	public static final FileAdapter INSTANCE = new FileAdapter();
+
 	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 			throws JsonParseException
 	{

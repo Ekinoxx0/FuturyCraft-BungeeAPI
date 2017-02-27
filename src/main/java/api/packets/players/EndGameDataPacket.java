@@ -14,11 +14,11 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class EndGameData extends InPacket
+public class EndGameDataPacket extends InPacket
 {
 	private final List<RelativeData> players = new ArrayList<>();
 
-	public EndGameData(DataInput data) throws IOException
+	public EndGameDataPacket(DataInput data) throws IOException
 	{
 		super(data);
 

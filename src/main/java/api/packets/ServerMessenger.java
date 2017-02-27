@@ -25,7 +25,7 @@ import java.util.logging.Level;
 public final class ServerMessenger implements SimpleManager
 {
 	private static final String INCOMING_QUEUE = "BungeeCord";
-	private static final String OUTGOING_EXCHANGER = "servers";
+	private static final String EXCHANGER = "servers";
 	private Connection connection;
 	private Channel channel;
 	private MessageHandler consumer;
@@ -38,6 +38,7 @@ public final class ServerMessenger implements SimpleManager
 		connection = factory.newConnection();
 		channel = connection.createChannel();
 		channel.queueDeclare(INCOMING_QUEUE, false, false, false, null);
+		channel.exchangeDeclare(EXCHANGER, "direct");
 		consumer = new MessageHandler();
 		channel.basicConsume(INCOMING_QUEUE, true, consumer);
 	}
@@ -45,6 +46,17 @@ public final class ServerMessenger implements SimpleManager
 	public static ServerMessenger instance()
 	{
 		return Main.getInstance().getServerMessenger();
+	}
+
+	@Override
+	public void stop()
+	{
+		try
+		{
+			channel.close();
+			connection.close();
+		}
+		catch (IOException | TimeoutException ignored) {}
 	}
 
 	/**
@@ -77,7 +89,7 @@ public final class ServerMessenger implements SimpleManager
 	{
 		// Header
 		ByteArrayDataOutput out = ByteStreams.newDataOutput();
-		out.writeByte(Packets.getId(packet.getClass()));
+		out.writeByte(Packets.getID(packet.getClass()));
 
 		// Packet
 		byte[] raw = serializeRawPacket(packet);
@@ -112,18 +124,7 @@ public final class ServerMessenger implements SimpleManager
 	private void send(String serverID, byte[] message)
 			throws IOException
 	{
-		channel.basicPublish(OUTGOING_EXCHANGER, serverID, null, message);
-	}
-
-	@Override
-	public void stop()
-	{
-		try
-		{
-			channel.close();
-			connection.close();
-		}
-		catch (IOException | TimeoutException ignored) {}
+		channel.basicPublish(EXCHANGER, serverID, null, message);
 	}
 
 	/**
@@ -151,7 +152,7 @@ public final class ServerMessenger implements SimpleManager
 
 			Server server = ServerDataManager.instance().getServer(serverID);
 
-			Main.callEvent(new PacketReceivedEvent(null, packet));
+			Main.callEvent(new PacketReceivedEvent(server, packet));
 		}
 	}
 

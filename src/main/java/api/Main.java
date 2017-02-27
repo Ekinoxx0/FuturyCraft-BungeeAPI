@@ -7,13 +7,13 @@ import api.data.UserData;
 import api.data.UserDataManager;
 import api.deployer.Deployer;
 import api.lobby.LobbyManager;
-import api.log.KeepAliveManager;
 import api.log.LogManager;
 import api.packets.ServerMessenger;
 import api.perms.PermissionsManager;
 import api.utils.UtilsListener;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import fr.skybeast.commandcreator.CommandCreator;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.java.Log;
@@ -46,7 +46,6 @@ public final class Main extends Plugin
 	private final ServerDataManager serverDataManager;
 	private final UserDataManager userDataManager;
 	private final Deployer deployer;
-	private final KeepAliveManager keepAliveManager;
 	private final LogManager logManager;
 	private final UtilsListener utilsListener;
 	private final LobbyManager lobbyManager;
@@ -75,7 +74,6 @@ public final class Main extends Plugin
 		permissionsManager = new PermissionsManager();
 		deployer = new Deployer();
 		lobbyManager = new LobbyManager();
-		keepAliveManager = new KeepAliveManager();
 		logManager = new LogManager();
 		utilsListener = new UtilsListener();
 
@@ -100,11 +98,10 @@ public final class Main extends Plugin
 		deployer.start();
 		logManager.start();
 		lobbyManager.start();
-		keepAliveManager.start();
 		utilsListener.start();
 
-		registerCommand(new GroupCommand());
-		registerCommand(new BossBarMessageCommand());
+		registerCommand(GroupCommand.class);
+		registerCommand(BossBarMessageCommand.class);
 		log.info("FcApiBungee enabled!");
 	}
 
@@ -116,7 +113,6 @@ public final class Main extends Plugin
 		userDataManager.stop();
 		deployer.stop();
 		lobbyManager.stop();
-		keepAliveManager.stop();
 		logManager.stop();
 		utilsListener.stop();
 		mongoClient.close();
@@ -135,5 +131,10 @@ public final class Main extends Plugin
 	public static void registerCommand(Command command)
 	{
 		ProxyServer.getInstance().getPluginManager().registerCommand(instance, command);
+	}
+
+	public static void registerCommand(Class<?> command)
+	{
+		CommandCreator.registerCommands(command, instance);
 	}
 }

@@ -7,6 +7,7 @@ import api.config.Variant;
 import api.data.Server;
 import api.data.UserData;
 import api.deployer.Deployer;
+import api.deployer.ServerState;
 import api.events.DeployerConfigReloadEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
@@ -70,13 +71,28 @@ public final class LobbyManager implements SimpleManager
 		loadConfig();
 
 		deployLobby(false, server -> acceptLobby = server);
-		deployLobby(false, server -> waitingLobby = server);
+		deployLobby(false, server -> waitingLobby = pause(server));
 
 		deployLobby(true, server -> vipAcceptLobby = server);
-		deployLobby(true, server -> vipWaitingLobby = server);
+		deployLobby(true, server -> vipWaitingLobby = pause(server));
 	}
 
-	public void loadConfig()
+	/**
+	 * Pause a server.
+	 *
+	 * @param server the server
+	 * @return the server
+	 */
+	private Server pause(Server server)
+	{
+		server.pause();
+		return server;
+	}
+
+	/**
+	 * Load the configuration.
+	 */
+	private void loadConfig()
 	{
 		serverConfig = getConfig("normal");
 		vipServerConfig = getConfig("vip");
@@ -84,6 +100,12 @@ public final class LobbyManager implements SimpleManager
 		maxSlots = Deployer.instance().getConfig().getMaxSlots();
 	}
 
+	/**
+	 * Get the configuration for a lobby type.
+	 *
+	 * @param lobbyType the lobby type
+	 * @return the server configuration
+	 */
 	private ServerConfig getConfig(String lobbyType)
 	{
 		List<ServerConfig> configs = ServerConfig.getByLabels(
@@ -97,6 +119,11 @@ public final class LobbyManager implements SimpleManager
 		return configs.get(0);
 	}
 
+	/**
+	 * Get the next variant for normal lobbies.
+	 *
+	 * @return the next variant
+	 */
 	private Variant getNextVariant()
 	{
 		counter++;
@@ -106,6 +133,11 @@ public final class LobbyManager implements SimpleManager
 		return serverConfig.getVariants().get(counter);
 	}
 
+	/**
+	 * Get the next variant for VIP lobbies.
+	 *
+	 * @return the next variant
+	 */
 	private Variant getNextVIPVariant()
 	{
 		vipCounter++;
@@ -115,18 +147,31 @@ public final class LobbyManager implements SimpleManager
 		return vipServerConfig.getVariants().get(vipCounter);
 	}
 
+	/**
+	 * Change accepting lobby, waiting lobby.
+	 */
 	private void changeAcceptLobby()
 	{
+		waitingLobby.unPause();
 		acceptLobby = waitingLobby;
-		deployLobby(false, server -> waitingLobby = server);
+		deployLobby(false, server -> waitingLobby = pause(server));
 	}
 
+	/**
+	 * Change accepting vip lobby, vip waiting lobby.
+	 */
 	private void changeVIPAcceptLobby()
 	{
+		vipWaitingLobby.unPause();
 		vipAcceptLobby = vipWaitingLobby;
-		deployLobby(true, server -> vipWaitingLobby = server);
+		deployLobby(true, server -> vipWaitingLobby = pause(server));
 	}
 
+	/**
+	 * Schedule the warning message for a server.
+	 *
+	 * @param server the server
+	 */
 	private void scheduleWarn(Server server)
 	{
 		executorService.schedule
@@ -143,6 +188,11 @@ public final class LobbyManager implements SimpleManager
 				);
 	}
 
+	/**
+	 * Schedule the stop task for a server.
+	 *
+	 * @param server the server
+	 */
 	private void scheduleStop(Server server)
 	{
 		executorService.schedule
@@ -167,6 +217,12 @@ public final class LobbyManager implements SimpleManager
 				);
 	}
 
+	/**
+	 * Try to connect a player to acceptLobby.
+	 *
+	 * @param player the player
+	 * @return true if connected
+	 */
 	private boolean tryConnect(ProxiedPlayer player)
 	{
 		if (acceptLobby == null || !acceptLobby.getServerState().canAcceptPlayers())
@@ -179,11 +235,17 @@ public final class LobbyManager implements SimpleManager
 		return true;
 	}
 
+	/**
+	 * Deploy a new lobby.
+	 *
+	 * @param vip      true if the lobby will be VIP
+	 * @param callback the callback which will be called when the server is ready to accept players
+	 */
 	private void deployLobby(boolean vip, Callback<Server> callback)
 	{
 		Deployer.instance()
 				.deployServer(vip ? ServerPattern.of(vipServerConfig, getNextVIPVariant()) :
-						ServerPattern.of(serverConfig, getNextVariant()), callback);
+						ServerPattern.of(serverConfig, getNextVariant()), callback, ServerState.READY);
 	}
 
 	private void undeployLobby(Server server)

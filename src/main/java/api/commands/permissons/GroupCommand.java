@@ -1,92 +1,36 @@
 package api.commands.permissons;
 
+import api.commands.ChatSerializer;
 import api.perms.Group;
 import api.perms.PermissionsManager;
+import fr.skybeast.commandcreator.*;
 import gnu.trove.list.array.TIntArrayList;
+import lombok.AllArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.chat.TextComponent;
 
 /**
  * Created by loucass003 on 2/5/17.
  */
-public class GroupCommand extends Command
+@Command(value = "group", permissions = "admin.group")
+public final class GroupCommand
 {
-	private static final BaseComponent[] HELP = new ComponentBuilder("Usage: /group <add|set|rem|list|perm|member>")
+	private static final BaseComponent[] GROUP_ALREADY_EXIST = new ComponentBuilder("Ce group éxiste déjà !")
 			.color(ChatColor.RED).create();
-	private static final BaseComponent[] HELP_ADD = new ComponentBuilder("Usage: /group add {name} {prefix} {suffix}" +
-			" " +
-			"{chatcolor} {color}").color(ChatColor.RED).create();
-	private static final BaseComponent[] HELP_LIST = new ComponentBuilder("Usage: /group list").color(ChatColor.RED)
-			.create();
-	private static final BaseComponent[] HELP_REM = new ComponentBuilder("Usage: /group rem {name}").color(ChatColor
-			.RED).create();
-	private static final BaseComponent[] HELP_SET = new ComponentBuilder("Usage: /group set {name} " +
-			"<prefix|suffix|chatcolor|color> {value}").color(ChatColor.RED).create();
-	private static final BaseComponent[] HELP_PERM = new ComponentBuilder("Usage: /group perm {name} <add|rem|list> " +
-			"{perm}").color(ChatColor.RED).create();
-	private static final BaseComponent[] HELP_MEMBER = new ComponentBuilder("Usage: /group member {name} " +
-			"<add|rem|list> {player}").color(ChatColor.RED).create();
+	private static final BaseComponent[] GROUP_LIST = new ComponentBuilder("Liste des groupes:")
+			.color(ChatColor.GREEN).create();
 
-	private static final BaseComponent[] GROUP_ALREADY_EXIST = new ComponentBuilder("This group already exist!").color
-			(ChatColor.RED).create();
-	private static final BaseComponent[] GROUP_NOT_EXIST = new ComponentBuilder("This group does not exist!").color
-			(ChatColor.RED).create();
-
-	private static final BaseComponent[] SETTER_NOT_EXIST = new ComponentBuilder("Setter does not exist!").color
-			(ChatColor.RED).create();
-
-	public GroupCommand()
+	@Command
+	public static void add(CommandSender sender,
+	                       @Arg("nom") String name,
+	                       @Serial(ChatSerializer.class) @Arg("prefix") String prefix,
+	                       @Serial(ChatSerializer.class) @Arg("suffix") String suffix,
+	                       @Serial(ChatSerializer.class) @Arg("couleur de chat") String chatcolor,
+	                       @Serial(ChatSerializer.class) @Arg("couleur") String color)
 	{
-		super("group", "admin.group");
-	}
-
-	@Override
-	public void execute(CommandSender sender, String[] args)
-	{
-		if (args.length < 1 || args.length == 1 && "help".equalsIgnoreCase(args[0]))
-		{
-			sender.sendMessage(HELP);
-			return;
-		}
-
-		switch (args[0].toLowerCase())
-		{
-			case "add":
-				addGroup(sender, args);
-				break;
-			case "set":
-				setGroup(sender, args);
-				break;
-			case "rem":
-				remGroup(sender, args);
-				break;
-			case "list":
-				listGroups(sender);
-				break;
-			case "perm":
-				permGroup(sender, args);
-				break;
-			case "members":
-				membersGroup(sender, args);
-				break;
-			default:
-				sender.sendMessage(HELP);
-				break;
-		}
-	}
-
-	private void addGroup(CommandSender sender, String[] args)
-	{
-		if (args.length != 6)
-		{
-			sender.sendMessage(HELP_ADD);
-			return;
-		}
-
-		String name = args[1];
 
 		if (PermissionsManager.instance().getGroupByName(name) != null)
 		{
@@ -94,106 +38,88 @@ public class GroupCommand extends Command
 			return;
 		}
 
-		String prefix = args[2].replace("&", "§");
-		String suffix = args[3].replace("&", "§");
-		String chatColor = args[4].replace("&", "§");
-		String color = args[5].replace("&", "§");
-
 		PermissionsManager.instance().addGroup(new Group(name, prefix, suffix, new TIntArrayList(), color,
-				chatColor));
+				chatcolor));
 	}
 
-	private void setGroup(CommandSender sender, String[] args)
+	@Command
+	public static void set(CommandSender sender,
+	                       @Serial(GroupSerializer.class) @Arg("groupe") Group group,
+	                       @Arg("champ") GroupField field,
+	                       @Serial(ChatSerializer.class) @Arg("valeur") String value)
 	{
-		if (args.length != 4)
+		switch (field)
 		{
-			sender.sendMessage(HELP_SET);
-			return;
-		}
-
-		Group group = PermissionsManager.instance().getGroupByName(args[1]);
-
-		if (group == null)
-		{
-			sender.sendMessage(GROUP_NOT_EXIST);
-			return;
-		}
-
-		String var = args[2];
-		String value = args[3];
-
-		if ("prefix".equalsIgnoreCase(var))
-			group.setPrefix(value);
-		else if ("suffix".equalsIgnoreCase(var))
-			group.setSuffix(value);
-		else if ("color".equalsIgnoreCase(var))
-			group.setColor(value);
-		else if ("chatcolor".equalsIgnoreCase(var))
-			group.setChatColor(value);
-		else
-		{
-			sender.sendMessage(SETTER_NOT_EXIST);
-			return;
+			case PREFIX:
+				group.setPrefix(value);
+				break;
+			case SUFFIX:
+				group.setSuffix(value);
+				break;
+			case COLOR:
+				group.setColor(value);
+				break;
+			case CHATCOLOR:
+				group.setChatColor(value);
+				break;
 		}
 
 		PermissionsManager.instance().updateGroup(group);
 	}
 
-	private void remGroup(CommandSender sender, String[] args)
+	@Command
+	public static void remove(CommandSender sender,
+	                          @Serial(GroupSerializer.class) @Arg("groupe") Group group)
 	{
-		if (args.length != 2)
-		{
-			sender.sendMessage(HELP_REM);
-			return;
-		}
-
-		Group group = PermissionsManager.instance().getGroupByName(args[1]);
-
-		if (group == null)
-		{
-			sender.sendMessage(GROUP_NOT_EXIST);
-			return;
-		}
-
 		PermissionsManager.instance().remGroup(group);
 	}
 
-	private void listGroups(CommandSender sender)
+	@Command
+	public static void list(CommandSender sender)
 	{
-		sender.sendMessage(new ComponentBuilder("Liste des groupes :").color(ChatColor.GREEN).create());
+		sender.sendMessage(GROUP_LIST);
 
 		PermissionsManager.instance().getGroups().forEach(g ->
-				sender.sendMessage(new ComponentBuilder("name: ")
-						.append(g.getName())
-						.append(" displayName: ")
-						.append(g.getColor())
-						.append(g.getPrefix())
-						.append(g.getName())
-						.append(g.getSuffix())
-						.create()
-				)
+				sender.sendMessage(new TextComponent("nom: " + g.getName() + " affichage: " +
+						g.getColor() + g.getPrefix() + g.getName() + g.getSuffix()))
 		);
 	}
 
-	private void permGroup(CommandSender sender, String[] args)
+	public static class GroupSerializer implements CommandSerializer<Group>
 	{
-		if (args.length != 4)
+		@Override
+		public Group serialize(String arg) throws CommandSerializationException
 		{
-			sender.sendMessage(HELP_PERM);
-			return;
+			Group group = PermissionsManager.instance().getGroupByName(arg);
+
+			if (group == null)
+				throw new CommandSerializationException("Impossible de trouver le groupe " + arg);
+			return group;
 		}
 
-
-	}
-
-	private void membersGroup(CommandSender sender, String[] args)
-	{
-		if (args.length != 4)
+		@Override
+		public String valueType()
 		{
-			sender.sendMessage(HELP_MEMBER);
-			return;
+			return "Group";
 		}
-
-
 	}
+
+	@AllArgsConstructor
+	public enum GroupField
+	{
+		PREFIX("prefix"),
+		SUFFIX("suffix"),
+		COLOR("color"),
+		CHATCOLOR("chatcolor");
+
+		private final String name;
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	private GroupCommand() {}
 }

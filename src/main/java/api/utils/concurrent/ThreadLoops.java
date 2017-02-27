@@ -218,7 +218,7 @@ public final class ThreadLoops
 		@Override
 		public boolean isAlive()
 		{
-			return !SCHEDULED_EXECUTOR_SERVICE.isShutdown();
+			return started;
 		}
 	}
 

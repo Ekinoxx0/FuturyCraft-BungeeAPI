@@ -6,23 +6,11 @@ package api.utils.concurrent;
  */
 public class ThreadLoopException extends RuntimeException
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	public ThreadLoopException() {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public ThreadLoopException(String var1) {super(var1);}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public ThreadLoopException(String var1, Throwable var2) {super(var1, var2);}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public ThreadLoopException(Throwable var1) {super(var1);}
 }

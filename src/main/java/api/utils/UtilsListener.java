@@ -8,7 +8,7 @@ import api.events.PacketReceivedEvent;
 import api.events.PlayerConnectToServerEvent;
 import api.events.PlayerDisconnectFromServerEvent;
 import api.packets.server.BossBarMessagesPacket;
-import api.packets.server.InBossBarMessages;
+import api.packets.server.RequestBossBarMessagesPacket;
 import com.mongodb.client.FindIterable;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -111,7 +111,7 @@ public final class UtilsListener implements SimpleManager, Listener
 	@EventHandler
 	public void onReceivePacket(PacketReceivedEvent e)
 	{
-		if (e.getPacket() instanceof InBossBarMessages)
+		if (e.getPacket() instanceof RequestBossBarMessagesPacket)
 		{
 
 			if (bossBarMessages.isEmpty())

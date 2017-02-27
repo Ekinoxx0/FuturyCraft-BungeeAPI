@@ -13,6 +13,10 @@
             <id>bungeecord-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>skybeast-repo</id>
+            <url>https://dl.bintray.com/skybeastmc/maven</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -65,6 +69,11 @@
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
             <version>4.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.skybeast</groupId>
+            <artifactId>commandcreator-api</artifactId>
+            <version>1.1</version>
         </dependency>
     </dependencies>
 

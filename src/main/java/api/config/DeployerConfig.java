@@ -28,7 +28,7 @@ public class DeployerConfig
 	public static DeployerConfig load(File f)
 	{
 		GsonBuilder gson = new GsonBuilder();
-		gson.registerTypeAdapter(File.class, new FileAdapter());
+		gson.registerTypeAdapter(File.class, FileAdapter.INSTANCE);
 		gson.excludeFieldsWithModifiers(Modifier.TRANSIENT);
 		return gson.create().fromJson(Utils.readFile(f), DeployerConfig.class);
 	}
