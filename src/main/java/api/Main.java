@@ -51,6 +51,7 @@ public final class Main extends Plugin
 	private final LobbyManager lobbyManager;
 	private final PermissionsManager permissionsManager;
 
+	
 	public Main()
 	{
 		instance = this;
