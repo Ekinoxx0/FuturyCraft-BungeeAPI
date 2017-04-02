@@ -240,7 +240,6 @@ public final class Deployer implements SimpleManager
 				waitingForResponse.remove(from);
 				callback.callback.response(from);
 			}
-
 		}
 	}
 

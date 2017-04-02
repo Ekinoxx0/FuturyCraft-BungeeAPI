@@ -34,8 +34,11 @@ public final class ServerMessenger implements SimpleManager
 	public void init() throws IOException, TimeoutException
 	{
 		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("localhost");
+		factory.setHost("172.17.0.1");
+		factory.setUsername("fc");
+		factory.setPassword("fc_I<3Unicorns");
 		connection = factory.newConnection();
+		log.log(Level.INFO, "Connected to RabbitMq");
 		channel = connection.createChannel();
 		channel.queueDeclare(INCOMING_QUEUE, false, false, false, null);
 		channel.exchangeDeclare(EXCHANGER, "direct");
@@ -89,7 +92,7 @@ public final class ServerMessenger implements SimpleManager
 	{
 		// Header
 		ByteArrayDataOutput out = ByteStreams.newDataOutput();
-		out.writeByte(Packets.getID(packet.getClass()));
+		out.writeByte(Packets.getId(packet.getClass()));
 
 		// Packet
 		byte[] raw = serializeRawPacket(packet);
@@ -151,7 +154,7 @@ public final class ServerMessenger implements SimpleManager
 			InPacket packet = deserializePacket(in);
 
 			Server server = ServerDataManager.instance().getServer(serverID);
-
+			System.out.println("call message -> " + packet + " " + server);
 			Main.callEvent(new PacketReceivedEvent(server, packet));
 		}
 	}

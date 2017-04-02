@@ -13,6 +13,8 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import lombok.ToString;
 import lombok.extern.java.Log;
+import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.event.EventHandler;
 import org.bson.Document;
 
 import java.util.List;
@@ -32,6 +34,8 @@ public final class PermissionsManager implements SimpleManager
 
 	private static final List<Group> GROUPS = new CopyOnWriteArrayList<>();
 	private TIntObjectMap<String> perms;
+
+	private final Listen listener = new Listen();
 
 	@Override
 	public void init()
@@ -117,5 +121,16 @@ public final class PermissionsManager implements SimpleManager
 	public TIntObjectMap<String> getPerms()
 	{
 		return perms;
+	}
+
+	private class Listen implements Listener
+	{
+		private Listen() {}
+
+		@EventHandler
+		public void onGroupUpdated(GroupUpdatedEvent e)
+		{
+			//Main.getInstance().getServerMessenger();
+		}
 	}
 }

@@ -74,6 +74,7 @@
             <groupId>fr.skybeast</groupId>
             <artifactId>commandcreator-api</artifactId>
             <version>1.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
