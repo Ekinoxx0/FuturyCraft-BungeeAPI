@@ -50,9 +50,10 @@ public final class Main extends Plugin
 	private final UtilsListener utilsListener;
 	private final LobbyManager lobbyManager;
 	private final PermissionsManager permissionsManager;
-	
+
 	public Main()
 	{
+		
 		instance = this;
 		mongoClient = new MongoClient();
 		mainDatabase = mongoClient.getDatabase("FcDeployer");
